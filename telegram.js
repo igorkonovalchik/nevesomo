@@ -1,4 +1,4 @@
-// telegram.js – вся логика Telegram Mini‑App
+// telegram.js – вся логика Telegram Mini‑App
 // Подключается ПЕРЕД script.js в index.html
 // --------------------------------------------------
 (() => {
@@ -10,48 +10,36 @@
   const tg = window.Telegram?.WebApp;
   const telegramUser = tg?.initDataUnsafe?.user || null;
 
-  /* === Функция блюра доступа === */
+  /* === Функция блокировки доступа === */
   function toggleAccessOverlay(show = true) {
     const ov = document.getElementById('accessOverlay');
     if (!ov) return;
-    ov.classList[show ? 'add' : 'remove']('show');
+    ov.style.display = show ? 'flex' : 'none';
   }
 
-  /* === Ждём, когда данные и DOM будут готовы === */
-  function waitForData() {
-    if (!telegramUser) {
-      // Открыто в браузере, а не в Telegram → ничего не блокируем
-      toggleAccessOverlay(false);
-      return;
+  /* === Автоматическая тема из Telegram === */
+  function applyTelegramTheme() {
+    if (tg?.colorScheme) {
+      // Telegram передает 'dark' или 'light'
+      document.documentElement.setAttribute('data-theme', tg.colorScheme);
+      localStorage.setItem('theme', tg.colorScheme);
+      
+      const themeToggle = document.querySelector('.theme-toggle');
+      if (themeToggle) {
+        themeToggle.textContent = tg.colorScheme === 'light' ? '🌙' : '☀️';
+      }
     }
-
-    if (!window.participants || !Array.isArray(window.participants) || window.participants.length === 0) {
-      // Airtable ещё не загрузился – проверяем позже
-      return setTimeout(waitForData, 300);
-    }
-
-    applyAccess();
   }
 
   /* === Основная логика доступа === */
   function applyAccess() {
     const participants = window.participants;
-
-    // 1. большое «Привет, …» под шапкой
-    const bigGreet = document.getElementById('bigGreeting');
-    if (bigGreet) bigGreet.textContent = `Привет, ${match.name}!`;
     
-    // 2. прячем селектор участника (он нужен лишь в веб-версии)
-    document.getElementById('userSelector')?.style.setProperty('display', 'none');
-    
-    // 3. ставим выбранного пользователя в скрытый select,
-    //    чтобы остальной код не ломался
-    document.getElementById('currentUser').value = match.name;
-
     // Ищем участника по Telegram_ID или username
     const match = participants.find(p => {
       const idOK = p.telegramId && p.telegramId.toString() === telegramUser.id.toString();
-      const userOK = p.telegram && telegramUser.username && p.telegram.replace('@', '') === telegramUser.username;
+      const userOK = p.telegram && telegramUser.username && 
+                     p.telegram.replace('@', '').toLowerCase() === telegramUser.username.toLowerCase();
       return idOK || userOK;
     });
 
@@ -61,26 +49,103 @@
       return;
     }
 
-    // Приветствие
-    const greetingEl = document.getElementById('greetingName');
-    if (greetingEl) greetingEl.textContent = match.name;
-
-    // Выставляем текущего пользователя в селекторе (если он существует)
+    // Снимаем блокировку
+    toggleAccessOverlay(false);
+    
+    // 1. Большое приветствие под шапкой
+    const bigGreet = document.getElementById('bigGreeting');
+    if (bigGreet) {
+      bigGreet.textContent = `Привет, ${match.name}!`;
+      bigGreet.style.display = 'block';
+    }
+    
+    // 2. Прячем селектор участника
+    const userSelector = document.getElementById('userSelector');
+    if (userSelector) {
+      userSelector.style.display = 'none';
+    }
+    
+    // 3. Выставляем текущего пользователя
     const userSelect = document.getElementById('currentUser');
-    if (userSelect) userSelect.value = match.name;
-
-    // Определяем режим (admin / participant)
-    const isAdmin = match.isAdmin || telegramUser.id === ADMIN_ID || telegramUser.username === ADMIN_USERNAME;
-    if (typeof window.setMode === 'function') {
-      window.setMode(isAdmin ? 'admin' : 'user');
+    if (userSelect) {
+      userSelect.value = match.name;
+      // Сохраняем в глобальную переменную для script.js
+      window.currentUser = match.name;
     }
 
-    toggleAccessOverlay(false);
+    // 4. Определяем режим (admin / user)
+    const isAdmin = match.isAdmin || 
+                    telegramUser.id === ADMIN_ID || 
+                    telegramUser.username === ADMIN_USERNAME;
+    
+    // Сохраняем режим в глобальную переменную
+    window.currentMode = isAdmin ? 'admin' : 'user';
+    
+    // Вызываем функции из script.js если они уже загружены
+    if (typeof window.setMode === 'function') {
+      window.setMode(window.currentMode);
+    }
+    
+    if (typeof window.updateView === 'function') {
+      window.updateView();
+    }
+    
+    if (typeof window.updateMenu === 'function') {
+      window.updateMenu();
+    }
+  }
+
+  /* === Ждём, когда данные и DOM будут готовы === */
+  function waitForData() {
+    if (!telegramUser) {
+      // Открыто в браузере, а не в Telegram
+      toggleAccessOverlay(false);
+      
+      // Показываем селектор для веб-версии
+      const userSelector = document.getElementById('userSelector');
+      if (userSelector) {
+        userSelector.style.display = 'block';
+      }
+      return;
+    }
+
+    if (!window.participants || !Array.isArray(window.participants) || window.participants.length === 0) {
+      // Airtable ещё не загрузился – проверяем позже
+      setTimeout(waitForData, 300);
+      return;
+    }
+
+    // Применяем тему из Telegram
+    applyTelegramTheme();
+    
+    // Применяем доступ
+    applyAccess();
   }
 
   /* === Стартуем после полной загрузки === */
   document.addEventListener('DOMContentLoaded', () => {
-    // Телеграм может прислать событие готовыности (необязательно), поэтому просто запускаем
+    // Инициализируем Telegram WebApp
+    if (tg) {
+      tg.ready();
+      tg.expand(); // Разворачиваем на весь экран
+    }
+    
+    // Начинаем проверку доступа
     waitForData();
   });
+  
+  // Экспортируем функции для использования в других скриптах
+  window.telegramUtils = {
+    toggleAccessOverlay,
+    applyTelegramTheme,
+    telegramUser,
+    tg
+  };
+  
+  // Слушаем изменения темы в Telegram
+  if (tg) {
+    tg.onEvent('themeChanged', () => {
+      applyTelegramTheme();
+    });
+  }
 })();
