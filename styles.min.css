@@ -703,3 +703,185 @@ body {
 [data-theme="dark"] .stat-separator {
     background: var(--border-color);
 }
+
+/* Компактные карточки шифтов в одну строку */
+.schedule-item-compact {
+    background: var(--bg-secondary);
+    padding: 14px 18px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: auto;
+}
+
+.schedule-item-compact:hover {
+    background: var(--bg-tertiary);
+    transform: translateY(-1px);
+}
+
+.schedule-compact-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0; /* Для правильного truncate */
+}
+
+.schedule-compact-time {
+    font-weight: 600;
+    color: var(--accent-primary);
+    font-size: 1rem;
+    flex-shrink: 0;
+    min-width: 45px;
+}
+
+.schedule-compact-details {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.schedule-compact-role {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.schedule-compact-separator {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.schedule-compact-type {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.schedule-compact-arrow {
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.schedule-compact-arrow:hover {
+    color: var(--accent-primary);
+    background: rgba(var(--accent-primary-rgb, 24, 119, 232), 0.1);
+}
+
+/* Альтернативный вариант с точками */
+.schedule-item-compact.dots-style .schedule-compact-details {
+    gap: 6px;
+}
+
+.schedule-item-compact.dots-style .schedule-compact-separator::before {
+    content: '•';
+    color: var(--text-secondary);
+    font-weight: bold;
+}
+
+/* Очень компактный вариант для мобильных */
+@media (max-width: 480px) {
+    .schedule-item-compact {
+        padding: 12px 16px;
+        gap: 8px;
+    }
+    
+    .schedule-compact-info {
+        gap: 8px;
+    }
+    
+    .schedule-compact-time {
+        font-size: 0.9rem;
+        min-width: 40px;
+    }
+    
+    .schedule-compact-role {
+        font-size: 0.85rem;
+    }
+    
+    .schedule-compact-type {
+        font-size: 0.75rem;
+    }
+    
+    /* На мобильных можем скрыть тип сессии если места совсем мало */
+    .schedule-compact-type.mobile-hidden {
+        display: none;
+    }
+}
+
+/* Стиль для очень длинных названий ролей */
+.schedule-compact-role.long {
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Темная тема */
+[data-theme="dark"] .schedule-item-compact {
+    background: var(--bg-secondary);
+}
+
+[data-theme="dark"] .schedule-item-compact:hover {
+    background: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .schedule-compact-arrow:hover {
+    background: rgba(var(--accent-primary-rgb, 58, 175, 236), 0.15);
+}
+
+/* Дополнительные варианты компоновки */
+
+/* Вариант 1: Время | Роль • Тип */
+.schedule-item-compact.style-1 .schedule-compact-details::before {
+    content: '|';
+    color: var(--text-secondary);
+    margin: 0 4px;
+}
+
+/* Вариант 2: Время - Роль (Тип) */
+.schedule-item-compact.style-2 .schedule-compact-details {
+    gap: 4px;
+}
+
+.schedule-item-compact.style-2 .schedule-compact-type::before {
+    content: '(';
+}
+
+.schedule-item-compact.style-2 .schedule-compact-type::after {
+    content: ')';
+}
+
+/* Вариант 3: Максимально компактный */
+.schedule-item-compact.ultra-compact {
+    padding: 10px 16px;
+    font-size: 0.85rem;
+}
+
+.schedule-item-compact.ultra-compact .schedule-compact-time {
+    font-size: 0.85rem;
+}
+
+.schedule-item-compact.ultra-compact .schedule-compact-role {
+    font-size: 0.8rem;
+}
+
+.schedule-item-compact.ultra-compact .schedule-compact-type {
+    display: none; /* Совсем убираем тип в ультра-компактном режиме */
+}
