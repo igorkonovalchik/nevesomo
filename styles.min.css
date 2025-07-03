@@ -203,25 +203,6 @@ body {
   text-decoration: none;
 }
 
-/* ---------- participant picker ---------- */
-.participant-item{
-  padding:12px 16px;
-  border-bottom:1px solid var(--border-color);
-  cursor:pointer;
-  color:var(--text-primary);
-  display:flex;justify-content:space-between;align-items:center;
-  transition:background .2s;
-}
-.participant-item:hover{background:var(--bg-secondary);}
-.participant-item.selected{
-  background:var(--accent-primary);
-  color:#fff;
-  font-weight:600;
-}
-.participant-item .tg{
-  font-size:.85em;
-  color:var(--text-secondary);
-}
 
 
 
