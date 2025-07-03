@@ -1,46 +1,22 @@
-// ui-renderer.js - Отрисовка интерфейса приложения NEVESOMO
-// Отвечает за все функции рендеринга и отображения данных
-
-import { 
-    participants,
-    rolesInfo,
-    roleGroups,
-    schedule,
-    allRoles,
-    assignments,
-    getUserRolesInSession
-} from './core/data-manager.js';
+// ui-renderer.js - Отрисовка интерфейса (без ES6 модулей)
 
 /* === ФУНКЦИИ ФОРМАТИРОВАНИЯ === */
-
-/**
- * Форматирует дату в читаемый вид
- * @param {string} dateStr - дата в формате YYYY-MM-DD
- * @returns {string} - отформатированная дата
- */
-export function formatDate(dateStr) {
+function formatDate(dateStr) {
     const months = ['января','февраля','марта','апреля','мая','июня',
                     'июля','августа','сентября','октября','ноября','декабря'];
     const weekdays = ['воскресенье','понедельник','вторник','среда',
                       'четверг','пятница','суббота'];
 
-    const d = new Date(dateStr+'T00:00:00');     // надёжный парсинг
+    const d = new Date(dateStr+'T00:00:00');
     const day   = d.getDate();
     const month = months[d.getMonth()];
     const wday  = weekdays[d.getDay()];
 
-    return `${day} ${month}, ${wday}`;           // 12 июля, суббота
+    return `${day} ${month}, ${wday}`;
 }
 
 /* === ОСНОВНЫЕ ФУНКЦИИ РЕНДЕРИНГА === */
-
-/**
- * Отрисовывает все расписание
- * @param {string} currentMode - текущий режим (user/admin)
- * @param {string} currentUser - имя текущего пользователя
- * @param {Object} sessionFilters - фильтры сессий
- */
-export function renderSchedule(currentMode, currentUser, sessionFilters) {
+function renderSchedule() {
     const scheduleDiv = document.getElementById('schedule');
     if (!scheduleDiv) return;
     
@@ -50,10 +26,9 @@ export function renderSchedule(currentMode, currentUser, sessionFilters) {
         const dayDiv = document.createElement('div');
         dayDiv.className = 'day-section';
         
-        // Форматируем дату в заголовке
         dayDiv.innerHTML = `
             <div class="day-header">${formatDate(day)}</div>
-            ${schedule[day].map(session => renderSession(day, session, currentMode, currentUser)).join('')}
+            ${schedule[day].map(session => renderSession(day, session)).join('')}
         `;
         
         scheduleDiv.appendChild(dayDiv);
@@ -70,34 +45,23 @@ export function renderSchedule(currentMode, currentUser, sessionFilters) {
     }, 0);
 }
 
-/**
- * Отрисовывает одну сессию
- * @param {string} day - день сессии
- * @param {Object} session - объект сессии
- * @param {string} currentMode - текущий режим
- * @param {string} currentUser - текущий пользователь
- * @returns {string} - HTML код сессии
- */
-export function renderSession(day, session, currentMode, currentUser) {
+function renderSession(day, session) {
     const sessionKey = `${day}_${session.time}`;
     const sessionAssignments = assignments[sessionKey];
     
-    // Определяем роли для сессии
     let sessionRoles = allRoles;
     if (session.roles) {
-        sessionRoles = session.roles; // Для кухонных слотов
+        sessionRoles = session.roles;
     }
     
     const filledRoles = sessionRoles.filter(role => sessionAssignments[role] !== null && sessionAssignments[role] !== undefined).length;
     const totalRoles = sessionRoles.length;
     const percentage = totalRoles > 0 ? Math.round((filledRoles / totalRoles) * 100) : 0;
     
-    // Проверяем, есть ли у пользователя роли в этой сессии
     const userRoles = currentMode === 'user' && currentUser ? 
         getUserRolesInSession(sessionKey, currentUser) : [];
     const hasUserAssignment = userRoles.length > 0;
     
-    // Определяем класс для кружка прогресса
     let progressClass = 'empty';
     if (percentage === 100) {
         progressClass = 'complete';
@@ -134,13 +98,13 @@ export function renderSession(day, session, currentMode, currentUser) {
                     ).join('')}
                 </div>
                 <div class="roles-container" id="roles-${sessionKey}">
-                    ${renderSessionRoles(sessionKey, 'all', currentMode, currentUser)}
+                    ${renderSessionRoles(sessionKey, 'all')}
                 </div>
             </div>
             ` : `
             <div class="session-expanded">
                 <div class="roles-grid">
-                    ${sessionRoles.map(role => renderRoleSlot(sessionKey, role, currentMode, currentUser)).join('')}
+                    ${sessionRoles.map(role => renderRoleSlot(sessionKey, role)).join('')}
                 </div>
             </div>
             `}
@@ -150,15 +114,7 @@ export function renderSession(day, session, currentMode, currentUser) {
     return sessionHtml;
 }
 
-/**
- * Отрисовывает роли сессии с учетом фильтра
- * @param {string} sessionKey - ключ сессии
- * @param {string} filter - текущий фильтр
- * @param {string} currentMode - текущий режим
- * @param {string} currentUser - текущий пользователь
- * @returns {string} - HTML код ролей
- */
-export function renderSessionRoles(sessionKey, filter, currentMode, currentUser) {
+function renderSessionRoles(sessionKey, filter) {
     let rolesToShow = allRoles;
     
     if (filter !== 'all') {
@@ -167,7 +123,7 @@ export function renderSessionRoles(sessionKey, filter, currentMode, currentUser)
     
     const rolesHtml = `
         <div class="roles-grid">
-            ${rolesToShow.map(role => renderRoleSlot(sessionKey, role, currentMode, currentUser)).join('')}
+            ${rolesToShow.map(role => renderRoleSlot(sessionKey, role)).join('')}
         </div>
     `;
     
@@ -179,17 +135,9 @@ export function renderSessionRoles(sessionKey, filter, currentMode, currentUser)
     return rolesHtml;
 }
 
-/**
- * Отрисовывает один слот роли
- * @param {string} sessionKey - ключ сессии
- * @param {string} role - название роли
- * @param {string} currentMode - текущий режим
- * @param {string} currentUser - текущий пользователь
- * @returns {string} - HTML код слота роли
- */
-export function renderRoleSlot(sessionKey, role, currentMode, currentUser) {
+function renderRoleSlot(sessionKey, role) {
     const assignedUser = assignments[sessionKey][role];
-    const isBlocked = isSlotBlocked(sessionKey, role, currentMode, currentUser);
+    const isBlocked = isSlotBlocked(sessionKey, role);
     const isCurrentUser = currentMode === 'user' && assignedUser === currentUser;
     const shouldFade = currentMode === 'user' && currentUser && 
                       getUserRolesInSession(sessionKey, currentUser).length > 0 && !isCurrentUser;
@@ -222,28 +170,16 @@ export function renderRoleSlot(sessionKey, role, currentMode, currentUser) {
     `;
 }
 
-/* === ФУНКЦИИ ОБНОВЛЕНИЯ ТАБОВ И ФИЛЬТРОВ === */
-
-/**
- * Получает количество свободных ролей в группе
- * @param {string} sessionKey - ключ сессии
- * @param {Array<string>} groupRoles - роли группы
- * @returns {number} - количество свободных ролей
- */
-export function getEmptyRolesCount(sessionKey, groupRoles) {
+/* === ФУНКЦИИ ОБНОВЛЕНИЯ ТАБОВ === */
+function getEmptyRolesCount(sessionKey, groupRoles) {
     const sessionAssignments = assignments[sessionKey];
     return groupRoles.filter(role => !sessionAssignments[role]).length;
 }
 
-/**
- * Обновляет табы с количеством свободных ролей
- * @param {string} sessionKey - ключ сессии
- */
-export function updateSessionTabs(sessionKey) {
+function updateSessionTabs(sessionKey) {
     const sessionElement = document.querySelector(`[data-session="${sessionKey}"]`);
     if (!sessionElement) return;
     
-    // Обновляем таб "Все"
     const allTab = sessionElement.querySelector('[data-filter="all"]');
     if (allTab) {
         const totalEmpty = getEmptyRolesCount(sessionKey, allRoles);
@@ -254,7 +190,6 @@ export function updateSessionTabs(sessionKey) {
         }
     }
     
-    // Обновляем табы групп
     Object.entries(roleGroups).forEach(([key, group]) => {
         const groupTab = sessionElement.querySelector(`[data-filter="${key}"]`);
         if (groupTab) {
@@ -269,13 +204,7 @@ export function updateSessionTabs(sessionKey) {
 }
 
 /* === ФУНКЦИИ РЕНДЕРИНГА ПОПАПОВ === */
-
-/**
- * Рендерит список участников для попапа админа
- * @param {string} currentAssignment - текущее назначение
- * @returns {string} - HTML код списка участников
- */
-export function renderParticipantsList(currentAssignment) {
+function renderParticipantsList(currentAssignment) {
     let html = `
         <div class="participant-item" onclick="selectParticipant(null)" style="border-bottom: 1px solid #E0E0E0; margin-bottom: 12px; padding-bottom: 12px;">
             <div class="participant-name">🗑️ Очистить слот</div>
@@ -300,12 +229,7 @@ export function renderParticipantsList(currentAssignment) {
     return html;
 }
 
-/**
- * Рендерит статистику пользователей
- * @param {Array} userStats - статистика пользователей
- * @returns {string} - HTML код статистики
- */
-export function renderUserStats(userStats) {
+function renderUserStats(userStats) {
     let html = '';
     userStats.forEach(user => {
         const categoriesHtml = Object.entries(user.categories)
@@ -339,19 +263,9 @@ export function renderUserStats(userStats) {
     return html;
 }
 
-/**
- * Рендерит пользовательское расписание
- * @param {string} currentUser - текущий пользователь
- * @param {Object} userShiftsByDay - шифты пользователя по дням
- * @param {Object} participant - данные участника
- * @param {number} shiftsCount - общее количество шифтов
- * @param {Object} categoryStats - статистика по категориям
- * @returns {string} - HTML код расписания
- */
-export function renderUserSchedule(currentUser, userShiftsByDay, participant, shiftsCount, categoryStats) {
+function renderUserSchedule(currentUser, userShiftsByDay, participant, shiftsCount, categoryStats) {
     let html = '';
     
-    // Добавляем информацию об участнике
     html += `
         <div class="user-profile">
             <div class="user-name">${currentUser}</div>
@@ -373,7 +287,6 @@ export function renderUserSchedule(currentUser, userShiftsByDay, participant, sh
         </div>
     `;
     
-    // Сортируем дни
     const sortedDays = Object.keys(userShiftsByDay).sort((a, b) => {
         const dateA = parseInt(a.split('-')[2]);
         const dateB = parseInt(b.split('-')[2]);
@@ -384,14 +297,11 @@ export function renderUserSchedule(currentUser, userShiftsByDay, participant, sh
         html += '<div style="text-align: center; color: var(--text-secondary); padding: 40px;">У вас пока нет назначенных шифтов</div>';
     } else {
         sortedDays.forEach(day => {
-            // Форматируем дату
             html += `<h2 style="margin: 24px 0 16px 0; color: var(--accent-primary); font-size: 1.4em;">${formatDate(day)}</h2>`;
             
-            // Сортируем шифты в дне по времени
             userShiftsByDay[day].sort((a, b) => a.time.localeCompare(b.time));
             
             userShiftsByDay[day].forEach(shift => {
-                // Компактный вид в одну строку
                 html += `
                     <div class="schedule-item-compact">
                         <div class="schedule-compact-info">
@@ -413,11 +323,7 @@ export function renderUserSchedule(currentUser, userShiftsByDay, participant, sh
     return html;
 }
 
-/**
- * Рендерит список ролей для информационного попапа
- * @returns {string} - HTML код списка ролей
- */
-export function renderRolesList() {
+function renderRolesList() {
     let html = '<div style="margin-bottom: 20px; color: var(--text-secondary);">Выберите роль для подробного описания:</div>';
     
     Object.entries(roleGroups).forEach(([groupKey, group]) => {
@@ -441,16 +347,7 @@ export function renderRolesList() {
 }
 
 /* === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ === */
-
-/**
- * Проверяет блокировку слота для пользователя
- * @param {string} sessionKey - ключ сессии
- * @param {string} role - роль
- * @param {string} currentMode - текущий режим
- * @param {string} currentUser - текущий пользователь
- * @returns {boolean} - заблокирован ли слот
- */
-function isSlotBlocked(sessionKey, role, currentMode, currentUser) {
+function isSlotBlocked(sessionKey, role) {
     if (currentMode !== 'user' || !currentUser) return false;
     
     const sessionTime = sessionKey.split('_')[1];
