@@ -6,58 +6,86 @@ let currentPopupRole = null;
 
 /* === ОСНОВНЫЕ ФУНКЦИИ НАЗНАЧЕНИЙ === */
 function handleRoleSlotClick(sessionKey, role) {
-    console.log('🔍 Клик по роли:', { sessionKey, role, currentMode });
+    console.log('🔍 Клик по роли:', { sessionKey, role, currentMode, currentUser });
     
     if (currentMode === 'admin') {
         openParticipantPopup(sessionKey, role);
     } else {
-        // Проверяем специальные правила для мастер-класса
-        // ИСПРАВЛЕНО: правильное название роли
-        if (role === 'Любовь+Забота+Мастер класс') {
-            if (!hasLoungeRole(currentUser)) {
-                alert('Мастер-класс может быть выбран только участниками, которые уже записались в категорию "Лаунж". Сначала выберите себе шифт в лаунже!');
-                return;
-            }
+        // Проверяем, что роль существует в assignments
+        if (!assignments[sessionKey] || assignments[sessionKey][role] === undefined) {
+            console.error(`❌ Роль "${role}" не найдена в сессии ${sessionKey}`);
+            alert(`Ошибка: роль "${role}" недоступна в этой сессии. Обратитесь к администратору.`);
+            return;
+        }
+        
+        // Проверяем правило мастер-класса
+        if (role === 'Любовь+Забота+Мастер класс' && !hasLoungeRole(currentUser)) {
+            alert('Мастер-класс может быть выбран только участниками, которые уже записались в категорию "Лаунж". Сначала выберите себе шифт в лаунже!');
+            return;
         }
         
         toggleUserAssignment(sessionKey, role);
     }
 }
 
-// Исправленная функция проверки лаунж-ролей
-function hasLoungeRole(userName) {
-    if (!userName || !roleGroups.lounge) {
-        console.log('❌ hasLoungeRole: нет пользователя или группы лаунж');
-        return false;
-    }
+// ИСПРАВЛЕНО: Улучшенная функция проверки блокировки
+function isSlotBlocked(sessionKey, roleToCheck) {
+    if (currentMode !== 'user' || !currentUser) return false;
     
-    console.log('🔍 Проверяем лаунж-роли для:', userName);
-    console.log('🔍 Роли лаунжа:', roleGroups.lounge.roles);
+    const sessionTime = sessionKey.split('_')[1];
+    const userRolesInTime = [];
     
-    for (const [sessionKey, sessionRoles] of Object.entries(assignments)) {
-        for (const [role, assignedUser] of Object.entries(sessionRoles)) {
-            if (assignedUser === userName) {
-                console.log(`🔍 Найдена роль ${role} для ${userName}`);
-                
-                // ИСПРАВЛЕНО: проверяем точное включение в лаунж-роли
-                if (roleGroups.lounge.roles.includes(role)) {
-                    console.log('✅ Найдена лаунж-роль:', role);
-                    return true;
-                }
-                
-                // Дополнительная проверка для роли "Любовь+Забота - 1"
-                if (role === 'Любовь+Забота - 1') {
-                    console.log('✅ Найдена базовая лаунж-роль');
-                    return true;
+    // Собираем все роли пользователя в это время
+    for (const [checkSessionKey, sessionRoles] of Object.entries(assignments)) {
+        const checkTime = checkSessionKey.split('_')[1];
+        if (checkTime === sessionTime) {
+            for (const [role, assignedUser] of Object.entries(sessionRoles)) {
+                if (assignedUser === currentUser) {
+                    userRolesInTime.push(role);
                 }
             }
         }
     }
     
-    console.log('❌ Лаунж-роли не найдены для:', userName);
-    return false;
+    // Если у пользователя нет ролей в это время - не блокируем
+    if (userRolesInTime.length === 0) {
+        return false;
+    }
+    
+    // Проверяем правила совместимости
+    const isLoungeRole = role => roleGroups.lounge?.roles.includes(role);
+    const isMasterClass = role => role === 'Любовь+Забота+Мастер класс';
+    
+    const wantsLounge = isLoungeRole(roleToCheck);
+    const wantsMaster = isMasterClass(roleToCheck);
+    
+    const hasLounge = userRolesInTime.some(isLoungeRole);
+    const hasMaster = userRolesInTime.some(isMasterClass);
+    
+    // Разрешаем комбинацию Лаунж + Мастер класс
+    if ((wantsLounge && hasMaster) || (wantsMaster && hasLounge)) {
+        return false;
+    }
+    
+    // Во всех остальных случаях блокируем если уже есть роль в это время
+    return userRolesInTime.length > 0;
 }
 
+// ИСПРАВЛЕНО: Улучшенная проверка лаунж-ролей
+function hasLoungeRole(userName) {
+    if (!userName || !roleGroups.lounge) {
+        return false;
+    }
+    
+    for (const sessionRoles of Object.values(assignments)) {
+        for (const [role, assignedUser] of Object.entries(sessionRoles)) {
+            if (assignedUser === userName && roleGroups.lounge.roles.includes(role)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
 
 // Отладочная функция для проверки ролей
 function debugRoleAssignment(sessionKey, role) {
@@ -404,3 +432,69 @@ function hideLoader() {
 }
 
 console.log('⚙️ Assignment Logic загружен');
+
+// Функция для диагностики и исправления проблем
+window.fixRoleIssues = function() {
+    console.log('🔧 === ИСПРАВЛЕНИЕ ПРОБЛЕМ С РОЛЯМИ ===');
+    
+    let fixedSessions = 0;
+    const essentialRoles = ['Гостевая Забота', 'Поваренок', 'Страхующий/Уют'];
+    
+    Object.entries(assignments).forEach(([sessionKey, sessionRoles]) => {
+        let addedRoles = 0;
+        
+        essentialRoles.forEach(role => {
+            if (allRoles.includes(role) && sessionRoles[role] === undefined) {
+                sessionRoles[role] = null;
+                addedRoles++;
+                console.log(`✅ Добавлена роль "${role}" в сессию ${sessionKey}`);
+            }
+        });
+        
+        if (addedRoles > 0) {
+            fixedSessions++;
+        }
+    });
+    
+    console.log(`🔧 Исправлено ${fixedSessions} сессий`);
+    
+    if (fixedSessions > 0) {
+        renderSchedule();
+        updateProgress();
+        alert(`Исправлено ${fixedSessions} сессий. Попробуйте выбрать роли снова!`);
+    } else {
+        alert('Проблем не найдено или уже исправлены.');
+    }
+};
+
+// Автоматическая проверка и исправление при загрузке
+window.addEventListener('dataLoaded', () => {
+    setTimeout(() => {
+        console.log('🔍 Автоматическая проверка ролей...');
+        
+        // Проверяем проблемные роли
+        const problematicRoles = ['Гостевая Забота', 'Поваренок'];
+        let needsFix = false;
+        
+        problematicRoles.forEach(role => {
+            let foundInSessions = 0;
+            Object.values(assignments).forEach(sessionRoles => {
+                if (sessionRoles[role] !== undefined) {
+                    foundInSessions++;
+                }
+            });
+            
+            const totalSessions = Object.keys(assignments).length;
+            console.log(`📊 Роль "${role}": найдена в ${foundInSessions}/${totalSessions} сессий`);
+            
+            if (foundInSessions < totalSessions * 0.8) { // Если роль отсутствует в >20% сессий
+                needsFix = true;
+            }
+        });
+        
+        if (needsFix) {
+            console.log('🔧 Обнаружены проблемы, автоматически исправляем...');
+            window.fixRoleIssues();
+        }
+    }, 2000);
+});
