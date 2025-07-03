@@ -1042,11 +1042,12 @@ function openSchedulePopup() {
         let shiftsCount = 0;
         const categoryStats = getUserCategoryStats(currentUser);
         
-        // Подсчитываем шифты пользователя
+        // Подсчитываем шифты пользователя с учетом новой структуры
         Object.keys(assignments).forEach(sessionKey => {
             const [day, time] = sessionKey.split('_');
             const session = schedule[day].find(s => s.time === time);
             
+            // Определяем роли для сессии
             let sessionRoles = allRoles;
             if (session.roles) {
                 sessionRoles = session.roles;
@@ -1081,13 +1082,14 @@ function openSchedulePopup() {
             </div>
         `;
         
-        // Для пользователя показываем только его шифты
+        // Для пользователя показываем только его шифты, сгруппированные по дням
         const userShiftsByDay = {};
         
         Object.keys(assignments).forEach(sessionKey => {
             const [day, time] = sessionKey.split('_');
             const session = schedule[day].find(s => s.time === time);
             
+            // Определяем роли для сессии
             let sessionRoles = allRoles;
             if (session.roles) {
                 sessionRoles = session.roles;
@@ -1111,8 +1113,8 @@ function openSchedulePopup() {
         
         // Сортируем дни
         const sortedDays = Object.keys(userShiftsByDay).sort((a, b) => {
-            const dateA = parseInt(a.split('-')[2]);
-            const dateB = parseInt(b.split('-')[2]);
+            const dateA = parseInt(a.split(' ')[0]);
+            const dateB = parseInt(b.split(' ')[0]);
             return dateA - dateB;
         });
         
@@ -1120,25 +1122,21 @@ function openSchedulePopup() {
             html += '<div style="text-align: center; color: var(--text-secondary); padding: 40px;">У вас пока нет назначенных шифтов</div>';
         } else {
             sortedDays.forEach(day => {
-                // Форматируем дату
-                html += `<h2 style="margin: 24px 0 16px 0; color: var(--accent-primary); font-size: 1.4em;">${formatDate(day)}</h2>`;
+                html += `<h2 style="margin: 24px 0 16px 0; color: var(--accent-primary); font-size: 1.4em;">${day}</h2>`;
                 
                 // Сортируем шифты в дне по времени
                 userShiftsByDay[day].sort((a, b) => a.time.localeCompare(b.time));
                 
                 userShiftsByDay[day].forEach(shift => {
-                    // Компактный вид в одну строку
                     html += `
-                        <div class="schedule-item-compact">
-                            <div class="schedule-compact-info">
-                                <div class="schedule-compact-time">${shift.time.substring(0, 5)}</div>
-                                <div class="schedule-compact-details">
-                                    <div class="schedule-compact-role">${shift.role}</div>
-                                    <div class="schedule-compact-type">${shift.type}</div>
-                                </div>
+                        <div class="schedule-item">
+                            <div class="schedule-item-header">
+                                <div class="schedule-time">${shift.time} - ${shift.endTime}</div>
                             </div>
-                            <div class="schedule-compact-arrow" onclick="showRoleDetail('${shift.role}', 'schedule')">
-                                →
+                            <div class="schedule-role">${shift.role}</div>
+                            <div class="schedule-info">${shift.sessionNum ? `Баня #${shift.sessionNum}` : 'Кухня'} • ${shift.type}</div>
+                            <div class="schedule-actions">
+                                <button class="info-btn" onclick="showRoleDetail('${shift.role}', 'schedule')">ℹ️ Подробнее</button>
                             </div>
                         </div>
                     `;
@@ -1148,7 +1146,7 @@ function openSchedulePopup() {
     } else {
         // Для админа показываем полное расписание
         Object.keys(schedule).forEach(day => {
-            html += `<h3 style="margin: 20px 0 16px 0; color: var(--accent-primary);">${formatDate(day)}</h3>`;
+            html += `<h3 style="margin: 20px 0 16px 0; color: var(--accent-primary);">${day}</h3>`;
             
             schedule[day].forEach(session => {
                 const sessionKey = `${day}_${session.time}`;
@@ -1185,7 +1183,6 @@ function openSchedulePopup() {
     scheduleBody.innerHTML = html;
     document.getElementById('schedulePopup').classList.add('show');
 }
-
 
 function closeSchedulePopup() {
     document.getElementById('schedulePopup').classList.remove('show');
