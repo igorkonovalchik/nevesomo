@@ -19,7 +19,43 @@ let currentPopupRole = null;
 let sessionFilters = {};
 let previousPopup = null;
 
-// Добавить эти функции в начало script.js (после объявления переменных)
+// Функция форматирования даты
+function formatDate(dateStr) {
+    const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 
+                   'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+        const day = parseInt(parts[2]);
+        const month = parseInt(parts[1]) - 1;
+        return `${day} ${months[month]}`;
+    }
+    return dateStr;
+}
+
+// Функции для лоадера
+function showLoader(text = 'Загрузка...') {
+    let loader = document.getElementById('loadingOverlay');
+    if (!loader) {
+        loader = document.createElement('div');
+        loader.id = 'loadingOverlay';
+        loader.className = 'loading-overlay';
+        loader.innerHTML = `
+            <div style="text-align: center;">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">${text}</div>
+            </div>
+        `;
+        document.body.appendChild(loader);
+    }
+    loader.classList.add('show');
+}
+
+function hideLoader() {
+    const loader = document.getElementById('loadingOverlay');
+    if (loader) {
+        loader.classList.remove('show');
+    }
+}
 
 // Функции для работы с меню (должны быть глобальными для onclick)
 window.toggleMenu = function() {
@@ -80,6 +116,7 @@ window.openMySchedule = function() {
     openSchedulePopup();
 }
 
+// 6. Обновить функцию статистики с ссылками на телеграм
 window.openStatsPopup = function() {
     const statsList = document.getElementById('statsList');
     
@@ -87,24 +124,11 @@ window.openStatsPopup = function() {
         let shiftsCount = 0;
         const categoryStats = getUserCategoryStats(participant.name);
         
-        Object.keys(assignments).forEach(sessionKey => {
-            const [day, time] = sessionKey.split('_');
-            const session = schedule[day].find(s => s.time === time);
-            
-            let sessionRoles = allRoles;
-            if (session.roles) {
-                sessionRoles = session.roles;
-            }
-            
-            sessionRoles.forEach(role => {
-                if (assignments[sessionKey][role] === participant.name) {
-                    shiftsCount++;
-                }
-            });
-        });
+        // ... подсчет шифтов ...
         
         return {
             name: participant.name,
+            telegram: participant.telegram,
             shifts: shiftsCount,
             complete: shiftsCount >= 8,
             categories: categoryStats
@@ -118,10 +142,18 @@ window.openStatsPopup = function() {
             .map(([category, count]) => `<div class="stats-category">${category}: ${count}</div>`)
             .join('');
         
+        const telegramLink = user.telegram ? 
+            `<a href="https://t.me/${user.telegram.replace('@', '')}" target="_blank" style="color: var(--accent-primary); text-decoration: none;">
+                ${user.telegram}
+            </a>` : '';
+        
         html += `
             <div class="stats-user ${user.complete ? 'complete' : 'incomplete'}">
                 <div class="stats-user-header">
-                    <div class="stats-name">${user.name}</div>
+                    <div>
+                        <div class="stats-name">${user.name}</div>
+                        ${telegramLink ? `<div style="font-size: 0.85em; margin-top: 4px;">${telegramLink}</div>` : ''}
+                    </div>
                     <div class="stats-total ${user.complete ? 'complete' : 'incomplete'}">
                         ${user.shifts}/8 шифтов
                     </div>
@@ -625,8 +657,7 @@ function updateMenu() {
 function showBathInfo() {
     alert(`Банный кемп NEVESOMO\n\nЗдесь проходят банные сессии с парением, массажем и заботой о гостях.\n\nПодробнее в описании ролей.`);
 }
-
-// Переключение режимов
+// 3. Обновить функцию переключения режимов
 function setMode(mode) {
     currentMode = mode;
     
@@ -638,13 +669,15 @@ function setMode(mode) {
     
     if (mode === 'admin') {
         deadlineWarning.style.display = 'none';
-        userSelector.style.display = 'none';
+        // Селектор показываем только админу
+        userSelector.style.display = 'block';
         myScheduleBtn.style.display = 'none';
         progressBar.style.display = 'none';
         progressText.style.display = 'none';
     } else {
         deadlineWarning.style.display = 'block';
-        userSelector.style.display = 'block';
+        // Для обычных участников прячем селектор
+        userSelector.style.display = 'none';
         myScheduleBtn.style.display = 'block';
         progressBar.style.display = 'block';
         progressText.style.display = 'block';
@@ -741,7 +774,8 @@ function getUserRolesInSession(sessionKey, userName) {
     return sessionRoles.filter(role => sessionAssignments[role] === userName);
 }
 
-// Отрисовка расписания
+// Заменить функцию renderSchedule в script.js
+
 function renderSchedule() {
     const scheduleDiv = document.getElementById('schedule');
     scheduleDiv.innerHTML = '';
@@ -750,8 +784,9 @@ function renderSchedule() {
         const dayDiv = document.createElement('div');
         dayDiv.className = 'day-section';
         
+        // Форматируем дату в заголовке
         dayDiv.innerHTML = `
-            <div class="day-header">${day}</div>
+            <div class="day-header">${formatDate(day)}</div>
             ${schedule[day].map(session => renderSession(day, session)).join('')}
         `;
         
@@ -1001,48 +1036,37 @@ async function selectParticipant(participantName) {
     const [day, time] = sessionKey.split('_');
     const currentAssignment = assignments[sessionKey][role];
     
+    // Запоминаем состояние раскрытых сессий
+    const expandedSessions = Array.from(document.querySelectorAll('.session.expanded'))
+        .map(el => el.getAttribute('data-session'));
+    
+    showLoader('Обновление назначения...');
+    
     try {
-        // Если было предыдущее назначение - удаляем его
-        if (currentAssignment && currentAssignment !== 'Участник другого кемпа') {
-            await removeAssignmentFromAirtable(currentAssignment, role, day, time);
-        }
-        
-        // Если назначаем нового участника - создаем запись
-        if (participantName && participantName !== 'Участник другого кемпа') {
-            await saveAssignmentToAirtable(participantName, role, day, time);
-        }
-        
-        // Обработка мастер-класса
-        if (role === 'Мастер класс') {
-            const pairSlot = getMasterClassPairSlot(sessionKey);
-            if (pairSlot) {
-                const [pairDay, pairTime] = pairSlot.split('_');
-                
-                // Удаляем старое назначение в парном слоте
-                if (currentAssignment && currentAssignment !== 'Участник другого кемпа') {
-                    await removeAssignmentFromAirtable(currentAssignment, role, pairDay, pairTime);
-                }
-                
-                // Создаем новое назначение в парном слоте
-                if (participantName && participantName !== 'Участник другого кемпа') {
-                    await saveAssignmentToAirtable(participantName, role, pairDay, pairTime);
-                }
-                
-                assignments[pairSlot][role] = participantName;
-            }
-        }
+        // ... весь код обработки ...
         
         assignments[sessionKey][role] = participantName;
         
         renderSchedule();
         updateProgress();
         
+        // Восстанавливаем раскрытые сессии
+        setTimeout(() => {
+            expandedSessions.forEach(sessionKey => {
+                const element = document.querySelector(`[data-session="${sessionKey}"]`);
+                if (element) {
+                    element.classList.add('expanded');
+                }
+            });
+        }, 50);
+        
     } catch (error) {
         console.error('Ошибка обновления назначения:', error);
-        // В случае ошибки перезагружаем данные
         await loadAirtableData();
         renderSchedule();
         updateProgress();
+    } finally {
+        hideLoader();
     }
     
     closeParticipantPopup();
@@ -1055,7 +1079,7 @@ function closeParticipantPopup() {
     currentPopupRole = null;
 }
 
-// Переключение назначения пользователя
+// 4. Обновить функцию переключения назначения с лоадером
 async function toggleUserAssignment(sessionKey, role) {
     if (!currentUser) {
         alert('Выберите участника');
@@ -1071,6 +1095,12 @@ async function toggleUserAssignment(sessionKey, role) {
     }
     
     const [day, time] = sessionKey.split('_');
+    
+    // Запоминаем состояние раскрытых сессий
+    const expandedSessions = Array.from(document.querySelectorAll('.session.expanded'))
+        .map(el => el.getAttribute('data-session'));
+    
+    showLoader(currentAssignment === currentUser ? 'Удаление шифта...' : 'Сохранение шифта...');
     
     try {
         if (currentAssignment === currentUser) {
@@ -1103,18 +1133,30 @@ async function toggleUserAssignment(sessionKey, role) {
             
         } else {
             alert('Этот слот уже занят. Обратитесь к администратору.');
+            hideLoader();
             return;
         }
         
         renderSchedule();
         updateProgress();
         
+        // Восстанавливаем раскрытые сессии
+        setTimeout(() => {
+            expandedSessions.forEach(sessionKey => {
+                const element = document.querySelector(`[data-session="${sessionKey}"]`);
+                if (element) {
+                    element.classList.add('expanded');
+                }
+            });
+        }, 50);
+        
     } catch (error) {
         console.error('Ошибка обновления назначения:', error);
-        // В случае ошибки перезагружаем данные
         await loadAirtableData();
         renderSchedule();
         updateProgress();
+    } finally {
+        hideLoader();
     }
 }
 
@@ -1278,6 +1320,8 @@ function openMySchedule() {
     openSchedulePopup();
 }
 
+// Заменить всю функцию openSchedulePopup в script.js
+
 function openSchedulePopup() {
     const scheduleBody = document.getElementById('scheduleBody');
     let html = '';
@@ -1288,12 +1332,11 @@ function openSchedulePopup() {
         let shiftsCount = 0;
         const categoryStats = getUserCategoryStats(currentUser);
         
-        // Подсчитываем шифты пользователя с учетом новой структуры
+        // Подсчитываем шифты пользователя
         Object.keys(assignments).forEach(sessionKey => {
             const [day, time] = sessionKey.split('_');
             const session = schedule[day].find(s => s.time === time);
             
-            // Определяем роли для сессии
             let sessionRoles = allRoles;
             if (session.roles) {
                 sessionRoles = session.roles;
@@ -1328,14 +1371,13 @@ function openSchedulePopup() {
             </div>
         `;
         
-        // Для пользователя показываем только его шифты, сгруппированные по дням
+        // Для пользователя показываем только его шифты
         const userShiftsByDay = {};
         
         Object.keys(assignments).forEach(sessionKey => {
             const [day, time] = sessionKey.split('_');
             const session = schedule[day].find(s => s.time === time);
             
-            // Определяем роли для сессии
             let sessionRoles = allRoles;
             if (session.roles) {
                 sessionRoles = session.roles;
@@ -1359,8 +1401,8 @@ function openSchedulePopup() {
         
         // Сортируем дни
         const sortedDays = Object.keys(userShiftsByDay).sort((a, b) => {
-            const dateA = parseInt(a.split(' ')[0]);
-            const dateB = parseInt(b.split(' ')[0]);
+            const dateA = parseInt(a.split('-')[2]);
+            const dateB = parseInt(b.split('-')[2]);
             return dateA - dateB;
         });
         
@@ -1368,21 +1410,25 @@ function openSchedulePopup() {
             html += '<div style="text-align: center; color: var(--text-secondary); padding: 40px;">У вас пока нет назначенных шифтов</div>';
         } else {
             sortedDays.forEach(day => {
-                html += `<h2 style="margin: 24px 0 16px 0; color: var(--accent-primary); font-size: 1.4em;">${day}</h2>`;
+                // Форматируем дату
+                html += `<h2 style="margin: 24px 0 16px 0; color: var(--accent-primary); font-size: 1.4em;">${formatDate(day)}</h2>`;
                 
                 // Сортируем шифты в дне по времени
                 userShiftsByDay[day].sort((a, b) => a.time.localeCompare(b.time));
                 
                 userShiftsByDay[day].forEach(shift => {
+                    // Компактный вид в одну строку
                     html += `
-                        <div class="schedule-item">
-                            <div class="schedule-item-header">
-                                <div class="schedule-time">${shift.time} - ${shift.endTime}</div>
+                        <div class="schedule-item-compact">
+                            <div class="schedule-compact-info">
+                                <div class="schedule-compact-time">${shift.time.substring(0, 5)}</div>
+                                <div class="schedule-compact-details">
+                                    <div class="schedule-compact-role">${shift.role}</div>
+                                    <div class="schedule-compact-type">${shift.type}</div>
+                                </div>
                             </div>
-                            <div class="schedule-role">${shift.role}</div>
-                            <div class="schedule-info">${shift.sessionNum ? `Баня #${shift.sessionNum}` : 'Кухня'} • ${shift.type}</div>
-                            <div class="schedule-actions">
-                                <button class="info-btn" onclick="showRoleDetail('${shift.role}', 'schedule')">ℹ️ Подробнее</button>
+                            <div class="schedule-compact-arrow" onclick="showRoleDetail('${shift.role}', 'schedule')">
+                                →
                             </div>
                         </div>
                     `;
@@ -1392,7 +1438,7 @@ function openSchedulePopup() {
     } else {
         // Для админа показываем полное расписание
         Object.keys(schedule).forEach(day => {
-            html += `<h3 style="margin: 20px 0 16px 0; color: var(--accent-primary);">${day}</h3>`;
+            html += `<h3 style="margin: 20px 0 16px 0; color: var(--accent-primary);">${formatDate(day)}</h3>`;
             
             schedule[day].forEach(session => {
                 const sessionKey = `${day}_${session.time}`;
