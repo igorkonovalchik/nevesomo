@@ -119,6 +119,9 @@ async function loadAirtableData() {
         await loadAssignments(data.assignments);
         
         isDataLoaded = true;
+
+        window.participants = participants; // нужно telegram.js
+        
         hideLoadingState();
         
         console.log('Данные успешно загружены:', {
