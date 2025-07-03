@@ -28,13 +28,15 @@
     </div>
 
     <div class="container">
-        <h2 id="bigGreeting" class="big-greeting"></h2>
+        <!-- Большое приветствие -->
+        <h2 id="bigGreeting" class="big-greeting" style="display: none;"></h2>
+        
         <div id="deadlineWarning" class="deadline-warning">
             <div>⚠️ Выберите себе шифты до 8 июля 2025 года или мы выберем их за вас</div>
             <div class="countdown" id="countdown"></div>
         </div>
         
-        <div id="userSelector" class="user-selector" style="display:none;">
+        <div id="userSelector" class="user-selector">
             <select id="currentUser" onchange="updateView()">
                 <option value="">Выберите участника</option>
             </select>
@@ -78,34 +80,82 @@
         </div>
     </div>
 
-    <!-- … (остальные попапы и модальные окна остаются без изменений) … -->
-
-    <!-- Оверлей блокировки доступа -->
-    <div id="accessOverlay" class="access-block" style="display:none;">
-        <p style="font-size: 1.3em; margin-bottom: 8px;">🚫 Доступ закрыт</p>
-        <p>Обратись к лидy шифтoв <a href="https://t.me/konovalchik" target="_blank">@konovalchik</a></p>
+    <!-- Попап статистики -->
+    <div class="popup-overlay" id="statsPopup">
+        <div class="popup-bottom" onclick="event.stopPropagation()">
+            <div class="popup-header">
+                <div class="popup-title">📊 Статистика заполнения</div>
+                <button class="popup-close" onclick="closeStatsPopup()">×</button>
+            </div>
+            <div class="popup-body">
+                <div id="statsList"></div>
+            </div>
+        </div>
     </div>
 
-    <!-- Telegram init + приветствие -->
-    <script>
-        const tg = window.Telegram?.WebApp;
-        if (tg) {
-            tg.ready();
-            const user = tg.initDataUnsafe?.user;
-            if (user) {
-                // Приветствие
-                document.getElementById('userGreeting').textContent = `👋 ${user.first_name}`;
-                // Делаем селектор участника невидимым: участник определяется автоматически
-                document.getElementById('userSelector').style.display = 'none';
-                // Передаём ID и username во внешние скрипты
-                window.tgUserId = user.id;
-                window.tgUsername = user.username ? `@${user.username}` : '';
-            }
-        }
-    </script>
+    <!-- Попап расписания -->
+    <div class="popup-overlay" id="schedulePopup">
+        <div class="popup-right" onclick="event.stopPropagation()">
+            <div class="popup-header">
+                <div class="popup-nav">
+                    <button class="popup-back" onclick="closeSchedulePopup()">←</button>
+                    <div class="popup-title">Мое расписание</div>
+                </div>
+                <div class="popup-actions">
+                    <button class="popup-close" onclick="window.print()">🖨️</button>
+                    <button class="popup-close" onclick="shareSchedule()">📤</button>
+                    <button class="popup-close" onclick="closeSchedulePopup()">×</button>
+                </div>
+            </div>
+            <div class="popup-body" id="scheduleBody"></div>
+        </div>
+    </div>
+
+    <!-- Попап о шифтах -->
+    <div class="popup-overlay" id="rolesInfoPopup">
+        <div class="popup-right" onclick="event.stopPropagation()">
+            <div class="popup-header">
+                <div class="popup-nav">
+                    <button class="popup-back" onclick="closeRolesInfoPopup()">←</button>
+                    <div class="popup-title">О шифтах</div>
+                </div>
+                <div class="popup-actions">
+                    <button class="popup-close" onclick="closeRolesInfoPopup()">×</button>
+                </div>
+            </div>
+            <div class="popup-body" id="rolesInfoBody"></div>
+        </div>
+    </div>
+
+    <!-- Попап описания отдельной роли -->
+    <div class="popup-overlay" id="roleDetailPopup">
+        <div class="role-info-popup" onclick="event.stopPropagation()">
+            <div class="popup-header">
+                <div class="popup-nav">
+                    <button class="popup-back" onclick="closeRoleDetailPopup()">←</button>
+                    <div class="popup-title" id="roleDetailTitle">Роль</div>
+                </div>
+                <div class="popup-actions">
+                    <button class="popup-close" onclick="closeRoleDetailPopup()">×</button>
+                </div>
+            </div>
+            <div class="role-image" id="roleDetailImage">🔥</div>
+            <div class="popup-body">
+                <div class="role-description" id="roleDetailDescription"></div>
+                <a href="#" class="role-link" id="roleDetailLink" target="_blank">📖 Читать инструкцию</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Оверлей блокировки доступа -->
+    <div id="accessOverlay" class="access-block" style="display: none;">
+        <p style="font-size: 1.3em; margin-bottom: 8px;">🚫 Доступ закрыт</p>
+        <p>Обратись к лиду шифтов <a href="https://t.me/konovalchik" target="_blank">@konovalchik</a></p>
+    </div>
+
+    <!-- Скрипты -->
     <script src="https://nevesomo.vercel.app/telegram.js"></script>
     <script src="https://nevesomo.vercel.app/airtable.js"></script>
     <script src="https://nevesomo.vercel.app/script.js"></script>
 </body>
 </html>
-
