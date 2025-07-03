@@ -37,9 +37,8 @@ async function toggleUserAssignment(sessionKey, role) {
     
     const [day, time] = sessionKey.split('_');
     
-    // Запоминаем состояние раскрытых сессий
-    const expandedSessions = Array.from(document.querySelectorAll('.session.expanded'))
-        .map(el => el.getAttribute('data-session'));
+    // Запоминаем ТОЛЬКО ОДНУ раскрытую сессию (аккордеон)
+    const expandedSession = document.querySelector('.session.expanded')?.getAttribute('data-session');
     
     showLoader(currentAssignment === currentUser ? 'Удаление шифта...' : 'Сохранение шифта...');
     
@@ -81,14 +80,14 @@ async function toggleUserAssignment(sessionKey, role) {
         renderSchedule();
         updateProgress();
         
-        // Восстанавливаем раскрытые сессии
+        // Восстанавливаем раскрытую сессию (только одну)
         setTimeout(() => {
-            expandedSessions.forEach(sessionKey => {
-                const element = document.querySelector(`[data-session="${sessionKey}"]`);
+            if (expandedSession) {
+                const element = document.querySelector(`[data-session="${expandedSession}"]`);
                 if (element) {
                     element.classList.add('expanded');
                 }
-            });
+            }
         }, 50);
         
     } catch (error) {
@@ -100,7 +99,6 @@ async function toggleUserAssignment(sessionKey, role) {
         hideLoader();
     }
 }
-
 async function selectParticipant(participantName) {
     if (!currentPopupSession || !currentPopupRole) return;
     
@@ -109,9 +107,8 @@ async function selectParticipant(participantName) {
     const [day, time] = sessionKey.split('_');
     const currentAssignment = assignments[sessionKey][role];
     
-    // Запоминаем состояние раскрытых сессий
-    const expandedSessions = Array.from(document.querySelectorAll('.session.expanded'))
-        .map(el => el.getAttribute('data-session'));
+    // Запоминаем ТОЛЬКО ОДНУ раскрытую сессию (аккордеон)
+    const expandedSession = document.querySelector('.session.expanded')?.getAttribute('data-session');
     
     showLoader('Обновление назначения...');
     
@@ -131,14 +128,14 @@ async function selectParticipant(participantName) {
         renderSchedule();
         updateProgress();
         
-        // Восстанавливаем раскрытые сессии
+        // Восстанавливаем раскрытую сессию (только одну)
         setTimeout(() => {
-            expandedSessions.forEach(sessionKey => {
-                const element = document.querySelector(`[data-session="${sessionKey}"]`);
+            if (expandedSession) {
+                const element = document.querySelector(`[data-session="${expandedSession}"]`);
                 if (element) {
                     element.classList.add('expanded');
                 }
-            });
+            }
         }, 50);
         
     } catch (error) {
@@ -173,6 +170,9 @@ async function autoFillSession(sessionKey) {
         alert('Все роли уже заполнены!');
         return;
     }
+    
+    // Запоминаем ТОЛЬКО ОДНУ раскрытую сессию (аккордеон)
+    const expandedSession = document.querySelector('.session.expanded')?.getAttribute('data-session');
     
     showLoader('Автозаполнение сессии...');
     
@@ -211,6 +211,16 @@ async function autoFillSession(sessionKey) {
         
         renderSchedule();
         updateProgress();
+        
+        // Восстанавливаем раскрытую сессию (только одну)
+        setTimeout(() => {
+            if (expandedSession) {
+                const element = document.querySelector(`[data-session="${expandedSession}"]`);
+                if (element) {
+                    element.classList.add('expanded');
+                }
+            }
+        }, 50);
         
         alert('Сессия автоматически заполнена!');
         
