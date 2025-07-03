@@ -1,4 +1,4 @@
-/ Данные из Airtable (будут загружены при инициализации)
+
 let participants = [];
 let rolesInfo = {};
 let roleGroups = {};
