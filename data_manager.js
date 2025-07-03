@@ -47,6 +47,7 @@ function showErrorState(errorMessage) {
 }
 
 /* === ЗАГРУЗКА ДАННЫХ ИЗ AIRTABLE === */
+/ ИСПРАВЛЕНО: Обновленная функция загрузки данных с лучшей обработкой ролей
 async function loadAirtableData() {
     if (isDataLoading) return;
     
@@ -72,24 +73,30 @@ async function loadAirtableData() {
             bathExperience: p.bathExperience
         })));
         
-        // Обрабатываем роли
+        // ИСПРАВЛЕНО: Обрабатываем роли с улучшенной логикой
         Object.keys(rolesInfo).forEach(key => delete rolesInfo[key]);
+        const validRoles = [];
+        
         data.roles.forEach(role => {
-            if (role.isActive) {
+            if (role.isActive && role.name) {
                 rolesInfo[role.name] = {
-                    icon: role.icon,
-                    description: role.description,
-                    instructionUrl: role.instructionUrl
+                    icon: role.icon || '🔥',
+                    description: role.description || '',
+                    instructionUrl: role.instructionUrl || '',
+                    category: role.category || 'other'
                 };
+                validRoles.push(role.name);
+                console.log(`✅ Загружена роль: "${role.name}" (${role.category})`);
             }
         });
         
-        // Группируем роли по категориям
+        // ИСПРАВЛЕНО: Группируем роли по категориям с fallback
         Object.keys(roleGroups).forEach(key => delete roleGroups[key]);
         const rolesByCategory = {};
         
+        // Сначала группируем по категориям из данных
         data.roles.forEach(role => {
-            if (role.isActive) {
+            if (role.isActive && role.name) {
                 const category = role.category || 'other';
                 if (!rolesByCategory[category]) {
                     rolesByCategory[category] = [];
@@ -98,6 +105,17 @@ async function loadAirtableData() {
             }
         });
         
+        // Если нет ролей из БД, используем статичный fallback
+        if (Object.keys(rolesByCategory).length === 0) {
+            console.warn('⚠️ Роли не загружены из Airtable, используем fallback');
+            rolesByCategory.banking = ['Главный банный мастер', 'Пармастер 2', 'Источник/Водовоз/Тех.гид'];
+            rolesByCategory.care = ['Гриттер 1', 'Гостевая Забота'];
+            rolesByCategory.lounge = ['Любовь+Забота - 1', 'Любовь+Забота+Мастер класс'];
+            rolesByCategory.kitchen = ['Поваренок'];
+            rolesByCategory.other = ['Музыка, ритм, голос', 'Страхующий/Уют'];
+        }
+        
+        // Создаем roleGroups с красивыми названиями
         Object.entries(rolesByCategory).forEach(([category, roles]) => {
             const categoryNames = {
                 'banking': 'Банные',
@@ -111,10 +129,18 @@ async function loadAirtableData() {
                 name: categoryNames[category] || category,
                 roles: roles
             };
+            
+            console.log(`📂 Группа "${categoryNames[category] || category}": ${roles.length} ролей`);
         });
         
+        // ИСПРАВЛЕНО: allRoles из всех групп
         allRoles.length = 0;
-        allRoles.push(...Object.values(roleGroups).flatMap(group => group.roles));
+        Object.values(roleGroups).forEach(group => {
+            allRoles.push(...group.roles);
+        });
+        
+        console.log(`📋 Всего ролей: ${allRoles.length}`);
+        console.log('🔍 Список всех ролей:', allRoles);
         
         // Обрабатываем расписание
         Object.keys(schedule).forEach(key => delete schedule[key]);
@@ -127,6 +153,7 @@ async function loadAirtableData() {
             let availableRoles = [];
             if (session.availableRoles) {
                 availableRoles = session.availableRoles.split(',').map(r => r.trim());
+                console.log(`📅 Сессия ${session.startTime} ${dateKey}: ограниченные роли`, availableRoles);
             }
             
             schedule[dateKey].push({
@@ -143,15 +170,16 @@ async function loadAirtableData() {
         Object.keys(appSettings).forEach(key => delete appSettings[key]);
         Object.assign(appSettings, data.settings);
         
-        // Обрабатываем назначения
+        // ИСПРАВЛЕНО: Загружаем назначения после того, как все роли готовы
         await loadAssignments(data.assignments);
         
         isDataLoaded = true;
         window.participants = participants; // для telegram.js
         
-        console.log('Данные успешно загружены:', {
+        console.log('✅ Данные успешно загружены:', {
             participants: participants.length,
             roles: Object.keys(rolesInfo).length,
+            roleGroups: Object.keys(roleGroups).length,
             schedule: Object.keys(schedule).length,
             assignments: Object.keys(assignments).length
         });
@@ -160,7 +188,7 @@ async function loadAirtableData() {
         window.dispatchEvent(new CustomEvent('dataLoaded'));
         
     } catch (error) {
-        console.error('Ошибка загрузки данных:', error);
+        console.error('❌ Ошибка загрузки данных:', error);
         showErrorState(error.message);
         throw error;
     } finally {
@@ -171,28 +199,50 @@ async function loadAirtableData() {
 async function loadAssignments(assignmentsData) {
     Object.keys(assignments).forEach(key => delete assignments[key]);
     
+    // ИСПРАВЛЕНО: Сначала создаем assignments для всех сессий и всех ролей
     Object.keys(schedule).forEach(day => {
         schedule[day].forEach(session => {
             const sessionKey = `${day}_${session.time}`;
             assignments[sessionKey] = {};
             
+            // ВАЖНО: Используем роли из сессии, если они заданы, иначе все роли
             let sessionRoles = allRoles;
-            if (session.roles) {
+            if (session.roles && session.roles.length > 0) {
                 sessionRoles = session.roles;
+                console.log(`📝 Сессия ${sessionKey} имеет ограниченные роли:`, sessionRoles);
+            } else {
+                console.log(`📝 Сессия ${sessionKey} использует все роли:`, allRoles.length);
             }
             
+            // Инициализируем все роли как null
             sessionRoles.forEach(role => {
                 assignments[sessionKey][role] = null;
             });
         });
     });
     
+    console.log('📦 Инициализированы assignments:', Object.keys(assignments).length, 'сессий');
+    
+    // ИСПРАВЛЕНО: Применяем назначения из Airtable
     assignmentsData.forEach(assignment => {
         const sessionKey = `${assignment.slotDate}_${assignment.slotTime}`;
-        if (assignments[sessionKey] && assignments[sessionKey][assignment.roleName] !== undefined) {
-            assignments[sessionKey][assignment.roleName] = assignment.participantName;
+        
+        if (!assignments[sessionKey]) {
+            console.warn(`⚠️ Сессия ${sessionKey} не найдена для назначения:`, assignment);
+            return;
         }
+        
+        if (assignments[sessionKey][assignment.roleName] === undefined) {
+            console.error(`❌ Роль "${assignment.roleName}" не найдена в сессии ${sessionKey}`);
+            console.log('Доступные роли в сессии:', Object.keys(assignments[sessionKey]));
+            return;
+        }
+        
+        assignments[sessionKey][assignment.roleName] = assignment.participantName;
+        console.log(`✅ Назначение: ${assignment.participantName} → ${assignment.roleName} в ${sessionKey}`);
     });
+    
+    console.log('📋 Загружены назначения из Airtable:', assignmentsData.length);
 }
 
 /* === СОХРАНЕНИЕ ДАННЫХ В AIRTABLE === */
