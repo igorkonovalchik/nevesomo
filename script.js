@@ -1036,7 +1036,7 @@ function openParticipantPopup(sessionKey, role) {
     document.getElementById('participantPopup').classList.add('show');
 }
 
-/ 5. Обновить функцию выбора участника (для админа) с лоадером
+
 async function selectParticipant(participantName) {
     if (!currentPopupSession || !currentPopupRole) return;
     
@@ -1142,7 +1142,7 @@ function closeParticipantPopup() {
     currentPopupRole = null;
 }
 
-/ 4. Обновить функцию переключения назначения с лоадером
+
 async function toggleUserAssignment(sessionKey, role) {
     if (!currentUser) {
         alert('Выберите участника');
