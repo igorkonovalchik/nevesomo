@@ -204,5 +204,381 @@ body {
 }
 
 
+/* Обновленный минималистичный дизайн */
 
+/* Основная карточка сессии */
+.session {
+    background: var(--bg-primary);
+    border: 1px solid #e8eaed;
+    border-radius: 16px;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.session:hover {
+    border-color: #dadce0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Компактная секция */
+.session-compact {
+    padding: 20px 24px;
+    cursor: pointer;
+}
+
+/* Информация о сессии */
+.session-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.session-basic-info {
+    flex: 1;
+}
+
+.session-time {
+    font-weight: 600;
+    font-size: 1.125rem;
+    color: #202124;
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+}
+
+.session-details {
+    color: #5f6368;
+    font-size: 0.875rem;
+    font-weight: 400;
+}
+
+.bath-link {
+    color: #5f6368 !important;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.bath-link:hover {
+    color: #1a73e8 !important;
+}
+
+/* Статистика сессии */
+.session-stats {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+/* Новый дизайн прогресса как ring */
+.progress-display {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.progress-circle {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #5f6368;
+    background: #f8f9fa;
+    border: 2px solid #e8eaed;
+    transition: all 0.3s ease;
+}
+
+/* Ring прогресс для частично заполненных */
+.progress-circle.partial {
+    background: conic-gradient(#34a853 var(--progress-angle, 0deg), #e8eaed 0deg);
+    color: #137333;
+    border-color: #34a853;
+}
+
+.progress-circle.partial::before {
+    content: '';
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    background: var(--bg-primary);
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.progress-circle.partial .progress-text {
+    position: relative;
+    z-index: 2;
+}
+
+/* Полностью заполненные */
+.progress-circle.complete {
+    background: #e8f5e8;
+    border-color: #34a853;
+    color: #137333;
+}
+
+.progress-circle.complete::after {
+    content: '✓';
+    position: absolute;
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+/* Лейбл под прогрессом */
+.progress-label {
+    position: absolute;
+    top: 52px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.75rem;
+    color: #9aa0a6;
+    white-space: nowrap;
+    font-weight: 400;
+}
+
+/* Индикатор пользовательского шифта - минималистичный */
+.session.user-assigned {
+    border-left: 3px solid #34a853;
+    background: linear-gradient(90deg, rgba(52, 168, 83, 0.03) 0%, transparent 100%);
+}
+
+.session.user-assigned .session-time::after {
+    content: '✓';
+    margin-left: 8px;
+    color: #34a853;
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+/* Убираем старую зеленую плашку */
+.session-user-indicator {
+    display: none;
+}
+
+/* Кнопка автозаполнения */
+.auto-fill-slot-btn {
+    background: #f8f9fa;
+    color: #5f6368;
+    border: 1px solid #dadce0;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.auto-fill-slot-btn:hover {
+    background: #f1f3f4;
+    border-color: #c4c7c5;
+    color: #3c4043;
+}
+
+/* Темная тема */
+[data-theme="dark"] .session {
+    background: var(--bg-secondary);
+    border-color: #3c4043;
+}
+
+[data-theme="dark"] .session:hover {
+    border-color: #5f6368;
+}
+
+[data-theme="dark"] .session-time {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .session-details,
+[data-theme="dark"] .bath-link {
+    color: #9aa0a6 !important;
+}
+
+[data-theme="dark"] .bath-link:hover {
+    color: #8ab4f8 !important;
+}
+
+[data-theme="dark"] .progress-circle {
+    background: #3c4043;
+    border-color: #5f6368;
+    color: #9aa0a6;
+}
+
+[data-theme="dark"] .progress-circle.partial {
+    background: conic-gradient(#81c995 var(--progress-angle, 0deg), #3c4043 0deg);
+    color: #81c995;
+    border-color: #81c995;
+}
+
+[data-theme="dark"] .progress-circle.partial::before {
+    background: var(--bg-secondary);
+}
+
+[data-theme="dark"] .progress-circle.complete {
+    background: #2d3e2f;
+    border-color: #81c995;
+    color: #81c995;
+}
+
+[data-theme="dark"] .session.user-assigned {
+    border-left-color: #81c995;
+    background: linear-gradient(90deg, rgba(129, 201, 149, 0.08) 0%, transparent 100%);
+}
+
+[data-theme="dark"] .session.user-assigned .session-time::after {
+    color: #81c995;
+}
+
+[data-theme="dark"] .auto-fill-slot-btn {
+    background: #3c4043;
+    border-color: #5f6368;
+    color: #9aa0a6;
+}
+
+[data-theme="dark"] .auto-fill-slot-btn:hover {
+    background: #444746;
+    color: #e8eaed;
+}
+
+/* CSS переменная для анимированного прогресса */
+.progress-circle.partial {
+    --progress-angle: calc(var(--progress-percent, 0) * 3.6deg);
+}
+
+/* Анимированный ring прогресс */
+.progress-circle {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-circle.partial {
+    background: conic-gradient(
+        #34a853 var(--progress-angle, 0deg), 
+        #e8eaed var(--progress-angle, 0deg)
+    );
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Анимация появления чекмарка */
+.progress-circle.complete::after {
+    animation: checkmark-appear 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+@keyframes checkmark-appear {
+    0% {
+        transform: scale(0) rotate(45deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2) rotate(45deg);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+/* Плавная анимация прогресса */
+@property --progress-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+.progress-circle.partial {
+    --progress-angle: calc(var(--progress-percent, 0) * 3.6deg);
+    animation: progress-fill 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes progress-fill {
+    from {
+        --progress-angle: 0deg;
+    }
+    to {
+        --progress-angle: calc(var(--progress-percent, 0) * 3.6deg);
+    }
+}
+
+/* Hover эффекты */
+.session:hover .progress-circle {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(52, 168, 83, 0.15);
+}
+
+.session:hover .progress-circle.complete {
+    box-shadow: 0 2px 8px rgba(52, 168, 83, 0.25);
+}
+
+/* Пульсация для активных пользовательских шифтов */
+.session.user-assigned .progress-circle.complete {
+    animation: gentle-pulse 2s ease-in-out infinite;
+}
+
+@keyframes gentle-pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(52, 168, 83, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 4px rgba(52, 168, 83, 0.1);
+    }
+}
+
+/* Текст внутри ring'а */
+.progress-text {
+    font-variant-numeric: tabular-nums;
+    transition: all 0.3s ease;
+}
+
+/* Улучшенные микро-интерактивности */
+.progress-circle:hover .progress-text {
+    font-weight: 700;
+    transform: scale(1.1);
+}
+
+/* Темная тема анимации */
+[data-theme="dark"] .progress-circle.partial {
+    background: conic-gradient(
+        #81c995 var(--progress-angle, 0deg), 
+        #3c4043 var(--progress-angle, 0deg)
+    );
+}
+
+[data-theme="dark"] .session:hover .progress-circle {
+    box-shadow: 0 2px 8px rgba(129, 201, 149, 0.15);
+}
+
+[data-theme="dark"] .session:hover .progress-circle.complete {
+    box-shadow: 0 2px 8px rgba(129, 201, 149, 0.25);
+}
+
+[data-theme="dark"] .session.user-assigned .progress-circle.complete {
+    animation: gentle-pulse-dark 2s ease-in-out infinite;
+}
+
+@keyframes gentle-pulse-dark {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(129, 201, 149, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 4px rgba(129, 201, 149, 0.1);
+    }
+}
+
+/* Дополнительная полировка для лейблов */
+.progress-label {
+    transition: color 0.3s ease;
+}
+
+.session:hover .progress-label {
+    color: #5f6368;
+}
+
+[data-theme="dark"] .session:hover .progress-label {
+    color: #e8eaed;
+}
 
