@@ -885,3 +885,197 @@ body {
 .schedule-item-compact.ultra-compact .schedule-compact-type {
     display: none; /* Совсем убираем тип в ультра-компактном режиме */
 }
+
+/* Исправленный дизайн для лейбла количества шифтов */
+
+.progress-display {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 60px; /* Увеличиваем минимальную ширину */
+}
+
+.progress-circle {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #5f6368;
+    background: #f8f9fa;
+    border: 2px solid #e8eaed;
+    transition: all 0.3s ease;
+    flex-shrink: 0; /* Не сжимается */
+}
+
+/* Ring прогресс для частично заполненных */
+.progress-circle.partial {
+    background: conic-gradient(#34a853 var(--progress-angle, 0deg), #e8eaed 0deg);
+    color: #137333;
+    border-color: #34a853;
+}
+
+.progress-circle.partial::before {
+    content: '';
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    background: var(--bg-primary);
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.progress-circle.partial .progress-text {
+    position: relative;
+    z-index: 2;
+}
+
+/* Полностью заполненные */
+.progress-circle.complete {
+    background: #e8f5e8;
+    border-color: #34a853;
+    color: #137333;
+}
+
+.progress-circle.complete::after {
+    content: '✓';
+    position: absolute;
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+/* ИСПРАВЛЕНО: Лейбл под прогрессом */
+.progress-label {
+    margin-top: 6px; /* Увеличиваем отступ сверху */
+    font-size: 0.7rem;
+    color: #9aa0a6;
+    white-space: nowrap;
+    font-weight: 400;
+    text-align: center;
+    min-width: 50px; /* Минимальная ширина для текста */
+    line-height: 1.2;
+}
+
+/* Альтернативный вариант - в две строки для длинных текстов */
+.progress-label.multiline {
+    white-space: normal;
+    max-width: 70px;
+    line-height: 1.1;
+    font-size: 0.65rem;
+}
+
+/* Вариант с сокращением текста */
+.progress-label.compact {
+    font-size: 0.65rem;
+}
+
+.progress-label.compact::after {
+    content: attr(data-full-text);
+    display: none;
+}
+
+/* Вариант только с цифрой */
+.progress-label.number-only {
+    font-weight: 600;
+    color: #5f6368;
+}
+
+/* Для очень узких мест */
+.progress-display.ultra-compact .progress-label {
+    font-size: 0.6rem;
+    margin-top: 4px;
+    max-width: 44px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Темная тема */
+[data-theme="dark"] .progress-circle {
+    background: #3c4043;
+    border-color: #5f6368;
+    color: #9aa0a6;
+}
+
+[data-theme="dark"] .progress-circle.partial {
+    background: conic-gradient(#81c995 var(--progress-angle, 0deg), #3c4043 0deg);
+    color: #81c995;
+    border-color: #81c995;
+}
+
+[data-theme="dark"] .progress-circle.partial::before {
+    background: var(--bg-secondary);
+}
+
+[data-theme="dark"] .progress-circle.complete {
+    background: #2d3e2f;
+    border-color: #81c995;
+    color: #81c995;
+}
+
+[data-theme="dark"] .progress-label {
+    color: #9aa0a6;
+}
+
+/* Адаптивные размеры для разных контекстов */
+@media (max-width: 768px) {
+    .progress-display {
+        min-width: 50px;
+    }
+    
+    .progress-label {
+        font-size: 0.65rem;
+        max-width: 60px;
+    }
+}
+
+/* Для совсем маленьких экранов */
+@media (max-width: 480px) {
+    .progress-display {
+        min-width: 45px;
+    }
+    
+    .progress-circle {
+        width: 38px;
+        height: 38px;
+        font-size: 0.7rem;
+    }
+    
+    .progress-circle.partial::before {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .progress-label {
+        font-size: 0.6rem;
+        margin-top: 4px;
+        max-width: 50px;
+    }
+}
+
+/* Специальный класс для сессий с большим количеством ролей */
+.session-stats .progress-display.many-roles .progress-label {
+    font-size: 0.65rem;
+    max-width: 80px;
+    line-height: 1.1;
+}
+
+/* Стили для различных вариантов отображения */
+.progress-label.style-short {
+    /* Сокращенный вариант: "9 шт" вместо "9 шифтов" */
+}
+
+.progress-label.style-icon {
+    /* С иконкой: "👥 9" */
+}
+
+.progress-label.style-minimal {
+    /* Только цифра: "9" */
+    font-weight: 600;
+    color: #5f6368;
+}
