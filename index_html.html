@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEVESOMO Шифты 2025</title>
+    <link rel="stylesheet" href="styles.min.css">
+</head>
+<body>
+    <!-- Хедер в стиле Telegram -->
+    <div class="header">
+        <div class="header-left">NEVESOMO</div>
+        <div class="header-center">ШИФТЫ</div>
+        <div class="header-right">
+            <button class="theme-toggle" onclick="toggleTheme()" title="Переключить тему">
+                🌙
+            </button>
+            <div class="burger-btn" onclick="toggleMenu()">
+                <div class="burger-menu">
+                    <div class="burger-line"></div>
+                    <div class="burger-line"></div>
+                    <div class="burger-line"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="deadlineWarning" class="deadline-warning">
+            <div>⚠️ Выберите себе шифты до 8 июля 2025 года или мы выберем их за вас</div>
+            <div class="countdown" id="countdown"></div>
+        </div>
+        
+        <div id="userSelector" class="user-selector">
+            <select id="currentUser" onchange="updateView()">
+                <option value="">Выберите участника</option>
+            </select>
+        </div>
+        
+        <div id="schedule"></div>
+        
+        <!-- Кнопка мое расписание внизу экрана -->
+        <button id="myScheduleBtn" class="my-schedule-btn" onclick="openMySchedule()" style="display: none;">
+            Мое расписание
+        </button>
+    </div>
+
+    <!-- Прогресс бар -->
+    <div id="progressBar" class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div id="progressText" class="progress-text"></div>
+
+    <!-- Меню -->
+    <div class="menu-overlay" id="menuOverlay" onclick="closeMenu()">
+        <div class="menu-content" onclick="event.stopPropagation()">
+            <div class="menu-header">
+                <div class="menu-title">Меню</div>
+                <button class="menu-close" onclick="closeMenu()">×</button>
+            </div>
+            <div id="menuItems"></div>
+        </div>
+    </div>
+
+    <!-- Попап для выбора участника -->
+    <div class="popup-overlay" id="participantPopup">
+        <div class="popup-bottom" onclick="event.stopPropagation()">
+            <div class="popup-header">
+                <div class="popup-title">Выберите участника</div>
+                <button class="popup-close" onclick="closeParticipantPopup()">×</button>
+            </div>
+            <div class="popup-body">
+                <div id="participantsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Попап статистики -->
+    <div class="popup-overlay" id="statsPopup">
+        <div class="popup-bottom" onclick="event.stopPropagation()">
+            <div class="popup-header">
+                <div class="popup-title">📊 Статистика заполнения</div>
+                <button class="popup-close" onclick="closeStatsPopup()">×</button>
+            </div>
+            <div class="popup-body">
+                <div id="statsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Попап расписания -->
+    <div class="popup-overlay" id="schedulePopup">
+        <div class="popup-right" onclick="event.stopPropagation()">
+            <div class="popup-header">
+                <div class="popup-nav">
+                    <button class="popup-back" onclick="closeSchedulePopup()">←</button>
+                    <div class="popup-title">Мое расписание</div>
+                </div>
+                <div class="popup-actions">
+                    <button class="popup-close" onclick="window.print()">🖨️</button>
+                    <button class="popup-close" onclick="shareSchedule()">📤</button>
+                    <button class="popup-close" onclick="closeSchedulePopup()">×</button>
+                </div>
+            </div>
+            <div class="popup-body" id="scheduleBody"></div>
+        </div>
+    </div>
+
+    <!-- Попап о шифтах -->
+    <div class="popup-overlay" id="rolesInfoPopup">
+        <div class="popup-right" onclick="event.stopPropagation()">
+            <div class="popup-header">
+                <div class="popup-nav">
+                    <button class="popup-back" onclick="closeRolesInfoPopup()">←</button>
+                    <div class="popup-title">О шифтах</div>
+                </div>
+                <div class="popup-actions">
+                    <button class="popup-close" onclick="closeRolesInfoPopup()">×</button>
+                </div>
+            </div>
+            <div class="popup-body" id="rolesInfoBody"></div>
+        </div>
+    </div>
+
+    <!-- Попап описания отдельной роли -->
+    <div class="popup-overlay" id="roleDetailPopup">
+        <div class="role-info-popup" onclick="event.stopPropagation()">
+            <div class="popup-header">
+                <div class="popup-nav">
+                    <button class="popup-back" onclick="closeRoleDetailPopup()">←</button>
+                    <div class="popup-title" id="roleDetailTitle">Роль</div>
+                </div>
+                <div class="popup-actions">
+                    <button class="popup-close" onclick="closeRoleDetailPopup()">×</button>
+                </div>
+            </div>
+            <div class="role-image" id="roleDetailImage">🔥</div>
+            <div class="popup-body">
+                <div class="role-description" id="roleDetailDescription"></div>
+                <a href="#" class="role-link" id="roleDetailLink" target="_blank">📖 Читать инструкцию</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
