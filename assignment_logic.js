@@ -461,7 +461,7 @@ window.fixRoleIssues = function() {
     if (fixedSessions > 0) {
         renderSchedule();
         updateProgress();
-        alert(`Исправлено ${fixedSessions} сессий. Попробуйте выбрать роли снова!`);
+      //  alert(`Исправлено ${fixedSessions} сессий. Попробуйте выбрать роли снова!`);
     } else {
         alert('Проблем не найдено или уже исправлены.');
     }
