@@ -952,7 +952,7 @@ body {
 
 /* ИСПРАВЛЕНО: Лейбл под прогрессом */
 .progress-label {
-    margin-top: 6px; /* Увеличиваем отступ сверху */
+    margin-top: -3px; /* Увеличиваем отступ сверху */
     font-size: 0.7rem;
     color: #9aa0a6;
     white-space: nowrap;
@@ -984,6 +984,10 @@ body {
 .progress-label.number-only {
     font-weight: 600;
     color: #5f6368;
+}
+
+.progress-display {
+    margin-top: -15px;
 }
 
 /* Для очень узких мест */
