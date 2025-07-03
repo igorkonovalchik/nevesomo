@@ -574,22 +574,47 @@ function startCountdown() {
     setInterval(updateCountdown, 1000);
 }
 
+
 function updateMenu() {
   const menuItems = document.getElementById('menuItems');
   let html = '';
 
   if (currentMode === 'admin') {
     html = `
-      <div class="menu-item" onclick="openStatsPopup(); closeMenu();">📊 Статистика</div>
-      <div class="menu-item" onclick="openSchedulePopup(); closeMenu();">📅 Расписание</div>
-      <div class="menu-item" onclick="openDataEditPopup(); closeMenu();">⚙️ Изменить данные</div>
-      <div class="menu-item" onclick="openRolesInfoPopup(); closeMenu();">❓ О шифтах</div>
+      <div class="menu-item" onclick="openStatsPopup(); closeMenu();">
+        <span>📊 Статистика</span>
+      </div>
+      <div class="menu-item" onclick="openSchedulePopup(); closeMenu();">
+        <span>📅 Расписание</span>
+      </div>
+      <div class="menu-item" onclick="openDataEditPopup(); closeMenu();">
+        <span>⚙️ Изменить данные</span>
+      </div>
+      <div class="menu-item" onclick="openRolesInfoPopup(); closeMenu();">
+        <span>❓ О шифтах</span>
+      </div>
+      <div class="menu-item" onclick="setMode('user'); closeMenu();">
+        <span>👤 Режим участника</span>
+      </div>
     `;
   } else {
     html = `
-      <div class="menu-item" onclick="openMySchedule(); closeMenu();">📅 Мое расписание</div>
-      <div class="menu-item" onclick="openRolesInfoPopup(); closeMenu();">❓ О шифтах</div>
+      <div class="menu-item" onclick="openMySchedule(); closeMenu();">
+        <span>📅 Мое расписание</span>
+      </div>
+      <div class="menu-item" onclick="openRolesInfoPopup(); closeMenu();">
+        <span>❓ О шифтах</span>
+      </div>
     `;
+    
+    // Для веб-версии показываем переключение в админ режим
+    if (!window.telegramUtils?.telegramUser) {
+      html += `
+        <div class="menu-item" onclick="setMode('admin'); closeMenu();">
+          <span>👨‍💼 Админ режим</span>
+        </div>
+      `;
+    }
   }
 
   menuItems.innerHTML = html;
