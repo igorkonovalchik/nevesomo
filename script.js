@@ -1385,7 +1385,6 @@ function openMySchedule() {
 }
 
 // Заменить всю функцию openSchedulePopup в script.js
-. Обновить функцию расписания участника (компактный вид)
 function openSchedulePopup() {
     const scheduleBody = document.getElementById('scheduleBody');
     let html = '';
