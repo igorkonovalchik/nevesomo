@@ -37,6 +37,17 @@
   function applyAccess() {
     const participants = window.participants;
 
+    // 1. большое «Привет, …» под шапкой
+    const bigGreet = document.getElementById('bigGreeting');
+    if (bigGreet) bigGreet.textContent = `Привет, ${match.name}!`;
+    
+    // 2. прячем селектор участника (он нужен лишь в веб-версии)
+    document.getElementById('userSelector')?.style.setProperty('display', 'none');
+    
+    // 3. ставим выбранного пользователя в скрытый select,
+    //    чтобы остальной код не ломался
+    document.getElementById('currentUser').value = match.name;
+
     // Ищем участника по Telegram_ID или username
     const match = participants.find(p => {
       const idOK = p.telegramId && p.telegramId.toString() === telegramUser.id.toString();
