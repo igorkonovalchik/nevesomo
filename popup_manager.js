@@ -1,33 +1,10 @@
-// popup-manager.js - Управление попапами приложения NEVESOMO
-// Отвечает за открытие, закрытие и содержимое всех попапов кроме выбора участников
-
-import { 
-    participants,
-    rolesInfo,
-    roleGroups,
-    schedule,
-    allRoles,
-    assignments,
-    getUserRolesInSession
-} from './core/data-manager.js';
-
-import { 
-    formatDate,
-    renderUserStats,
-    renderUserSchedule,
-    renderRolesList
-} from './ui/ui-renderer.js';
+// popup-manager.js - Управление попапами (без ES6 модулей)
 
 /* === ПЕРЕМЕННЫЕ СОСТОЯНИЯ ПОПАПОВ === */
 let previousPopup = null;
 
 /* === ПОПАП СТАТИСТИКИ === */
-
-/**
- * Открывает попап статистики
- * @param {Function} getUserCategoryStats - функция подсчета статистики по категориям
- */
-export function openStatsPopup(getUserCategoryStats) {
+function openStatsPopup() {
     const statsList = document.getElementById('statsList');
     
     const userStats = participants.map(participant => {
@@ -64,33 +41,17 @@ export function openStatsPopup(getUserCategoryStats) {
     document.getElementById('statsPopup').classList.add('show');
 }
 
-/**
- * Закрывает попап статистики
- */
-export function closeStatsPopup() {
+function closeStatsPopup() {
     document.getElementById('statsPopup').classList.remove('show');
 }
 
 /* === ПОПАП РАСПИСАНИЯ === */
-
-/**
- * Открывает попап "Мое расписание"
- * @param {string} currentMode - текущий режим
- * @param {string} currentUser - текущий пользователь
- * @param {Function} getUserCategoryStats - функция подсчета статистики
- */
-export function openMySchedule(currentMode, currentUser, getUserCategoryStats) {
+function openMySchedule() {
     previousPopup = null;
-    openSchedulePopup(currentMode, currentUser, getUserCategoryStats);
+    openSchedulePopup();
 }
 
-/**
- * Открывает попап расписания
- * @param {string} currentMode - текущий режим (user/admin)
- * @param {string} currentUser - текущий пользователь
- * @param {Function} getUserCategoryStats - функция подсчета статистики
- */
-export function openSchedulePopup(currentMode, currentUser, getUserCategoryStats) {
+function openSchedulePopup() {
     const scheduleBody = document.getElementById('scheduleBody');
     let html = '';
     
@@ -188,17 +149,11 @@ export function openSchedulePopup(currentMode, currentUser, getUserCategoryStats
     document.getElementById('schedulePopup').classList.add('show');
 }
 
-/**
- * Закрывает попап расписания
- */
-export function closeSchedulePopup() {
+function closeSchedulePopup() {
     document.getElementById('schedulePopup').classList.remove('show');
 }
 
-/**
- * Функция для шеринга расписания
- */
-export function shareSchedule() {
+function shareSchedule() {
     if (navigator.share) {
         navigator.share({
             title: 'Мое расписание шифтов NEVESOMO',
@@ -212,11 +167,7 @@ export function shareSchedule() {
 }
 
 /* === ПОПАП ИНФОРМАЦИИ О РОЛЯХ === */
-
-/**
- * Открывает попап с информацией о ролях
- */
-export function openRolesInfoPopup() {
+function openRolesInfoPopup() {
     previousPopup = null;
     const rolesInfoBody = document.getElementById('rolesInfoBody');
     
@@ -225,21 +176,12 @@ export function openRolesInfoPopup() {
     document.getElementById('rolesInfoPopup').classList.add('show');
 }
 
-/**
- * Закрывает попап информации о ролях
- */
-export function closeRolesInfoPopup() {
+function closeRolesInfoPopup() {
     document.getElementById('rolesInfoPopup').classList.remove('show');
 }
 
 /* === ПОПАП ДЕТАЛЬНОГО ОПИСАНИЯ РОЛИ === */
-
-/**
- * Показывает детальное описание роли
- * @param {string} role - название роли
- * @param {string} sourcePopup - источник откуда пришли (roles/schedule)
- */
-export function showRoleDetail(role, sourcePopup = null) {
+function showRoleDetail(role, sourcePopup = null) {
     previousPopup = sourcePopup;
     const roleInfo = rolesInfo[role];
     
@@ -260,10 +202,7 @@ export function showRoleDetail(role, sourcePopup = null) {
     document.getElementById('roleDetailPopup').classList.add('show');
 }
 
-/**
- * Закрывает попап детального описания роли
- */
-export function closeRoleDetailPopup() {
+function closeRoleDetailPopup() {
     document.getElementById('roleDetailPopup').classList.remove('show');
     
     // Возвращаемся на предыдущий попап если он был
@@ -276,20 +215,12 @@ export function closeRoleDetailPopup() {
 }
 
 /* === ПОПАП АДМИН ПАНЕЛИ === */
-
-/**
- * Открывает попап админ панели (заглушка)
- */
-export function openDataEditPopup() {
+function openDataEditPopup() {
     alert('Админ панель редактирования данных будет реализована в следующей версии.\n\nЗдесь будет возможность:\n- Редактировать роли и их описания\n- Изменять информацию о бане\n- Настраивать расписание');
 }
 
 /* === ОБЩИЕ ФУНКЦИИ === */
-
-/**
- * Закрывает все попапы
- */
-export function closeAllPopups() {
+function closeAllPopups() {
     const popups = [
         'statsPopup',
         'schedulePopup', 
@@ -308,21 +239,13 @@ export function closeAllPopups() {
     previousPopup = null;
 }
 
-/**
- * Проверяет, открыт ли какой-либо попап
- * @returns {boolean}
- */
-export function isAnyPopupOpen() {
+function isAnyPopupOpen() {
     const popups = document.querySelectorAll('.popup-overlay.show');
     return popups.length > 0;
 }
 
 /* === ИНИЦИАЛИЗАЦИЯ ОБРАБОТЧИКОВ === */
-
-/**
- * Инициализирует обработчики событий для попапов
- */
-export function initPopupHandlers() {
+function initPopupHandlers() {
     // Обработчик для закрытия попапов по клику на оверлей
     document.addEventListener('click', (event) => {
         if (event.target.classList.contains('popup-overlay')) {
@@ -351,43 +274,5 @@ export function initPopupHandlers() {
         }
     });
 }
-
-/* === ГЛОБАЛЬНЫЕ ФУНКЦИИ ДЛЯ ONCLICK === */
-
-// Экспортируем функции в глобальную область для onclick
-window.openMySchedule = () => {
-    const currentMode = window.currentMode || 'user';
-    const currentUser = window.currentUser || '';
-    const getUserCategoryStats = window.getUserCategoryStats;
-    openMySchedule(currentMode, currentUser, getUserCategoryStats);
-};
-
-window.openStatsPopup = () => {
-    const getUserCategoryStats = window.getUserCategoryStats;
-    openStatsPopup(getUserCategoryStats);
-};
-
-window.closeStatsPopup = closeStatsPopup;
-
-window.openSchedulePopup = () => {
-    const currentMode = window.currentMode || 'user';
-    const currentUser = window.currentUser || '';
-    const getUserCategoryStats = window.getUserCategoryStats;
-    openSchedulePopup(currentMode, currentUser, getUserCategoryStats);
-};
-
-window.closeSchedulePopup = closeSchedulePopup;
-
-window.shareSchedule = shareSchedule;
-
-window.openRolesInfoPopup = openRolesInfoPopup;
-
-window.closeRolesInfoPopup = closeRolesInfoPopup;
-
-window.showRoleDetail = showRoleDetail;
-
-window.closeRoleDetailPopup = closeRoleDetailPopup;
-
-window.openDataEditPopup = openDataEditPopup;
 
 console.log('🪟 Popup Manager загружен');
