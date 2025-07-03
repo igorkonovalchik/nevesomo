@@ -19,6 +19,187 @@ let currentPopupRole = null;
 let sessionFilters = {};
 let previousPopup = null;
 
+// Добавить эти функции в начало script.js (после объявления переменных)
+
+// Функции для работы с меню (должны быть глобальными для onclick)
+window.toggleMenu = function() {
+    const menuOverlay = document.getElementById('menuOverlay');
+    if (menuOverlay) {
+        menuOverlay.classList.toggle('show');
+    }
+}
+
+window.closeMenu = function() {
+    const menuOverlay = document.getElementById('menuOverlay');
+    if (menuOverlay) {
+        menuOverlay.classList.remove('show');
+    }
+}
+
+// Функция переключения темы тоже должна быть глобальной
+window.toggleTheme = function() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+}
+
+// Функции для закрытия попапов
+window.closeParticipantPopup = function() {
+    document.getElementById('participantPopup').classList.remove('show');
+    currentPopupSession = null;
+    currentPopupRole = null;
+}
+
+window.closeStatsPopup = function() {
+    document.getElementById('statsPopup').classList.remove('show');
+}
+
+window.closeSchedulePopup = function() {
+    document.getElementById('schedulePopup').classList.remove('show');
+}
+
+window.closeRolesInfoPopup = function() {
+    document.getElementById('rolesInfoPopup').classList.remove('show');
+}
+
+window.closeRoleDetailPopup = function() {
+    document.getElementById('roleDetailPopup').classList.remove('show');
+    
+    // Возвращаемся на предыдущий попап если он был
+    if (previousPopup === 'roles') {
+        document.getElementById('rolesInfoPopup').classList.add('show');
+    } else if (previousPopup === 'schedule') {
+        document.getElementById('schedulePopup').classList.add('show');
+    }
+    previousPopup = null;
+}
+
+// Функции для открытия попапов тоже должны быть доступны глобально
+window.openMySchedule = function() {
+    previousPopup = null;
+    openSchedulePopup();
+}
+
+window.openStatsPopup = function() {
+    const statsList = document.getElementById('statsList');
+    
+    const userStats = participants.map(participant => {
+        let shiftsCount = 0;
+        const categoryStats = getUserCategoryStats(participant.name);
+        
+        Object.keys(assignments).forEach(sessionKey => {
+            const [day, time] = sessionKey.split('_');
+            const session = schedule[day].find(s => s.time === time);
+            
+            let sessionRoles = allRoles;
+            if (session.roles) {
+                sessionRoles = session.roles;
+            }
+            
+            sessionRoles.forEach(role => {
+                if (assignments[sessionKey][role] === participant.name) {
+                    shiftsCount++;
+                }
+            });
+        });
+        
+        return {
+            name: participant.name,
+            shifts: shiftsCount,
+            complete: shiftsCount >= 8,
+            categories: categoryStats
+        };
+    });
+    
+    let html = '';
+    userStats.forEach(user => {
+        const categoriesHtml = Object.entries(user.categories)
+            .filter(([category, count]) => count > 0)
+            .map(([category, count]) => `<div class="stats-category">${category}: ${count}</div>`)
+            .join('');
+        
+        html += `
+            <div class="stats-user ${user.complete ? 'complete' : 'incomplete'}">
+                <div class="stats-user-header">
+                    <div class="stats-name">${user.name}</div>
+                    <div class="stats-total ${user.complete ? 'complete' : 'incomplete'}">
+                        ${user.shifts}/8 шифтов
+                    </div>
+                </div>
+                <div class="stats-categories">
+                    ${categoriesHtml || '<div class="stats-category">Шифты не назначены</div>'}
+                </div>
+            </div>
+        `;
+    });
+    
+    statsList.innerHTML = html;
+    document.getElementById('statsPopup').classList.add('show');
+}
+
+window.openRolesInfoPopup = function() {
+    previousPopup = null;
+    const rolesInfoBody = document.getElementById('rolesInfoBody');
+    
+    let html = '<div style="margin-bottom: 20px; color: var(--text-secondary);">Выберите роль для подробного описания:</div>';
+    
+    Object.entries(roleGroups).forEach(([groupKey, group]) => {
+        html += `<h3 style="margin: 24px 0 12px 0; color: var(--accent-primary);">${group.name}</h3>`;
+        
+        group.roles.forEach(role => {
+            const roleInfo = rolesInfo[role];
+            html += `
+                <div class="roles-list-item" onclick="showRoleDetail('${role}', 'roles')">
+                    <div>
+                        <div style="font-weight: 500; margin-bottom: 4px;">${roleInfo.icon} ${role}</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9em;">${roleInfo.description.substring(0, 60)}...</div>
+                    </div>
+                    <div style="color: var(--accent-primary);">›</div>
+                </div>
+            `;
+        });
+    });
+    
+    rolesInfoBody.innerHTML = html;
+    document.getElementById('rolesInfoPopup').classList.add('show');
+}
+
+window.showRoleDetail = function(role, sourcePopup = null) {
+    previousPopup = sourcePopup;
+    const roleInfo = rolesInfo[role];
+    
+    document.getElementById('roleDetailTitle').textContent = role;
+    document.getElementById('roleDetailImage').textContent = roleInfo.icon;
+    document.getElementById('roleDetailDescription').textContent = roleInfo.description;
+    document.getElementById('roleDetailLink').href = roleInfo.instructionUrl;
+    
+    // Закрываем предыдущие попапы
+    document.getElementById('rolesInfoPopup').classList.remove('show');
+    document.getElementById('schedulePopup').classList.remove('show');
+    
+    document.getElementById('roleDetailPopup').classList.add('show');
+}
+
+window.openDataEditPopup = function() {
+    alert('Админ панель редактирования данных будет реализована в следующей версии.\n\nЗдесь будет возможность:\n- Редактировать роли и их описания\n- Изменять информацию о бане\n- Настраивать расписание');
+}
+
+window.shareSchedule = function() {
+    if (navigator.share) {
+        navigator.share({
+            title: 'Мое расписание шифтов NEVESOMO',
+            text: 'Расписание банных шифтов',
+            url: window.location.href
+        });
+    } else {
+        navigator.clipboard.writeText(window.location.href);
+        alert('Ссылка скопирована в буфер обмена');
+    }
+}
+
+window.updateView = updateView;
+window.setMode = setMode;
+
 // Функции для загрузки данных из Airtable
 async function loadAirtableData() {
     if (isDataLoading) return;
