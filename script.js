@@ -325,7 +325,14 @@ async function loadAirtableData() {
                 type: session.type,
                 roles: availableRoles.length > 0 ? availableRoles : undefined
             });
+
+             // --- сразу после push ---
+        schedule[dateKey].sort((a, b) => a.time.localeCompare(b.time));
+            
         });
+
+       
+
         
         // Сохраняем настройки
         appSettings = data.settings;
@@ -1160,25 +1167,30 @@ async function toggleUserAssignment(sessionKey, role) {
     }
 }
 
-// Проверка блокировки слота
 function isSlotBlocked(sessionKey, role) {
-    if (currentMode !== 'user' || !currentUser) return false;
-    
-    const sessionTime = sessionKey.split('_')[1];
-    
-    for (const [checkSessionKey, sessionRoles] of Object.entries(assignments)) {
-        const checkTime = checkSessionKey.split('_')[1];
-        if (checkTime === sessionTime) {
-            for (const [checkRole, assignedUser] of Object.entries(sessionRoles)) {
-                if (assignedUser === currentUser && checkRole !== role) {
-                    return true;
-                }
-            }
-        }
+  if (currentMode !== 'user' || !currentUser) return false;
+
+  const sessionTime = sessionKey.split('_')[1];
+
+  for (const [checkSessionKey, sessionRoles] of Object.entries(assignments)) {
+    const checkTime = checkSessionKey.split('_')[1];
+    if (checkTime !== sessionTime) continue;
+
+    for (const [checkRole, assignedUser] of Object.entries(sessionRoles)) {
+      if (assignedUser !== currentUser || checkRole === role) continue;
+
+      // разрешаем bundle «лаунж + Мастер класс»
+      const loungeOK = roleGroups.lounge.roles.includes(checkRole) || roleGroups.lounge.roles.includes(role);
+      const mcOK     = (checkRole === 'Мастер класс' || role === 'Мастер класс');
+
+      if (loungeOK && mcOK) continue;   // 🟢 не блокируем
+
+      return true;                      // 🔴 блокируем все остальные сочетания
     }
-    
-    return false;
+  }
+  return false;
 }
+
 
 // Автозаполнение сессии (только для админа)
 async function autoFillSession(sessionKey) {
