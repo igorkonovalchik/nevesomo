@@ -1,91 +1,12 @@
-// main.js - Главный файл приложения NEVESOMO
-// Объединяет все модули и инициализирует приложение
-
-/* === ИМПОРТЫ МОДУЛЕЙ === */
-
-// Core модули
-import { 
-    loadAirtableData,
-    participants,
-    assignments,
-    schedule,
-    allRoles,
-    isDataLoaded,
-    reloadData
-} from 'https://nevesomo.vercel.app/data-manager.js';
-
-import { 
-    setMode,
-    setCurrentUser,
-    updateView,
-    updateMenu,
-    updateProgress,
-    getCurrentUser,
-    getCurrentMode,
-    initializeParticipantsSelector,
-    initializeTelegramUser,
-    determineUserMode,
-    initUserHandlers,
-    showBathInfo
-} from 'https://nevesomo.vercel.app/user-manager.js';
-
-// UI модули
-import { 
-    renderSchedule,
-    updateSessionTabs
-} from 'https://nevesomo.vercel.app/ui-renderer.js';
-
-import { 
-    openMySchedule,
-    openStatsPopup,
-    openSchedulePopup,
-    closeStatsPopup,
-    closeSchedulePopup,
-    openRolesInfoPopup,
-    closeRolesInfoPopup,
-    showRoleDetail,
-    closeRoleDetailPopup,
-    openDataEditPopup,
-    shareSchedule,
-    closeAllPopups,
-    initPopupHandlers
-} from 'https://nevesomo.vercel.app/popup-manager.js';
-
-// Logic модули
-import { 
-    handleRoleSlotClick,
-    toggleUserAssignment,
-    selectParticipant,
-    autoFillSession,
-    closeParticipantPopup,
-    openParticipantPopup
-} from 'https://nevesomo.vercel.app/assignment-logic.js';
-
-import { 
-    getUserCategoryStats,
-    getAllUsersStats,
-    hasLoungeRole,
-    getMasterClassPairSlot,
-    getFillStatsByDay,
-    getFillStatsByCategory,
-    getTopBusiestParticipants,
-    getUnderworkedParticipants
-} from 'https://nevesomo.vercel.app/stats-calculator.js';
+// main.js - Главный файл инициализации (без ES6 модулей)
 
 /* === ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ === */
 let sessionFilters = {};
 
-/* === ФУНКЦИИ ИНИЦИАЛИЗАЦИИ === */
-
-/**
- * Основная функция инициализации приложения
- */
+/* === ОСНОВНАЯ ФУНКЦИЯ ИНИЦИАЛИЗАЦИИ === */
 async function init() {
     try {
         console.log('🚀 Запуск приложения NEVESOMO...');
-        
-        // Показываем состояние загрузки
-        showInitialLoading();
         
         // Загружаем данные из Airtable
         await loadAirtableData();
@@ -108,7 +29,7 @@ async function init() {
         
         // Обновляем меню и интерфейс
         updateMenu();
-        renderSchedule(getCurrentMode(), getCurrentUser(), sessionFilters);
+        renderSchedule();
         updateProgress();
         
         console.log('✅ Приложение успешно инициализировано');
@@ -119,9 +40,7 @@ async function init() {
     }
 }
 
-/**
- * Инициализирует фильтры сессий
- */
+/* === ИНИЦИАЛИЗАЦИЯ МОДУЛЕЙ === */
 function initSessionFilters() {
     sessionFilters = {};
     Object.keys(schedule).forEach(day => {
@@ -135,9 +54,6 @@ function initSessionFilters() {
     window.sessionFilters = sessionFilters;
 }
 
-/**
- * Инициализирует все обработчики событий
- */
 function initAllHandlers() {
     // Инициализируем обработчики пользователей
     initUserHandlers();
@@ -155,9 +71,6 @@ function initAllHandlers() {
     initThemeHandlers();
 }
 
-/**
- * Инициализирует обработчики сессий
- */
 function initSessionHandlers() {
     // Глобальные функции для работы с сессиями
     window.toggleSession = function(sessionKey) {
@@ -179,21 +92,16 @@ function initSessionHandlers() {
             }
         }
         
-        // Перерисовываем роли сессии (функция должна быть доступна в ui-renderer)
-        import('./ui/ui-renderer.js').then(module => {
-            const container = document.getElementById(`roles-${sessionKey}`);
-            if (container) {
-                const html = module.renderSessionRoles(sessionKey, filter, getCurrentMode(), getCurrentUser());
-                container.innerHTML = html;
-            }
-            updateSessionTabs(sessionKey);
-        });
+        // Перерисовываем роли сессии
+        const container = document.getElementById(`roles-${sessionKey}`);
+        if (container) {
+            const html = renderSessionRoles(sessionKey, filter);
+            container.innerHTML = html;
+        }
+        updateSessionTabs(sessionKey);
     };
 }
 
-/**
- * Инициализирует обработчики меню
- */
 function initMenuHandlers() {
     window.toggleMenu = function() {
         const menuOverlay = document.getElementById('menuOverlay');
@@ -210,9 +118,6 @@ function initMenuHandlers() {
     };
 }
 
-/**
- * Инициализирует обработчики тем
- */
 function initThemeHandlers() {
     window.toggleTheme = function() {
         const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
@@ -222,11 +127,6 @@ function initThemeHandlers() {
 }
 
 /* === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ === */
-
-/**
- * Устанавливает тему приложения
- * @param {string} theme - название темы ('light' или 'dark')
- */
 function setTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
@@ -237,9 +137,6 @@ function setTheme(theme) {
     }
 }
 
-/**
- * Запускает обратный отсчет до дедлайна
- */
 function startCountdown() {
     const deadline = new Date('2025-07-08T23:59:59');
     
@@ -267,25 +164,6 @@ function startCountdown() {
     setInterval(updateCountdown, 1000);
 }
 
-/**
- * Показывает начальное состояние загрузки
- */
-function showInitialLoading() {
-    const container = document.getElementById('schedule');
-    if (container) {
-        container.innerHTML = `
-            <div style="text-align: center; padding: 40px;">
-                <div style="font-size: 2em; margin-bottom: 16px;">⏳</div>
-                <div style="font-size: 1.2em; color: var(--text-secondary);">Загружаем данные...</div>
-            </div>
-        `;
-    }
-}
-
-/**
- * Показывает сообщение об ошибке
- * @param {string} message - текст ошибки
- */
 function showErrorMessage(message) {
     const container = document.getElementById('schedule');
     if (container) {
@@ -307,10 +185,6 @@ function showErrorMessage(message) {
 }
 
 /* === ИНТЕГРАЦИЯ С TELEGRAM === */
-
-/**
- * Обработчик события загрузки данных для Telegram интеграции
- */
 window.addEventListener('dataLoaded', () => {
     // Проверяем Telegram интеграцию
     const telegramUser = window.telegramUtils?.telegramUser;
@@ -338,22 +212,20 @@ window.addEventListener('dataLoaded', () => {
             console.log(`👤 Режим пользователя: ${userMode}`);
         } else {
             console.log('❌ Участник не найден в базе');
-            // Логика блокировки доступа уже реализована в telegram.js
         }
     }
 });
 
-/* === ЭКСПОРТ ГЛОБАЛЬНЫХ ФУНКЦИЙ === */
-
+/* === ГЛОБАЛЬНЫЕ ФУНКЦИИ === */
 // Основные функции управления
 window.setMode = setMode;
 window.updateView = updateView;
 window.showBathInfo = showBathInfo;
 
 // Функции попапов
-window.openMySchedule = () => openMySchedule(getCurrentMode(), getCurrentUser(), getUserCategoryStats);
-window.openStatsPopup = () => openStatsPopup(getUserCategoryStats);
-window.openSchedulePopup = () => openSchedulePopup(getCurrentMode(), getCurrentUser(), getUserCategoryStats);
+window.openMySchedule = openMySchedule;
+window.openStatsPopup = openStatsPopup;
+window.openSchedulePopup = openSchedulePopup;
 window.closeStatsPopup = closeStatsPopup;
 window.closeSchedulePopup = closeSchedulePopup;
 window.openRolesInfoPopup = openRolesInfoPopup;
@@ -364,23 +236,16 @@ window.openDataEditPopup = openDataEditPopup;
 window.shareSchedule = shareSchedule;
 
 // Функции назначений
-window.handleRoleSlotClick = (sessionKey, role) => 
-    handleRoleSlotClick(sessionKey, role, getCurrentMode(), getCurrentUser());
-window.selectParticipant = (participantName) => 
-    selectParticipant(participantName, getCurrentMode(), getCurrentUser());
+window.handleRoleSlotClick = handleRoleSlotClick;
+window.selectParticipant = selectParticipant;
 window.autoFillSession = autoFillSession;
 window.closeParticipantPopup = closeParticipantPopup;
 
-// Функции статистики
-window.getUserCategoryStats = getUserCategoryStats;
-
 // Переменные состояния
-window.currentMode = getCurrentMode();
-window.currentUser = getCurrentUser();
+window.currentMode = currentMode;
+window.currentUser = currentUser;
 
 /* === ЗАПУСК ПРИЛОЖЕНИЯ === */
-
-// Инициализация при загрузке DOM
 document.addEventListener('DOMContentLoaded', () => {
     console.log('📄 DOM загружен, запускаем инициализацию...');
     
