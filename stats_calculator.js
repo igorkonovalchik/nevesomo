@@ -1,22 +1,7 @@
-// stats-calculator.js - Подсчет статистики и аналитики приложения NEVESOMO
-// Отвечает за все расчеты статистики, проверки ролей и анализ данных
-
-import { 
-    participants,
-    roleGroups,
-    schedule,
-    allRoles,
-    assignments
-} from './core/data-manager.js';
+// stats-calculator.js - Подсчет статистики (без ES6 модулей)
 
 /* === СТАТИСТИКА ПО КАТЕГОРИЯМ === */
-
-/**
- * Получает статистику пользователя по категориям ролей
- * @param {string} userName - имя пользователя
- * @returns {Object} - объект со статистикой по категориям
- */
-export function getUserCategoryStats(userName) {
+function getUserCategoryStats(userName) {
     const stats = {};
     
     // Инициализируем счетчики для всех категорий
@@ -51,11 +36,7 @@ export function getUserCategoryStats(userName) {
     return stats;
 }
 
-/**
- * Получает общую статистику всех участников
- * @returns {Array} - массив объектов со статистикой участников
- */
-export function getAllUsersStats() {
+function getAllUsersStats() {
     return participants.map(participant => {
         let shiftsCount = 0;
         const categoryStats = getUserCategoryStats(participant.name);
@@ -91,13 +72,7 @@ export function getAllUsersStats() {
 }
 
 /* === ПРОВЕРКИ РОЛЕЙ === */
-
-/**
- * Проверяет, есть ли у пользователя роли в лаунже
- * @param {string} userName - имя пользователя
- * @returns {boolean}
- */
-export function hasLoungeRole(userName) {
+function hasLoungeRole(userName) {
     if (!userName || !roleGroups.lounge) return false;
     
     for (const [sessionKey, sessionRoles] of Object.entries(assignments)) {
@@ -110,12 +85,7 @@ export function hasLoungeRole(userName) {
     return false;
 }
 
-/**
- * Проверяет, есть ли у пользователя банные роли
- * @param {string} userName - имя пользователя
- * @returns {boolean}
- */
-export function hasBankingRole(userName) {
+function hasBankingRole(userName) {
     if (!userName || !roleGroups.banking) return false;
     
     for (const [sessionKey, sessionRoles] of Object.entries(assignments)) {
@@ -128,12 +98,7 @@ export function hasBankingRole(userName) {
     return false;
 }
 
-/**
- * Получает все роли пользователя
- * @param {string} userName - имя пользователя
- * @returns {Array} - массив объектов с информацией о ролях
- */
-export function getUserAllRoles(userName) {
+function getUserAllRoles(userName) {
     const userRoles = [];
     
     Object.entries(assignments).forEach(([sessionKey, sessionRoles]) => {
@@ -180,13 +145,7 @@ export function getUserAllRoles(userName) {
 }
 
 /* === ЛОГИКА ПАРНЫХ СЛОТОВ === */
-
-/**
- * Получает парный слот для мастер-класса (предыдущий или следующий час)
- * @param {string} sessionKey - ключ сессии
- * @returns {string|null} - ключ парного слота или null
- */
-export function getMasterClassPairSlot(sessionKey) {
+function getMasterClassPairSlot(sessionKey) {
     const [day, time] = sessionKey.split('_');
     const currentHour = parseInt(time.split(':')[0]);
     
@@ -203,23 +162,13 @@ export function getMasterClassPairSlot(sessionKey) {
     return null;
 }
 
-/**
- * Проверяет, является ли роль парной (требует соседний слот)
- * @param {string} role - название роли
- * @returns {boolean}
- */
-export function isPairRole(role) {
+function isPairRole(role) {
     const pairRoles = ['Мастер класс'];
     return pairRoles.includes(role);
 }
 
 /* === АНАЛИЗ ЗАПОЛНЕННОСТИ === */
-
-/**
- * Получает статистику заполненности по дням
- * @returns {Object} - статистика по дням
- */
-export function getFillStatsByDay() {
+function getFillStatsByDay() {
     const dayStats = {};
     
     Object.keys(schedule).forEach(day => {
@@ -254,11 +203,7 @@ export function getFillStatsByDay() {
     return dayStats;
 }
 
-/**
- * Получает статистику заполненности по категориям ролей
- * @returns {Object} - статистика по категориям
- */
-export function getFillStatsByCategory() {
+function getFillStatsByCategory() {
     const categoryStats = {};
     
     // Инициализируем счетчики
@@ -296,13 +241,7 @@ export function getFillStatsByCategory() {
 }
 
 /* === АНАЛИЗ НАГРУЗКИ === */
-
-/**
- * Получает топ самых загруженных участников
- * @param {number} limit - количество участников в топе
- * @returns {Array} - массив участников с количеством шифтов
- */
-export function getTopBusiestParticipants(limit = 5) {
+function getTopBusiestParticipants(limit = 5) {
     const userStats = getAllUsersStats();
     
     return userStats
@@ -315,12 +254,7 @@ export function getTopBusiestParticipants(limit = 5) {
         }));
 }
 
-/**
- * Получает участников с недостаточным количеством шифтов
- * @param {number} minShifts - минимальное количество шифтов
- * @returns {Array} - массив участников
- */
-export function getUnderworkedParticipants(minShifts = 8) {
+function getUnderworkedParticipants(minShifts = 8) {
     const userStats = getAllUsersStats();
     
     return userStats
@@ -334,11 +268,7 @@ export function getUnderworkedParticipants(minShifts = 8) {
         }));
 }
 
-/**
- * Анализирует распределение ролей среди участников
- * @returns {Object} - анализ распределения
- */
-export function analyzeRoleDistribution() {
+function analyzeRoleDistribution() {
     const roleStats = {};
     
     // Инициализируем счетчики для всех ролей
@@ -377,12 +307,7 @@ export function analyzeRoleDistribution() {
 }
 
 /* === ВРЕМЕННАЯ АНАЛИТИКА === */
-
-/**
- * Находит самые популярные временные слоты
- * @returns {Array} - отсортированный массив временных слотов
- */
-export function getPopularTimeSlots() {
+function getPopularTimeSlots() {
     const timeStats = {};
     
     Object.entries(assignments).forEach(([sessionKey, sessionAssignments]) => {
@@ -415,9 +340,7 @@ export function getPopularTimeSlots() {
     return Object.values(timeStats).sort((a, b) => b.percentage - a.percentage);
 }
 
-/* === ЭКСПОРТ ФУНКЦИИ В ГЛОБАЛЬНУЮ ОБЛАСТЬ === */
-
-// Делаем функцию getUserCategoryStats доступной глобально для других модулей
+// Делаем доступными глобально
 window.getUserCategoryStats = getUserCategoryStats;
 
 console.log('📊 Stats Calculator загружен');
