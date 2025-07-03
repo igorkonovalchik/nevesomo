@@ -391,45 +391,27 @@ function startCountdown() {
     setInterval(updateCountdown, 1000);
 }
 
-// Обновление меню в зависимости от режима
 function updateMenu() {
-    const menuItems = document.getElementById('menuItems');
-    let html = '';
-    
-    if (currentMode === 'admin') {
-        html = `
-            <div class="menu-item" onclick="setMode('user'); closeMenu();">
-                👤 Режим участника
-            </div>
-            <div class="menu-item" onclick="openStatsPopup(); closeMenu();">
-                📊 Статистика
-            </div>
-            <div class="menu-item" onclick="openSchedulePopup(); closeMenu();">
-                📅 Расписание
-            </div>
-            <div class="menu-item" onclick="openDataEditPopup(); closeMenu();">
-                ⚙️ Изменить данные
-            </div>
-            <div class="menu-item" onclick="openRolesInfoPopup(); closeMenu();">
-                ❓ О шифтах
-            </div>
-        `;
-    } else {
-        html = `
-            <div class="menu-item" onclick="setMode('admin'); closeMenu();">
-                👨‍💼 Админ режим
-            </div>
-            <div class="menu-item" onclick="openMySchedule(); closeMenu();">
-                📅 Мое расписание
-            </div>
-            <div class="menu-item" onclick="openRolesInfoPopup(); closeMenu();">
-                ❓ О шифтах
-            </div>
-        `;
-    }
-    
-    menuItems.innerHTML = html;
+  const menuItems = document.getElementById('menuItems');
+  let html = '';
+
+  if (currentMode === 'admin') {
+    html = `
+      <div class="menu-item" onclick="openStatsPopup(); closeMenu();">📊 Статистика</div>
+      <div class="menu-item" onclick="openSchedulePopup(); closeMenu();">📅 Расписание</div>
+      <div class="menu-item" onclick="openDataEditPopup(); closeMenu();">⚙️ Изменить данные</div>
+      <div class="menu-item" onclick="openRolesInfoPopup(); closeMenu();">❓ О шифтах</div>
+    `;
+  } else {
+    html = `
+      <div class="menu-item" onclick="openMySchedule(); closeMenu();">📅 Мое расписание</div>
+      <div class="menu-item" onclick="openRolesInfoPopup(); closeMenu();">❓ О шифтах</div>
+    `;
+  }
+
+  menuItems.innerHTML = html;
 }
+
 
 // Показ информации о бане
 function showBathInfo() {
