@@ -1031,6 +1031,7 @@ function openMySchedule() {
     openSchedulePopup();
 }
 
+
 function openSchedulePopup() {
     const scheduleBody = document.getElementById('scheduleBody');
     let html = '';
