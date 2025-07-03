@@ -39,9 +39,11 @@ async function loadAirtableData() {
         
         // Обрабатываем участников
         participants = data.participants.map(p => ({
-            name: p.name,
-            telegram: p.telegram,
-            bathExperience: p.bathExperience
+            name          : p.name,
+              telegram      : p.telegram,
+              telegramId    : p.telegramId,
+              isAdmin       : p.isAdmin,
+              bathExperience: p.bathExperience
         }));
         
         // Обрабатываем роли
