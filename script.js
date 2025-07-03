@@ -300,6 +300,21 @@ async function loadAirtableData() {
                 roles: roles
             };
         });
+
+        // гарантия, что нужные категории существуют
+        ['lounge', 'banking', 'care', 'kitchen', 'other'].forEach(cat => {
+          if (!roleGroups[cat]) {
+            const names = {
+              banking: 'Банные',
+              care   : 'Забота',
+              lounge : 'Лаунж',
+              kitchen: 'Кухня',
+              other  : 'Прочее'
+            };
+            roleGroups[cat] = { name: names[cat] || cat, roles: [] };
+          }
+        });
+
         
         allRoles = Object.values(roleGroups).flatMap(group => group.roles);
         
@@ -461,15 +476,19 @@ function getUserCategoryStats(userName) {
 
 // Функция для проверки, есть ли у пользователя роли в лаунже
 function hasLoungeRole(userName) {
-    for (const [sessionKey, sessionRoles] of Object.entries(assignments)) {
-        for (const [role, assignedUser] of Object.entries(sessionRoles)) {
-            if (assignedUser === userName && roleGroups.lounge.roles.includes(role)) {
-                return true;
-            }
-        }
+  // если лаунж выключен — никто его не «имеет»
+  if (!roleGroups.lounge || roleGroups.lounge.roles.length === 0) return false;
+
+  for (const [sessionKey, sessionRoles] of Object.entries(assignments)) {
+    for (const [role, assignedUser] of Object.entries(sessionRoles)) {
+      if (assignedUser === userName && roleGroups.lounge.roles.includes(role)) {
+        return true;
+      }
     }
-    return false;
+  }
+  return false;
 }
+
 
 // Функция для проверки соседних слотов мастер-класса
 function getMasterClassPairSlot(sessionKey) {
@@ -1167,28 +1186,43 @@ async function toggleUserAssignment(sessionKey, role) {
     }
 }
 
+// Проверка: можно ли занять роль в этом слоте
 function isSlotBlocked(sessionKey, role) {
+  // Проверяем только в режиме участника
   if (currentMode !== 'user' || !currentUser) return false;
 
-  const sessionTime = sessionKey.split('_')[1];
+  // Разбираем дату и время текущего слота
+  const [day, time] = sessionKey.split('_');
 
+  // Хелперы для разрешённой пары «Лаунж»-+-«Мастер класс»
+  const isLounge = r =>
+    roleGroups.lounge && roleGroups.lounge.roles.includes(r);
+  const isMaster = r => r === 'Мастер класс';
+
+  // Ищем все назначения текущего пользователя ровно в тот же день и время
   for (const [checkSessionKey, sessionRoles] of Object.entries(assignments)) {
-    const checkTime = checkSessionKey.split('_')[1];
-    if (checkTime !== sessionTime) continue;
+    const [checkDay, checkTime] = checkSessionKey.split('_');
+
+    // Интересуют только слоты с тем же day + time
+    if (checkDay !== day || checkTime !== time) continue;
 
     for (const [checkRole, assignedUser] of Object.entries(sessionRoles)) {
-      if (assignedUser !== currentUser || checkRole === role) continue;
+      if (assignedUser !== currentUser) continue;
+      if (checkRole === role) continue;          // тот же самый слот — ок
 
-      // разрешаем bundle «лаунж + Мастер класс»
-      const loungeOK = roleGroups.lounge.roles.includes(checkRole) || roleGroups.lounge.roles.includes(role);
-      const mcOK     = (checkRole === 'Мастер класс' || role === 'Мастер класс');
+      // Разрешённый бандл «Лаунж» + «Мастер класс»
+      const pairOK =
+        (isLounge(role) && isMaster(checkRole)) ||
+        (isMaster(role) && isLounge(checkRole));
 
-      if (loungeOK && mcOK) continue;   // 🟢 не блокируем
+      if (pairOK) continue;                      // не блокируем
 
-      return true;                      // 🔴 блокируем все остальные сочетания
+      // Всё остальное конфликтует
+      return true;
     }
   }
-  return false;
+
+  return false;                                  // всё чисто
 }
 
 
