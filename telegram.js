@@ -74,9 +74,8 @@
     }
 
     // 4. Определяем режим (admin / user)
-    const isAdmin = match.isAdmin || 
-                    telegramUser.id === ADMIN_ID || 
-                    telegramUser.username === ADMIN_USERNAME;
+    // Для Игоря проверяем только поле isAdmin из таблицы
+    const isAdmin = match.isAdmin === true;
     
     // Сохраняем режим в глобальную переменную
     window.currentMode = isAdmin ? 'admin' : 'user';
@@ -101,11 +100,15 @@
       // Открыто в браузере, а не в Telegram
       toggleAccessOverlay(false);
       
-      // Показываем селектор для веб-версии
+      // В веб-версии показываем селектор для всех
       const userSelector = document.getElementById('userSelector');
       if (userSelector) {
         userSelector.style.display = 'block';
       }
+      
+      // В веб-версии устанавливаем user режим по умолчанию
+      window.currentMode = 'user';
+      
       return;
     }
 
