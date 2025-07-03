@@ -12,7 +12,7 @@ import {
     allRoles,
     isDataLoaded,
     reloadData
-} from './core/data-manager.js';
+} from 'https://nevesomo.vercel.app/data-manager.js';
 
 import { 
     setMode,
@@ -27,13 +27,13 @@ import {
     determineUserMode,
     initUserHandlers,
     showBathInfo
-} from './core/user-manager.js';
+} from 'https://nevesomo.vercel.app/user-manager.js';
 
 // UI модули
 import { 
     renderSchedule,
     updateSessionTabs
-} from './ui/ui-renderer.js';
+} from 'https://nevesomo.vercel.app/ui-renderer.js';
 
 import { 
     openMySchedule,
@@ -49,7 +49,7 @@ import {
     shareSchedule,
     closeAllPopups,
     initPopupHandlers
-} from './ui/popup-manager.js';
+} from 'https://nevesomo.vercel.app/popup-manager.js';
 
 // Logic модули
 import { 
@@ -59,7 +59,7 @@ import {
     autoFillSession,
     closeParticipantPopup,
     openParticipantPopup
-} from './logic/assignment-logic.js';
+} from 'https://nevesomo.vercel.app/assignment-logic.js';
 
 import { 
     getUserCategoryStats,
@@ -70,7 +70,7 @@ import {
     getFillStatsByCategory,
     getTopBusiestParticipants,
     getUnderworkedParticipants
-} from './logic/stats-calculator.js';
+} from 'https://nevesomo.vercel.app/stats-calculator.js';
 
 /* === ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ === */
 let sessionFilters = {};
