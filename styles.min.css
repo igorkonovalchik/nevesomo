@@ -6,3 +6,104 @@
 
 /* убираем старый greeting в хедере */
 .header-greeting{display:none!important}
+
+/* Добавить эти стили в конец styles.min.css или в отдельный файл */
+
+/* Исправление оверлея блокировки */
+.access-block {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 5000;
+    color: #fff;
+    text-align: center;
+    padding: 24px;
+}
+
+.access-block a {
+    color: var(--accent-primary);
+    text-decoration: none;
+}
+
+.access-block a:hover {
+    text-decoration: underline;
+}
+
+/* Стиль для большого приветствия */
+.big-greeting {
+    font-size: 1.8em;
+    font-weight: 700;
+    margin: 20px 0;
+    text-align: center;
+    color: var(--text-primary);
+}
+
+/* Исправление анимации бургер-меню */
+.menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.menu-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Анимация для линий бургера при открытии */
+.burger-btn.active .burger-line:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+
+.burger-btn.active .burger-line:nth-child(2) {
+    opacity: 0;
+}
+
+.burger-btn.active .burger-line:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -6px);
+}
+
+/* Стили для попапов */
+.popup-overlay {
+    display: flex !important;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.popup-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.popup-overlay.show .popup-bottom {
+    transform: translateY(0);
+}
+
+.popup-overlay.show .popup-right {
+    transform: translateX(0);
+}
+
+/* Улучшение видимости в темной теме */
+[data-theme="dark"] .access-block {
+    background: rgba(28, 28, 30, 0.95);
+}
+
+[data-theme="dark"] .big-greeting {
+    color: var(--text-primary);
+}
