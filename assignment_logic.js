@@ -21,9 +21,85 @@ function handleRoleSlotClick(sessionKey, role) {
     }
 }
 
+// Исправленная функция проверки лаунж-ролей
+function hasLoungeRole(userName) {
+    if (!userName || !roleGroups.lounge) {
+        console.log('❌ hasLoungeRole: нет пользователя или группы лаунж');
+        return false;
+    }
+    
+    console.log('🔍 Проверяем лаунж-роли для:', userName);
+    console.log('🔍 Роли лаунжа:', roleGroups.lounge.roles);
+    
+    for (const [sessionKey, sessionRoles] of Object.entries(assignments)) {
+        for (const [role, assignedUser] of Object.entries(sessionRoles)) {
+            if (assignedUser === userName) {
+                console.log(`🔍 Найдена роль ${role} для ${userName}`);
+                
+                // ИСПРАВЛЕНО: проверяем точное включение в лаунж-роли
+                if (roleGroups.lounge.roles.includes(role)) {
+                    console.log('✅ Найдена лаунж-роль:', role);
+                    return true;
+                }
+                
+                // Дополнительная проверка для роли "Любовь+Забота - 1"
+                if (role === 'Любовь+Забота - 1') {
+                    console.log('✅ Найдена базовая лаунж-роль');
+                    return true;
+                }
+            }
+        }
+    }
+    
+    console.log('❌ Лаунж-роли не найдены для:', userName);
+    return false;
+}
+
+
+// Отладочная функция для проверки ролей
+function debugRoleAssignment(sessionKey, role) {
+    console.log('🔍 Debug роли:', {
+        sessionKey,
+        role,
+        currentUser,
+        assignments: assignments[sessionKey],
+        allRoles,
+        roleGroups
+    });
+    
+    // Проверяем, есть ли роль в allRoles
+    if (!allRoles.includes(role)) {
+        console.error(`❌ Роль "${role}" не найдена в allRoles:`, allRoles);
+    }
+    
+    // Проверяем, есть ли роль в assignments для этой сессии
+    if (!assignments[sessionKey] || assignments[sessionKey][role] === undefined) {
+        console.error(`❌ Роль "${role}" не найдена в assignments для сессии ${sessionKey}`);
+        console.log('Доступные роли в сессии:', Object.keys(assignments[sessionKey] || {}));
+    }
+    
+    // Проверяем, в какой группе роль
+    for (const [groupKey, group] of Object.entries(roleGroups)) {
+        if (group.roles.includes(role)) {
+            console.log(`✅ Роль "${role}" найдена в группе "${group.name}"`);
+            break;
+        }
+    }
+}
+
 async function toggleUserAssignment(sessionKey, role) {
     if (!currentUser) {
         alert('Выберите участника');
+        return;
+    }
+    
+    // ДОБАВЛЕНО: отладка
+    debugRoleAssignment(sessionKey, role);
+    
+    // ИСПРАВЛЕНО: проверяем, что роль существует в assignments
+    if (!assignments[sessionKey] || assignments[sessionKey][role] === undefined) {
+        console.error(`❌ Роль "${role}" не найдена в сессии ${sessionKey}`);
+        alert(`Ошибка: роль "${role}" не найдена в этой сессии. Обратитесь к администратору.`);
         return;
     }
     
@@ -47,12 +123,15 @@ async function toggleUserAssignment(sessionKey, role) {
             // Снимаем назначение
             await removeAssignmentFromAirtable(currentUser, role, day, time);
             
-            if (role === 'Мастер класс') {
+            // ИСПРАВЛЕНО: проверка для правильного названия роли
+            if (role === 'Любовь+Забота+Мастер класс') {
                 const pairSlot = getMasterClassPairSlot(sessionKey);
                 if (pairSlot) {
                     const [pairDay, pairTime] = pairSlot.split('_');
                     await removeAssignmentFromAirtable(currentUser, role, pairDay, pairTime);
-                    assignments[pairSlot][role] = null;
+                    if (assignments[pairSlot]) {
+                        assignments[pairSlot][role] = null;
+                    }
                 }
             }
             assignments[sessionKey][role] = null;
@@ -61,12 +140,15 @@ async function toggleUserAssignment(sessionKey, role) {
             // Назначаем
             await saveAssignmentToAirtable(currentUser, role, day, time);
             
-            if (role === 'Мастер класс') {
+            // ИСПРАВЛЕНО: проверка для правильного названия роли
+            if (role === 'Любовь+Забота+Мастер класс') {
                 const pairSlot = getMasterClassPairSlot(sessionKey);
                 if (pairSlot) {
                     const [pairDay, pairTime] = pairSlot.split('_');
                     await saveAssignmentToAirtable(currentUser, role, pairDay, pairTime);
-                    assignments[pairSlot][role] = currentUser;
+                    if (assignments[pairSlot]) {
+                        assignments[pairSlot][role] = currentUser;
+                    }
                 }
             }
             assignments[sessionKey][role] = currentUser;
@@ -76,6 +158,12 @@ async function toggleUserAssignment(sessionKey, role) {
             hideLoader();
             return;
         }
+        
+        console.log('✅ Назначение обновлено:', {
+            sessionKey,
+            role,
+            newAssignment: assignments[sessionKey][role]
+        });
         
         renderSchedule();
         updateProgress();
@@ -99,6 +187,38 @@ async function toggleUserAssignment(sessionKey, role) {
         hideLoader();
     }
 }
+
+// Дополнительная функция для проверки загруженных данных
+function validateRolesData() {
+    console.log('🔍 Проверка загруженных ролей:');
+    console.log('allRoles:', allRoles);
+    console.log('roleGroups:', roleGroups);
+    console.log('assignments keys:', Object.keys(assignments));
+    
+    // Проверяем, что все роли из групп есть в allRoles
+    Object.entries(roleGroups).forEach(([groupKey, group]) => {
+        group.roles.forEach(role => {
+            if (!allRoles.includes(role)) {
+                console.error(`❌ Роль "${role}" из группы "${group.name}" не найдена в allRoles`);
+            }
+        });
+    });
+    
+    // Проверяем assignments
+    Object.entries(assignments).forEach(([sessionKey, sessionRoles]) => {
+        const availableRoles = Object.keys(sessionRoles);
+        const missingRoles = allRoles.filter(role => !availableRoles.includes(role));
+        if (missingRoles.length > 0) {
+            console.warn(`⚠️ В сессии ${sessionKey} отсутствуют роли:`, missingRoles);
+        }
+    });
+}
+
+// Добавляем вызов проверки после загрузки данных
+window.addEventListener('dataLoaded', () => {
+    setTimeout(validateRolesData, 1000);
+});
+
 async function selectParticipant(participantName) {
     if (!currentPopupSession || !currentPopupRole) return;
     
