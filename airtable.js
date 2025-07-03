@@ -291,3 +291,110 @@ const airtableService = new AirtableService();
 // Экспортируем для использования в других файлах
 window.airtableService = airtableService;
 window.airtableAPI = airtableAPI;
+
+// Функция для отладки сырых данных из Airtable
+window.debugAirtableData = async function() {
+    console.log('🔍 === ОТЛАДКА СЫРЫХ ДАННЫХ ИЗ AIRTABLE ===');
+    
+    try {
+        const data = await window.airtableService.getAllData();
+        
+        console.log('📊 Роли из Airtable:');
+        data.roles.forEach(role => {
+            if (role.isActive) {
+                console.log(`  ✅ "${role.name}" (${role.category}) - активна`);
+            } else {
+                console.log(`  ❌ "${role.name}" (${role.category}) - неактивна`);
+            }
+        });
+        
+        console.log('\n📅 Расписание из Airtable:');
+        data.schedule.forEach(session => {
+            const roles = session.availableRoles ? 
+                session.availableRoles.split(',').map(r => r.trim()) : 
+                ['ВСЕ РОЛИ'];
+            
+            console.log(`  ${session.date} ${session.startTime}: ${session.type}`);
+            console.log(`    Доступные роли: ${roles.join(', ')}`);
+            
+            // Специально проверяем проблемные роли
+            if (session.availableRoles) {
+                const hasGuestCare = roles.includes('Гостевая Забота');
+                const hasCook = roles.includes('Поваренок');
+                
+                if (!hasGuestCare) console.log(`    ❌ НЕТ "Гостевая Забота"`);
+                if (!hasCook) console.log(`    ❌ НЕТ "Поваренок"`);
+            }
+        });
+        
+        console.log('\n📋 Назначения из Airtable:');
+        const assignmentsByRole = {};
+        data.assignments.forEach(assignment => {
+            if (!assignmentsByRole[assignment.roleName]) {
+                assignmentsByRole[assignment.roleName] = 0;
+            }
+            assignmentsByRole[assignment.roleName]++;
+        });
+        
+        Object.entries(assignmentsByRole).forEach(([role, count]) => {
+            console.log(`  ${role}: ${count} назначений`);
+        });
+        
+        // Проверяем конкретно проблемные роли
+        const guestCareAssignments = data.assignments.filter(a => a.roleName === 'Гостевая Забота');
+        const cookAssignments = data.assignments.filter(a => a.roleName === 'Поваренок');
+        
+        console.log(`\n🔍 Назначения "Гостевая Забота": ${guestCareAssignments.length}`);
+        guestCareAssignments.forEach(a => {
+            console.log(`  ${a.slotDate} ${a.slotTime}: ${a.participantName}`);
+        });
+        
+        console.log(`\n🔍 Назначения "Поваренок": ${cookAssignments.length}`);
+        cookAssignments.forEach(a => {
+            console.log(`  ${a.slotDate} ${a.slotTime}: ${a.participantName}`);
+        });
+        
+    } catch (error) {
+        console.error('❌ Ошибка отладки Airtable:', error);
+    }
+};
+
+// Функция для принудительного добавления отсутствующих ролей
+window.fixMissingRoles = function() {
+    console.log('🔧 === ПРИНУДИТЕЛЬНОЕ ИСПРАВЛЕНИЕ РОЛЕЙ ===');
+    
+    let fixedSessions = 0;
+    
+    Object.entries(assignments).forEach(([sessionKey, sessionRoles]) => {
+        const [day, time] = sessionKey.split('_');
+        const session = schedule[day]?.find(s => s.time === time);
+        
+        if (!session) return;
+        
+        // Если сессия НЕ имеет ограничений, но в ней отсутствуют роли - исправляем
+        if (!session.roles || session.roles.length === 0) {
+            let addedRoles = 0;
+            
+            allRoles.forEach(role => {
+                if (sessionRoles[role] === undefined) {
+                    sessionRoles[role] = null;
+                    addedRoles++;
+                    console.log(`  ✅ Добавлена роль "${role}" в сессию ${sessionKey}`);
+                }
+            });
+            
+            if (addedRoles > 0) {
+                fixedSessions++;
+                console.log(`🔧 Исправлена сессия ${sessionKey}: добавлено ${addedRoles} ролей`);
+            }
+        }
+    });
+    
+    console.log(`✅ Исправлено ${fixedSessions} сессий`);
+    
+    if (fixedSessions > 0) {
+        console.log('🔄 Перерисовываем интерфейс...');
+        renderSchedule();
+        updateProgress();
+    }
+};
