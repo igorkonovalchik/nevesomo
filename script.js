@@ -812,25 +812,37 @@ function handleRoleSlotClick(sessionKey, role) {
 }
 
 
+
+// Открытие попапа выбора участника
 function openParticipantPopup(sessionKey, role) {
     currentPopupSession = sessionKey;
     currentPopupRole = role;
-
+    
     const participantsList = document.getElementById('participantsList');
     const currentAssignment = assignments[sessionKey][role];
-
+    
     let html = `
-        <div class="participant-item" onclick="selectParticipant(null)">...</div>
-        <div class="participant-item" onclick="selectParticipant('Участник другого кемпа')">...</div>`;
-
+        <div class="participant-item" onclick="selectParticipant(null)" style="border-bottom: 1px solid #E0E0E0; margin-bottom: 12px; padding-bottom: 12px;">
+            <div class="participant-name">🗑️ Очистить слот</div>
+            <div class="participant-telegram">Убрать назначение</div>
+        </div>
+        <div class="participant-item" onclick="selectParticipant('Участник другого кемпа')" style="border-bottom: 1px solid #E0E0E0; margin-bottom: 12px; padding-bottom: 12px;">
+            <div class="participant-name">👤 Участник другого кемпа</div>
+            <div class="participant-telegram">Внешний участник</div>
+        </div>
+    `;
+    
     participants.forEach(participant => {
         const isSelected = participant.name === currentAssignment;
         html += `
-            <div class="participant-item ${isSelected ? 'selected' : ''}" onclick="selectParticipant('${participant.name}')">
-                ...
-            </div>`;
+            <div class="participant-item ${isSelected ? 'selected' : ''}" onclick="selectParticipant('${participant.name}')" style="background: ${isSelected ? '#E8F5E8' : '#F7F7F7'}; margin-bottom: 8px; border-radius: 8px;">
+                <div class="participant-name">${participant.name} ${isSelected ? '✓' : ''}</div>
+                <div class="participant-telegram">${participant.telegram}</div>
+            </div>
+        `;
     });
-    participantsList.innerHTML = html; // Упрощено для примера, логика та же
+    
+    participantsList.innerHTML = html;
     document.getElementById('participantPopup').classList.add('show');
 }
 
