@@ -197,3 +197,10 @@ body {
   font-weight: 700;
 }
 
+/* cессия: название бани/кухни внутрь компакт-карточки */
+.bath-link{
+  color: #fff !important;
+  text-decoration: none;
+}
+
+
