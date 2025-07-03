@@ -1383,16 +1383,92 @@ function openMySchedule() {
     previousPopup = null; // Сбрасываем предыдущий попап
     openSchedulePopup();
 }
-
 // Заменить всю функцию openSchedulePopup в script.js
+
 function openSchedulePopup() {
     const scheduleBody = document.getElementById('scheduleBody');
     let html = '';
     
     if (currentMode === 'user' && currentUser) {
-        // ... код для заголовка профиля ...
+        // Получаем информацию об участнике
+        const participant = participants.find(p => p.name === currentUser);
+        let shiftsCount = 0;
+        const categoryStats = getUserCategoryStats(currentUser);
         
-        // Компактный вид расписания
+        // Подсчитываем шифты пользователя
+        Object.keys(assignments).forEach(sessionKey => {
+            const [day, time] = sessionKey.split('_');
+            const session = schedule[day].find(s => s.time === time);
+            
+            let sessionRoles = allRoles;
+            if (session.roles) {
+                sessionRoles = session.roles;
+            }
+            
+            sessionRoles.forEach(role => {
+                if (assignments[sessionKey][role] === currentUser) {
+                    shiftsCount++;
+                }
+            });
+        });
+        
+        // Добавляем информацию об участнике
+        html += `
+            <div class="user-profile">
+                <div class="user-name">${currentUser}</div>
+                <a href="https://t.me/${participant.telegram.replace('@', '')}" class="user-telegram" target="_blank">${participant.telegram}</a>
+                <div class="user-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">${shiftsCount}</div>
+                        <div class="stat-label">Всего шифтов</div>
+                    </div>
+                    ${Object.entries(categoryStats)
+                        .filter(([category, count]) => count > 0)
+                        .map(([category, count]) => `
+                            <div class="stat-item">
+                                <div class="stat-number">${count}</div>
+                                <div class="stat-label">${category}</div>
+                            </div>
+                        `).join('')}
+                </div>
+            </div>
+        `;
+        
+        // Для пользователя показываем только его шифты
+        const userShiftsByDay = {};
+        
+        Object.keys(assignments).forEach(sessionKey => {
+            const [day, time] = sessionKey.split('_');
+            const session = schedule[day].find(s => s.time === time);
+            
+            let sessionRoles = allRoles;
+            if (session.roles) {
+                sessionRoles = session.roles;
+            }
+            
+            sessionRoles.forEach(role => {
+                if (assignments[sessionKey][role] === currentUser) {
+                    if (!userShiftsByDay[day]) {
+                        userShiftsByDay[day] = [];
+                    }
+                    userShiftsByDay[day].push({
+                        time,
+                        endTime: session.endTime,
+                        sessionNum: session.sessionNum,
+                        type: session.type,
+                        role
+                    });
+                }
+            });
+        });
+        
+        // Сортируем дни
+        const sortedDays = Object.keys(userShiftsByDay).sort((a, b) => {
+            const dateA = parseInt(a.split('-')[2]);
+            const dateB = parseInt(b.split('-')[2]);
+            return dateA - dateB;
+        });
+        
         if (sortedDays.length === 0) {
             html += '<div style="text-align: center; color: var(--text-secondary); padding: 40px;">У вас пока нет назначенных шифтов</div>';
         } else {
@@ -1400,10 +1476,11 @@ function openSchedulePopup() {
                 // Форматируем дату
                 html += `<h2 style="margin: 24px 0 16px 0; color: var(--accent-primary); font-size: 1.4em;">${formatDate(day)}</h2>`;
                 
+                // Сортируем шифты в дне по времени
                 userShiftsByDay[day].sort((a, b) => a.time.localeCompare(b.time));
                 
                 userShiftsByDay[day].forEach(shift => {
-                    // Компактный вид
+                    // Компактный вид в одну строку
                     html += `
                         <div class="schedule-item-compact">
                             <div class="schedule-compact-info">
@@ -1422,63 +1499,45 @@ function openSchedulePopup() {
             });
         }
     } else {
-        // Для админа показываем полное расписание с форматированными датами
+        // Для админа показываем полное расписание
         Object.keys(schedule).forEach(day => {
             html += `<h3 style="margin: 20px 0 16px 0; color: var(--accent-primary);">${formatDate(day)}</h3>`;
-            // ... остальной код админского расписания ...
+            
+            schedule[day].forEach(session => {
+                const sessionKey = `${day}_${session.time}`;
+                html += `
+                    <div class="schedule-item">
+                        <div class="schedule-item-header">
+                            <div class="schedule-time">${session.time} - ${session.endTime}</div>
+                            <div>${session.sessionNum ? `Баня #${session.sessionNum}` : 'Кухня'}</div>
+                        </div>
+                        <div class="schedule-info" style="margin-bottom: 12px;">${session.type}</div>
+                `;
+                
+                // Определяем роли для сессии
+                let sessionRoles = allRoles;
+                if (session.roles) {
+                    sessionRoles = session.roles;
+                }
+                
+                sessionRoles.forEach(role => {
+                    const assignedUser = assignments[sessionKey][role];
+                    html += `
+                        <div style="display: flex; justify-content: space-between; margin: 4px 0; padding: 4px 0;">
+                            <span style="color: var(--text-secondary); font-size: 0.9em;">${role}:</span>
+                            <span style="font-weight: 500;">${assignedUser || 'Не назначено'}</span>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+            });
         });
     }
     
     scheduleBody.innerHTML = html;
     document.getElementById('schedulePopup').classList.add('show');
 }
-
-function closeSchedulePopup() {
-    document.getElementById('schedulePopup').classList.remove('show');
-}
-
-function shareSchedule() {
-    if (navigator.share) {
-        navigator.share({
-            title: 'Мое расписание шифтов NEVESOMO',
-            text: 'Расписание банных шифтов',
-            url: window.location.href
-        });
-    } else {
-        // Fallback для браузеров без поддержки Web Share API
-        navigator.clipboard.writeText(window.location.href);
-        alert('Ссылка скопирована в буфер обмена');
-    }
-}
-
-// О шифтах
-function openRolesInfoPopup() {
-    previousPopup = null; // Сбрасываем предыдущий попап
-    const rolesInfoBody = document.getElementById('rolesInfoBody');
-    
-    let html = '<div style="margin-bottom: 20px; color: var(--text-secondary);">Выберите роль для подробного описания:</div>';
-    
-    Object.entries(roleGroups).forEach(([groupKey, group]) => {
-        html += `<h3 style="margin: 24px 0 12px 0; color: var(--accent-primary);">${group.name}</h3>`;
-        
-        group.roles.forEach(role => {
-            const roleInfo = rolesInfo[role];
-            html += `
-                <div class="roles-list-item" onclick="showRoleDetail('${role}', 'roles')">
-                    <div>
-                        <div style="font-weight: 500; margin-bottom: 4px;">${roleInfo.icon} ${role}</div>
-                        <div style="color: var(--text-secondary); font-size: 0.9em;">${roleInfo.description.substring(0, 60)}...</div>
-                    </div>
-                    <div style="color: var(--accent-primary);">›</div>
-                </div>
-            `;
-        });
-    });
-    
-    rolesInfoBody.innerHTML = html;
-    document.getElementById('rolesInfoPopup').classList.add('show');
-}
-
 function closeRolesInfoPopup() {
     document.getElementById('rolesInfoPopup').classList.remove('show');
 }
