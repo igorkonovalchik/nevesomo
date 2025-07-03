@@ -75,8 +75,19 @@ function initSessionHandlers() {
     // Глобальные функции для работы с сессиями
     window.toggleSession = function(sessionKey) {
         const sessionElement = document.querySelector(`[data-session="${sessionKey}"]`);
-        if (sessionElement) {
-            sessionElement.classList.toggle('expanded');
+        if (!sessionElement) return;
+        
+        const isCurrentlyExpanded = sessionElement.classList.contains('expanded');
+        
+        // Закрываем все открытые сессии
+        document.querySelectorAll('.session.expanded').forEach(session => {
+            session.classList.remove('expanded');
+        });
+        
+        // Если текущая сессия была закрыта, открываем её
+        // Если была открыта - оставляем закрытой (поведение toggle)
+        if (!isCurrentlyExpanded) {
+            sessionElement.classList.add('expanded');
         }
     };
     
