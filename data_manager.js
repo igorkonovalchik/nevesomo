@@ -1,18 +1,17 @@
-// data-manager.js - Управление данными приложения NEVESOMO
-// Отвечает за загрузку, сохранение и состояние всех данных
+// data-manager.js - Управление данными (без ES6 модулей)
 
-/* === СОСТОЯНИЕ ДАННЫХ === */
-export let participants = [];
-export let rolesInfo = {};
-export let roleGroups = {};
-export let schedule = {};
-export let allRoles = [];
-export let appSettings = {};
-export let assignments = {};
+/* === ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДАННЫХ === */
+let participants = [];
+let rolesInfo = {};
+let roleGroups = {};
+let schedule = {};
+let allRoles = [];
+let appSettings = {};
+let assignments = {};
 
 // Состояние загрузки
-export let isDataLoaded = false;
-export let isDataLoading = false;
+let isDataLoaded = false;
+let isDataLoading = false;
 
 /* === ФУНКЦИИ СОСТОЯНИЯ ЗАГРУЗКИ === */
 function showLoadingState() {
@@ -25,10 +24,6 @@ function showLoadingState() {
             </div>
         `;
     }
-}
-
-function hideLoadingState() {
-    // Состояние загрузки будет скрыто при рендеринге основного контента
 }
 
 function showErrorState(errorMessage) {
@@ -52,12 +47,7 @@ function showErrorState(errorMessage) {
 }
 
 /* === ЗАГРУЗКА ДАННЫХ ИЗ AIRTABLE === */
-
-/**
- * Загружает все данные из Airtable
- * @returns {Promise<void>}
- */
-export async function loadAirtableData() {
+async function loadAirtableData() {
     if (isDataLoading) return;
     
     isDataLoading = true;
@@ -66,16 +56,14 @@ export async function loadAirtableData() {
     try {
         console.log('Загружаем данные из Airtable...');
         
-        // Проверяем доступность airtableService
         if (!window.airtableService) {
             throw new Error('Airtable service не загружен');
         }
         
-        // Загружаем все данные
         const data = await window.airtableService.getAllData();
         
         // Обрабатываем участников
-        participants.length = 0; // Очищаем массив
+        participants.length = 0;
         participants.push(...data.participants.map(p => ({
             name          : p.name,
             telegram      : p.telegram,
@@ -85,7 +73,7 @@ export async function loadAirtableData() {
         })));
         
         // Обрабатываем роли
-        Object.keys(rolesInfo).forEach(key => delete rolesInfo[key]); // Очищаем объект
+        Object.keys(rolesInfo).forEach(key => delete rolesInfo[key]);
         data.roles.forEach(role => {
             if (role.isActive) {
                 rolesInfo[role.name] = {
@@ -97,7 +85,7 @@ export async function loadAirtableData() {
         });
         
         // Группируем роли по категориям
-        Object.keys(roleGroups).forEach(key => delete roleGroups[key]); // Очищаем объект
+        Object.keys(roleGroups).forEach(key => delete roleGroups[key]);
         const rolesByCategory = {};
         
         data.roles.forEach(role => {
@@ -110,7 +98,6 @@ export async function loadAirtableData() {
             }
         });
         
-        // Создаем группы ролей
         Object.entries(rolesByCategory).forEach(([category, roles]) => {
             const categoryNames = {
                 'banking': 'Банные',
@@ -126,18 +113,17 @@ export async function loadAirtableData() {
             };
         });
         
-        allRoles.length = 0; // Очищаем массив
+        allRoles.length = 0;
         allRoles.push(...Object.values(roleGroups).flatMap(group => group.roles));
         
         // Обрабатываем расписание
-        Object.keys(schedule).forEach(key => delete schedule[key]); // Очищаем объект
+        Object.keys(schedule).forEach(key => delete schedule[key]);
         data.schedule.forEach(session => {
             const dateKey = session.date;
             if (!schedule[dateKey]) {
                 schedule[dateKey] = [];
             }
             
-            // Определяем доступные роли для сессии
             let availableRoles = [];
             if (session.availableRoles) {
                 availableRoles = session.availableRoles.split(',').map(r => r.trim());
@@ -154,18 +140,14 @@ export async function loadAirtableData() {
         });
         
         // Сохраняем настройки
-        Object.keys(appSettings).forEach(key => delete appSettings[key]); // Очищаем объект
+        Object.keys(appSettings).forEach(key => delete appSettings[key]);
         Object.assign(appSettings, data.settings);
         
         // Обрабатываем назначения
         await loadAssignments(data.assignments);
         
         isDataLoaded = true;
-
-        // Делаем участников доступными для telegram.js
-        window.participants = participants;
-        
-        hideLoadingState();
+        window.participants = participants; // для telegram.js
         
         console.log('Данные успешно загружены:', {
             participants: participants.length,
@@ -174,12 +156,11 @@ export async function loadAirtableData() {
             assignments: Object.keys(assignments).length
         });
         
-        // Уведомляем другие модули о загрузке данных
+        // Уведомляем о загрузке данных
         window.dispatchEvent(new CustomEvent('dataLoaded'));
         
     } catch (error) {
         console.error('Ошибка загрузки данных:', error);
-        hideLoadingState();
         showErrorState(error.message);
         throw error;
     } finally {
@@ -187,21 +168,14 @@ export async function loadAirtableData() {
     }
 }
 
-/**
- * Загружает назначения из данных Airtable
- * @param {Array} assignmentsData - данные назначений
- * @returns {Promise<void>}
- */
-export async function loadAssignments(assignmentsData) {
-    // Сначала создаем пустые назначения
-    Object.keys(assignments).forEach(key => delete assignments[key]); // Очищаем объект
+async function loadAssignments(assignmentsData) {
+    Object.keys(assignments).forEach(key => delete assignments[key]);
     
     Object.keys(schedule).forEach(day => {
         schedule[day].forEach(session => {
             const sessionKey = `${day}_${session.time}`;
             assignments[sessionKey] = {};
             
-            // Определяем роли для сессии
             let sessionRoles = allRoles;
             if (session.roles) {
                 sessionRoles = session.roles;
@@ -213,7 +187,6 @@ export async function loadAssignments(assignmentsData) {
         });
     });
     
-    // Затем заполняем существующие назначения
     assignmentsData.forEach(assignment => {
         const sessionKey = `${assignment.slotDate}_${assignment.slotTime}`;
         if (assignments[sessionKey] && assignments[sessionKey][assignment.roleName] !== undefined) {
@@ -223,16 +196,7 @@ export async function loadAssignments(assignmentsData) {
 }
 
 /* === СОХРАНЕНИЕ ДАННЫХ В AIRTABLE === */
-
-/**
- * Сохраняет новое назначение в Airtable
- * @param {string} participantName - имя участника
- * @param {string} roleName - название роли
- * @param {string} slotDate - дата слота
- * @param {string} slotTime - время слота
- * @returns {Promise<void>}
- */
-export async function saveAssignmentToAirtable(participantName, roleName, slotDate, slotTime) {
+async function saveAssignmentToAirtable(participantName, roleName, slotDate, slotTime) {
     try {
         await window.airtableService.createAssignment(participantName, roleName, slotDate, slotTime);
         console.log('Назначение сохранено в Airtable:', { participantName, roleName, slotDate, slotTime });
@@ -243,17 +207,8 @@ export async function saveAssignmentToAirtable(participantName, roleName, slotDa
     }
 }
 
-/**
- * Удаляет назначение из Airtable
- * @param {string} participantName - имя участника
- * @param {string} roleName - название роли
- * @param {string} slotDate - дата слота
- * @param {string} slotTime - время слота
- * @returns {Promise<void>}
- */
-export async function removeAssignmentFromAirtable(participantName, roleName, slotDate, slotTime) {
+async function removeAssignmentFromAirtable(participantName, roleName, slotDate, slotTime) {
     try {
-        // Найти назначение по данным и удалить
         const assignments = await window.airtableService.getAssignments();
         const assignmentToDelete = assignments.find(a => 
             a.participantName === participantName && 
@@ -274,14 +229,7 @@ export async function removeAssignmentFromAirtable(participantName, roleName, sl
 }
 
 /* === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ === */
-
-/**
- * Проверяет, есть ли у пользователя назначения на определенное время
- * @param {string} sessionKey - ключ сессии (день_время)
- * @param {string} userName - имя пользователя
- * @returns {boolean}
- */
-export function isUserBusyInSession(sessionKey, userName) {
+function isUserBusyInSession(sessionKey, userName) {
     const sessionTime = sessionKey.split('_')[1];
     
     for (const [checkSessionKey, sessionRoles] of Object.entries(assignments)) {
@@ -297,18 +245,11 @@ export function isUserBusyInSession(sessionKey, userName) {
     return false;
 }
 
-/**
- * Получает роли пользователя в определенной сессии
- * @param {string} sessionKey - ключ сессии
- * @param {string} userName - имя пользователя
- * @returns {Array<string>} - массив ролей
- */
-export function getUserRolesInSession(sessionKey, userName) {
+function getUserRolesInSession(sessionKey, userName) {
     const [day, time] = sessionKey.split('_');
     const session = schedule[day].find(s => s.time === time);
     const sessionAssignments = assignments[sessionKey];
     
-    // Определяем роли для сессии
     let sessionRoles = allRoles;
     if (session.roles) {
         sessionRoles = session.roles;
@@ -317,34 +258,9 @@ export function getUserRolesInSession(sessionKey, userName) {
     return sessionRoles.filter(role => sessionAssignments[role] === userName);
 }
 
-/**
- * Форсирует перезагрузку данных
- * @returns {Promise<void>}
- */
-export async function reloadData() {
+async function reloadData() {
     isDataLoaded = false;
     return await loadAirtableData();
 }
-
-/**
- * Получает текущее состояние загрузки данных
- * @returns {Object}
- */
-export function getDataState() {
-    return {
-        isLoaded: isDataLoaded,
-        isLoading: isDataLoading,
-        participantsCount: participants.length,
-        rolesCount: Object.keys(rolesInfo).length,
-        scheduleCount: Object.keys(schedule).length,
-        assignmentsCount: Object.keys(assignments).length
-    };
-}
-
-/* === ИНИЦИАЛИЗАЦИЯ === */
-
-// Автоматическая загрузка данных при импорте модуля
-// (можно убрать, если хотим ручное управление)
-// loadAirtableData();
 
 console.log('📦 Data Manager загружен');
