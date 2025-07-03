@@ -1,38 +1,11 @@
-// assignment-logic.js - Логика назначений ролей в приложении NEVESOMO
-// Отвечает за всю бизнес-логику работы с назначениями пользователей на роли
+// assignment-logic.js - Логика назначений (без ES6 модулей)
 
-import { 
-    participants,
-    roleGroups,
-    schedule,
-    allRoles,
-    assignments,
-    saveAssignmentToAirtable,
-    removeAssignmentFromAirtable,
-    isUserBusyInSession,
-    getUserRolesInSession,
-    reloadData
-} from './core/data-manager.js';
-
-import { 
-    renderSchedule,
-    renderParticipantsList
-} from './ui/ui-renderer.js';
-
-/* === ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ЛОГИКИ === */
+/* === ПЕРЕМЕННЫЕ СОСТОЯНИЯ === */
 let currentPopupSession = null;
 let currentPopupRole = null;
 
 /* === ОСНОВНЫЕ ФУНКЦИИ НАЗНАЧЕНИЙ === */
-
-/**
- * Обрабатывает клик по слоту роли
- * @param {string} sessionKey - ключ сессии
- * @param {string} role - название роли
- * @param {string} currentMode - режим (admin/user)
- * @param {string} currentUser - текущий пользователь
- */
-export function handleRoleSlotClick(sessionKey, role, currentMode, currentUser) {
+function handleRoleSlotClick(sessionKey, role) {
     if (currentMode === 'admin') {
         openParticipantPopup(sessionKey, role);
     } else {
@@ -44,24 +17,18 @@ export function handleRoleSlotClick(sessionKey, role, currentMode, currentUser) 
             }
         }
         
-        toggleUserAssignment(sessionKey, role, currentUser);
+        toggleUserAssignment(sessionKey, role);
     }
 }
 
-/**
- * Переключает назначение пользователя на роль
- * @param {string} sessionKey - ключ сессии
- * @param {string} role - название роли
- * @param {string} currentUser - текущий пользователь
- */
-export async function toggleUserAssignment(sessionKey, role, currentUser) {
+async function toggleUserAssignment(sessionKey, role) {
     if (!currentUser) {
         alert('Выберите участника');
         return;
     }
     
     const currentAssignment = assignments[sessionKey][role];
-    const isBlocked = isSlotBlocked(sessionKey, role, currentUser);
+    const isBlocked = isSlotBlocked(sessionKey, role);
     
     if (isBlocked && currentAssignment !== currentUser) {
         alert('У вас уже есть другая роль в это время!');
@@ -111,10 +78,8 @@ export async function toggleUserAssignment(sessionKey, role, currentUser) {
             return;
         }
         
-        // Уведомляем другие модули об изменении
-        window.dispatchEvent(new CustomEvent('assignmentsChanged', {
-            detail: { sessionKey, role, user: currentUser }
-        }));
+        renderSchedule();
+        updateProgress();
         
         // Восстанавливаем раскрытые сессии
         setTimeout(() => {
@@ -129,19 +94,14 @@ export async function toggleUserAssignment(sessionKey, role, currentUser) {
     } catch (error) {
         console.error('Ошибка обновления назначения:', error);
         await reloadData();
-        window.dispatchEvent(new CustomEvent('dataReloaded'));
+        renderSchedule();
+        updateProgress();
     } finally {
         hideLoader();
     }
 }
 
-/**
- * Выбор участника админом
- * @param {string} participantName - имя участника (или null для очистки)
- * @param {string} currentMode - текущий режим
- * @param {string} currentUser - текущий пользователь
- */
-export async function selectParticipant(participantName, currentMode, currentUser) {
+async function selectParticipant(participantName) {
     if (!currentPopupSession || !currentPopupRole) return;
     
     const role = currentPopupRole;
@@ -168,10 +128,8 @@ export async function selectParticipant(participantName, currentMode, currentUse
         
         assignments[sessionKey][role] = participantName;
         
-        // Уведомляем другие модули об изменении
-        window.dispatchEvent(new CustomEvent('assignmentsChanged', {
-            detail: { sessionKey, role, user: participantName }
-        }));
+        renderSchedule();
+        updateProgress();
         
         // Восстанавливаем раскрытые сессии
         setTimeout(() => {
@@ -186,7 +144,8 @@ export async function selectParticipant(participantName, currentMode, currentUse
     } catch (error) {
         console.error('Ошибка обновления назначения:', error);
         await reloadData();
-        window.dispatchEvent(new CustomEvent('dataReloaded'));
+        renderSchedule();
+        updateProgress();
     } finally {
         hideLoader();
     }
@@ -194,11 +153,7 @@ export async function selectParticipant(participantName, currentMode, currentUse
     closeParticipantPopup();
 }
 
-/**
- * Автоматическое заполнение сессии (только для админа)
- * @param {string} sessionKey - ключ сессии
- */
-export async function autoFillSession(sessionKey) {
+async function autoFillSession(sessionKey) {
     if (!confirm('Вы уверены, что хотите автоматически заполнить эту сессию?')) {
         return;
     }
@@ -207,7 +162,6 @@ export async function autoFillSession(sessionKey) {
     const session = schedule[day].find(s => s.time === time);
     const sessionAssignments = assignments[sessionKey];
     
-    // Определяем роли для сессии
     let sessionRoles = allRoles;
     if (session.roles) {
         sessionRoles = session.roles;
@@ -255,98 +209,24 @@ export async function autoFillSession(sessionKey) {
             }
         }
         
-        // Уведомляем другие модули об изменении
-        window.dispatchEvent(new CustomEvent('assignmentsChanged', {
-            detail: { sessionKey, type: 'autoFill' }
-        }));
+        renderSchedule();
+        updateProgress();
         
         alert('Сессия автоматически заполнена!');
         
     } catch (error) {
         console.error('Ошибка автозаполнения:', error);
         alert('Ошибка при автозаполнении. Попробуйте еще раз.');
-        // Перезагружаем данные в случае ошибки
         await reloadData();
-        window.dispatchEvent(new CustomEvent('dataReloaded'));
+        renderSchedule();
+        updateProgress();
     } finally {
         hideLoader();
     }
 }
 
-/* === ФУНКЦИИ ПРОВЕРОК И ВАЛИДАЦИИ === */
-
-/**
- * Проверяет блокировку слота для пользователя
- * @param {string} sessionKey - ключ сессии
- * @param {string} role - роль
- * @param {string} currentUser - текущий пользователь
- * @returns {boolean} - заблокирован ли слот
- */
-export function isSlotBlocked(sessionKey, role, currentUser) {
-    if (!currentUser) return false;
-    
-    const sessionTime = sessionKey.split('_')[1];
-    
-    for (const [checkSessionKey, sessionRoles] of Object.entries(assignments)) {
-        const checkTime = checkSessionKey.split('_')[1];
-        if (checkTime === sessionTime) {
-            for (const [checkRole, assignedUser] of Object.entries(sessionRoles)) {
-                if (assignedUser === currentUser && checkRole !== role) {
-                    return true;
-                }
-            }
-        }
-    }
-    
-    return false;
-}
-
-/**
- * Проверяет, есть ли у пользователя роли в лаунже
- * @param {string} userName - имя пользователя
- * @returns {boolean}
- */
-export function hasLoungeRole(userName) {
-    for (const [sessionKey, sessionRoles] of Object.entries(assignments)) {
-        for (const [role, assignedUser] of Object.entries(sessionRoles)) {
-            if (assignedUser === userName && roleGroups.lounge?.roles.includes(role)) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-/**
- * Получает парный слот для мастер-класса (предыдущий или следующий час)
- * @param {string} sessionKey - ключ сессии
- * @returns {string|null} - ключ парного слота или null
- */
-export function getMasterClassPairSlot(sessionKey) {
-    const [day, time] = sessionKey.split('_');
-    const currentHour = parseInt(time.split(':')[0]);
-    
-    // Ищем соседний слот (предыдущий или следующий час)
-    const prevTime = `${currentHour - 1}:00`;
-    const nextTime = `${currentHour + 1}:00`;
-    
-    const prevKey = `${day}_${prevTime}`;
-    const nextKey = `${day}_${nextTime}`;
-    
-    if (assignments[prevKey]) return prevKey;
-    if (assignments[nextKey]) return nextKey;
-    
-    return null;
-}
-
 /* === ФУНКЦИИ УПРАВЛЕНИЯ ПОПАПАМИ === */
-
-/**
- * Открывает попап выбора участника для админа
- * @param {string} sessionKey - ключ сессии
- * @param {string} role - роль
- */
-export function openParticipantPopup(sessionKey, role) {
+function openParticipantPopup(sessionKey, role) {
     currentPopupSession = sessionKey;
     currentPopupRole = role;
     
@@ -358,40 +238,13 @@ export function openParticipantPopup(sessionKey, role) {
     document.getElementById('participantPopup').classList.add('show');
 }
 
-/**
- * Закрывает попап выбора участника
- */
-export function closeParticipantPopup() {
+function closeParticipantPopup() {
     document.getElementById('participantPopup').classList.remove('show');
     currentPopupSession = null;
     currentPopupRole = null;
 }
 
-/* === ГЛОБАЛЬНЫЕ ФУНКЦИИ ДЛЯ ONCLICK === */
-
-// Экспортируем функции в глобальную область для onclick
-window.handleRoleSlotClick = (sessionKey, role) => {
-    const currentMode = window.currentMode || 'user';
-    const currentUser = window.currentUser || '';
-    handleRoleSlotClick(sessionKey, role, currentMode, currentUser);
-};
-
-window.selectParticipant = (participantName) => {
-    const currentMode = window.currentMode || 'user';
-    const currentUser = window.currentUser || '';
-    selectParticipant(participantName, currentMode, currentUser);
-};
-
-window.autoFillSession = autoFillSession;
-
-window.closeParticipantPopup = closeParticipantPopup;
-
 /* === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ === */
-
-/**
- * Показывает лоадер
- * @param {string} text - текст загрузки
- */
 function showLoader(text = 'Загрузка...') {
     let loader = document.getElementById('loadingOverlay');
     if (!loader) {
@@ -410,9 +263,6 @@ function showLoader(text = 'Загрузка...') {
     loader.classList.add('show');
 }
 
-/**
- * Скрывает лоадер
- */
 function hideLoader() {
     const loader = document.getElementById('loadingOverlay');
     if (loader) {
