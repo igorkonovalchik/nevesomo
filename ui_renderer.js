@@ -366,4 +366,144 @@ function isSlotBlocked(sessionKey, role) {
     return false;
 }
 
+// Обновленная функция renderSession для минималистичного дизайна
+function renderSession(day, session) {
+    const sessionKey = `${day}_${session.time}`;
+    const sessionAssignments = assignments[sessionKey];
+    
+    let sessionRoles = allRoles;
+    if (session.roles) {
+        sessionRoles = session.roles;
+    }
+    
+    const filledRoles = sessionRoles.filter(role => sessionAssignments[role] !== null && sessionAssignments[role] !== undefined).length;
+    const totalRoles = sessionRoles.length;
+    const percentage = totalRoles > 0 ? Math.round((filledRoles / totalRoles) * 100) : 0;
+    
+    const userRoles = currentMode === 'user' && currentUser ? 
+        getUserRolesInSession(sessionKey, currentUser) : [];
+    const hasUserAssignment = userRoles.length > 0;
+    
+    let progressClass = 'empty';
+    let progressContent = `<span class="progress-text">${percentage}%</span>`;
+    
+    if (percentage === 100) {
+        progressClass = 'complete';
+        progressContent = ''; // Иконка ✓ добавится через CSS ::after
+    } else if (percentage > 0) {
+        progressClass = 'partial';
+        progressContent = `<span class="progress-text">${percentage}%</span>`;
+    }
+    
+    const sessionHtml = `
+        <div class="session ${hasUserAssignment ? 'user-assigned' : ''}" data-session="${sessionKey}">
+            <div class="session-compact" onclick="toggleSession('${sessionKey}')">
+                <div class="session-info">
+                    <div class="session-basic-info">
+                        <div class="session-time">${session.time} - ${session.endTime}</div>
+                        <div class="session-details">
+                            <a href="#" class="bath-link" onclick="event.stopPropagation(); showBathInfo()">${session.type}</a>
+                        </div>
+                    </div>
+                    <div class="session-stats">
+                        <div class="progress-display">
+                            <div class="progress-circle ${progressClass}" ${percentage > 0 && percentage < 100 ? `style="--progress-percent: ${percentage}"` : ''}>
+                                ${progressContent}
+                            </div>
+                            <div class="progress-label">${totalRoles} шифтов</div>
+                        </div>
+                        ${percentage < 100 && currentMode === 'admin' && session.status !== 'кухня' ? `<button class="auto-fill-slot-btn" onclick="event.stopPropagation(); autoFillSession('${sessionKey}')">Автозаполнение</button>` : ''}
+                    </div>
+                </div>
+            </div>
+            ${session.status !== 'кухня' ? `
+            <div class="session-expanded">
+                <div class="session-tabs">
+                    <button class="session-tab active" data-filter="all" onclick="setSessionFilter('${sessionKey}', 'all')">Все</button>
+                    ${Object.entries(roleGroups).map(([key, group]) => 
+                        `<button class="session-tab" data-filter="${key}" onclick="setSessionFilter('${sessionKey}', '${key}')">${group.name}</button>`
+                    ).join('')}
+                </div>
+                <div class="roles-container" id="roles-${sessionKey}">
+                    ${renderSessionRoles(sessionKey, 'all')}
+                </div>
+            </div>
+            ` : `
+            <div class="session-expanded">
+                <div class="roles-grid">
+                    ${sessionRoles.map(role => renderRoleSlot(sessionKey, role)).join('')}
+                </div>
+            </div>
+            `}
+        </div>
+    `;
+    
+    return sessionHtml;
+}
+
+// Дополнительная функция для обновления прогресса в реальном времени
+function updateProgressRing(element, percentage) {
+    const progressCircle = element.querySelector('.progress-circle');
+    const progressText = element.querySelector('.progress-text');
+    
+    if (!progressCircle) return;
+    
+    // Убираем старые классы
+    progressCircle.classList.remove('empty', 'partial', 'complete');
+    
+    if (percentage === 100) {
+        progressCircle.classList.add('complete');
+        if (progressText) progressText.style.display = 'none';
+    } else if (percentage > 0) {
+        progressCircle.classList.add('partial');
+        progressCircle.style.setProperty('--progress-percent', percentage);
+        if (progressText) {
+            progressText.textContent = `${percentage}%`;
+            progressText.style.display = 'block';
+        }
+    } else {
+        progressCircle.classList.add('empty');
+        progressCircle.style.removeProperty('--progress-percent');
+        if (progressText) {
+            progressText.textContent = '0%';
+            progressText.style.display = 'block';
+        }
+    }
+}
+
+// Обновленная функция для плавного обновления прогресса без полной перерисовки
+function updateSessionProgress(sessionKey) {
+    const sessionElement = document.querySelector(`[data-session="${sessionKey}"]`);
+    if (!sessionElement) return;
+    
+    const sessionAssignments = assignments[sessionKey];
+    const [day, time] = sessionKey.split('_');
+    const session = schedule[day]?.find(s => s.time === time);
+    
+    if (!session) return;
+    
+    let sessionRoles = allRoles;
+    if (session.roles) {
+        sessionRoles = session.roles;
+    }
+    
+    const filledRoles = sessionRoles.filter(role => sessionAssignments[role] !== null && sessionAssignments[role] !== undefined).length;
+    const totalRoles = sessionRoles.length;
+    const percentage = totalRoles > 0 ? Math.round((filledRoles / totalRoles) * 100) : 0;
+    
+    // Обновляем прогресс с анимацией
+    updateProgressRing(sessionElement, percentage);
+    
+    // Обновляем индикатор пользовательского назначения
+    const userRoles = currentMode === 'user' && currentUser ? 
+        getUserRolesInSession(sessionKey, currentUser) : [];
+    const hasUserAssignment = userRoles.length > 0;
+    
+    if (hasUserAssignment) {
+        sessionElement.classList.add('user-assigned');
+    } else {
+        sessionElement.classList.remove('user-assigned');
+    }
+}
+
 console.log('🎨 UI Renderer загружен');
