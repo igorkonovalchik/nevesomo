@@ -20,17 +20,20 @@ let sessionFilters = {};
 let previousPopup = null;
 
 // Функция форматирования даты
-function formatDate(dateStr) {
-    const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-                   'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-    const parts = dateStr.split('-');
-    if (parts.length === 3) {
-        const day = parseInt(parts[2]);
-        const month = parseInt(parts[1]) - 1;
-        return `${day} ${months[month]}`;
-    }
-    return dateStr;
+function formatDate(dateStr){
+  const months = ['января','февраля','марта','апреля','мая','июня',
+                  'июля','августа','сентября','октября','ноября','декабря'];
+  const weekdays = ['воскресенье','понедельник','вторник','среда',
+                    'четверг','пятница','суббота'];
+
+  const d = new Date(dateStr+'T00:00:00');     // надёжный парсинг
+  const day   = d.getDate();
+  const month = months[d.getMonth()];
+  const wday  = weekdays[d.getDay()];
+
+  return `${day} ${month}, ${wday}`;           // 12 июля, суббота
 }
+
 
 // Функции для лоадера
 function showLoader(text = 'Загрузка...') {
