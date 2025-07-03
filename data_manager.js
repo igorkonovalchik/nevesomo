@@ -47,7 +47,7 @@ function showErrorState(errorMessage) {
 }
 
 /* === ЗАГРУЗКА ДАННЫХ ИЗ AIRTABLE === */
-/ ИСПРАВЛЕНО: Обновленная функция загрузки данных с лучшей обработкой ролей
+// ИСПРАВЛЕНО: Обновленная функция загрузки данных с лучшей обработкой ролей
 async function loadAirtableData() {
     if (isDataLoading) return;
     
