@@ -5,35 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NEVESOMO Шифты 2025</title>
     <link rel="stylesheet" href="https://nevesomo.vercel.app/styles.min.css">
-
     <!-- Telegram Mini‑App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-    <!-- Локальные стили для оверлея доступа -->
-    <style>
-        .access-block {
-            position: fixed;
-            inset: 0;
-            backdrop-filter: blur(6px);
-            background: rgba(0, 0, 0, 0.45);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 5000;
-            color: #fff;
-            text-align: center;
-            padding: 24px;
-        }
-        .access-block a {
-            color: #2AABEE;
-            text-decoration: underline;
-        }
-        .header-greeting {
-            font-size: 0.9em;
-            margin-right: 8px;
-        }
-    </style>
 </head>
 <body>
     <!-- Хедер в стиле Telegram -->
@@ -41,7 +14,6 @@
         <div class="header-left">NEVESOMO</div>
         <div class="header-center">ШИФТЫ</div>
         <div class="header-right">
-            <div id="userGreeting" class="header-greeting"></div>
             <button class="theme-toggle" onclick="toggleTheme()" title="Переключить тему">
                 🌙
             </button>
@@ -56,6 +28,7 @@
     </div>
 
     <div class="container">
+        <h2 id="bigGreeting" class="big-greeting"></h2>
         <div id="deadlineWarning" class="deadline-warning">
             <div>⚠️ Выберите себе шифты до 8 июля 2025 года или мы выберем их за вас</div>
             <div class="countdown" id="countdown"></div>
