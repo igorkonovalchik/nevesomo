@@ -2054,3 +2054,160 @@ body {
     }
 }
 
+/* Компактная сетка ролей - 2 колонки */
+.roles-grid-compact {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr) !important; /* Принудительно 2 колонки */
+    gap: 6px;
+    padding: 4px;
+    max-height: 300px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* На мобильных - одна колонка, но со свайпом */
+@media (max-width: 480px) {
+    .roles-grid-compact {
+        display: flex !important;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        gap: 8px;
+        padding: 8px 4px;
+        -webkit-overflow-scrolling: touch; /* Плавный скролл на iOS */
+        scroll-snap-type: x mandatory;
+    }
+    
+    .roles-grid-compact .role-slot {
+        flex: 0 0 calc(50% - 4px); /* Показываем по 2 карточки */
+        scroll-snap-align: start;
+        min-width: 140px;
+    }
+}
+
+/* Свайпающиеся табы фильтров */
+.session-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+    margin: 8px 0;
+    padding: 4px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    
+    /* Градиент для индикации прокрутки */
+    background: linear-gradient(90deg, 
+        var(--bg-tertiary) 0%,
+        var(--bg-tertiary) 2%,
+        transparent 10%,
+        transparent 90%,
+        var(--bg-tertiary) 98%,
+        var(--bg-tertiary) 100%
+    );
+}
+
+/* Скрываем скроллбары но оставляем функциональность */
+.session-tabs::-webkit-scrollbar,
+.roles-grid-compact::-webkit-scrollbar {
+    display: none;
+}
+
+.session-tabs {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* Табы не должны сжиматься */
+.session-tab {
+    flex: 0 0 auto;
+    padding: 6px 12px;
+    border: none;
+    background: var(--bg-secondary);
+    cursor: pointer;
+    color: var(--text-primary);
+    font-size: 0.85em;
+    transition: all 0.2s;
+    border-radius: 16px;
+    text-align: center;
+    white-space: nowrap;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.session-tab:active {
+    transform: scale(0.95);
+}
+
+/* Индикатор прокрутки для табов */
+.session-tabs-wrapper {
+    position: relative;
+}
+
+.session-tabs-wrapper::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 30px;
+    background: linear-gradient(90deg, transparent, var(--bg-primary));
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.session-tabs-wrapper.scrollable::after {
+    opacity: 1;
+}
+
+/* Стили для попапа "Общее расписание" */
+.compact-roles-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.compact-role-item {
+    background: var(--bg-tertiary);
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 48px;
+}
+
+.compact-role-item.current-user {
+    background: #e8f5e8;
+    border-color: var(--success-color);
+    order: -1;
+}
+
+[data-theme="dark"] .compact-role-item.current-user {
+    background: #2a4b35;
+}
+
+.compact-role-name {
+    font-size: 0.9em;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.compact-role-user {
+    font-size: 0.85em;
+    color: var(--text-secondary);
+    text-align: right;
+    max-width: 45%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.compact-role-item.current-user .compact-role-user {
+    color: var(--success-color);
+    font-weight: 500;
+}
