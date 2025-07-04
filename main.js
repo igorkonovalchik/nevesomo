@@ -8,6 +8,9 @@ async function init() {
     try {
         console.log('🚀 Запуск приложения NEVESOMO...');
         
+        // Показываем заставку
+        await showLoadingScreen();
+        
         // Загружаем данные из Airtable
         await loadAirtableData();
         
@@ -32,11 +35,14 @@ async function init() {
         renderSchedule();
         updateProgress();
         
+        // Скрываем заставку
+        hideLoadingScreen();
+        
         console.log('✅ Приложение успешно инициализировано');
         
     } catch (error) {
         console.error('❌ Критическая ошибка инициализации:', error);
-        showErrorMessage('Не удалось загрузить приложение. Попробуйте перезагрузить страницу.');
+        showLoadingError();
     }
 }
 
@@ -257,7 +263,89 @@ window.closeParticipantPopup = closeParticipantPopup;
 window.currentMode = currentMode;
 window.currentUser = currentUser;
 
-/* === ЗАПУСК ПРИЛОЖЕНИЯ === */
+/* === ФУНКЦИИ УПРАВЛЕНИЯ ЗАСТАВКОЙ === */
+async function showLoadingScreen() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    const loadingLogo = document.querySelector('.loading-logo');
+    const loadingContent = document.querySelector('.loading-content');
+    const loadingText = document.getElementById('loadingText');
+    
+    if (!loadingScreen) return;
+    
+    // Показываем заставку
+    loadingScreen.classList.remove('hidden');
+    
+    // Показываем логотип на 2 секунды
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Блюрим логотип и показываем лоадер
+    loadingLogo.classList.add('blurred');
+    loadingContent.style.display = 'block';
+    
+    await new Promise(resolve => setTimeout(resolve, 500));
+    loadingContent.classList.add('visible');
+    
+    // Запускаем смену текстов
+    startLoadingTextAnimation(loadingText);
+}
+
+function startLoadingTextAnimation(textElement) {
+    if (!textElement) return;
+    
+    const texts = [
+        'Грузим участников...',
+        'Загружаем шифты...',
+        'Тупим...'
+    ];
+    
+    let currentIndex = 0;
+    
+    const updateText = () => {
+        if (textElement && currentIndex < texts.length) {
+            textElement.textContent = texts[currentIndex];
+            textElement.style.animation = 'none';
+            setTimeout(() => {
+                if (textElement) {
+                    textElement.style.animation = 'fadeInText 0.5s ease';
+                }
+            }, 10);
+            currentIndex++;
+            
+            if (currentIndex < texts.length) {
+                setTimeout(updateText, 1000);
+            } else {
+                // Остаемся на "Тупим..." если загрузка затянулась
+                textElement.textContent = 'Тупим...';
+            }
+        }
+    };
+    
+    updateText();
+}
+
+function hideLoadingScreen() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    if (loadingScreen) {
+        loadingScreen.classList.add('hidden');
+        // Полностью удаляем через 500мс после анимации
+        setTimeout(() => {
+            if (loadingScreen && loadingScreen.parentNode) {
+                loadingScreen.style.display = 'none';
+            }
+        }, 500);
+    }
+}
+
+function showLoadingError() {
+    const loadingText = document.getElementById('loadingText');
+    const loadingError = document.getElementById('loadingError');
+    const spinner = document.querySelector('.loading-spinner');
+    
+    if (loadingText) loadingText.style.display = 'none';
+    if (spinner) spinner.style.display = 'none';
+    if (loadingError) loadingError.style.display = 'block';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log('📄 DOM загружен, запускаем инициализацию...');
     
@@ -269,9 +357,10 @@ document.addEventListener('DOMContentLoaded', () => {
         tg.expand();
     }
     
-    // Запускаем основную инициализацию
+    // Показываем заставку сразу и запускаем инициализацию
     init().catch(error => {
         console.error('💥 Критическая ошибка при запуске:', error);
+        showLoadingError();
     });
 });
 
