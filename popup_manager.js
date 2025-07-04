@@ -162,7 +162,7 @@ function shareSchedule() {
         });
     } else {
         navigator.clipboard.writeText(window.location.href);
-        alert('Ссылка скопирована в буфер обмена');
+        showNotification('Ссылка скопирована в буфер обмена');
     }
 }
 
@@ -216,7 +216,7 @@ function closeRoleDetailPopup() {
 
 /* === ПОПАП АДМИН ПАНЕЛИ === */
 function openDataEditPopup() {
-    alert('Админ панель редактирования данных будет реализована в следующей версии.\n\nЗдесь будет возможность:\n- Редактировать роли и их описания\n- Изменять информацию о бане\n- Настраивать расписание');
+    showNotification('Админ панель редактирования данных будет реализована в следующей версии.\n\nЗдесь будет возможность:\n- Редактировать роли и их описания\n- Изменять информацию о бане\n- Настраивать расписание');
 }
 
 /* === ОБЩИЕ ФУНКЦИИ === */
@@ -424,7 +424,7 @@ function openUserScheduleFromStats(userName) {
     // Получаем информацию об участнике
     const participant = participants.find(p => p.name === userName);
     if (!participant) {
-        alert('Участник не найден');
+        showNotification('Участник не найден');
         return;
     }
     
