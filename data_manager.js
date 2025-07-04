@@ -47,155 +47,96 @@ function showErrorState(errorMessage) {
 }
 
 /* === ЗАГРУЗКА ДАННЫХ ИЗ AIRTABLE === */
-// ИСПРАВЛЕНО: Обновленная функция загрузки данных с лучшей обработкой ролей
-async function loadAirtableData() {
+// data_manager.js
+// 💡 Заменить целиком ↓
+async function loadAirtableData () {
     if (isDataLoading) return;
-    
+
     isDataLoading = true;
-   // showLoadingState();
-    
+    // showLoadingState();
+
     try {
-        console.log('Загружаем данные из Airtable...');
-        
+        console.log('Загружаем данные из Airtable…');
+
         if (!window.airtableService) {
             throw new Error('Airtable service не загружен');
         }
-        
+
         const data = await window.airtableService.getAllData();
-        
-        // Обрабатываем участников
+
+        /* ---------- УЧАСТНИКИ ---------- */
         participants.length = 0;
-        participants.push(...data.participants.map(p => ({
-            name          : p.name,
-            telegram      : p.telegram,
-            telegramId    : p.telegramId,
-            isAdmin       : p.isAdmin,
-            bathExperience: p.bathExperience
-        })));
-        
-        // ИСПРАВЛЕНО: Обрабатываем роли с улучшенной логикой
+
+        // 👉 Новая очистка: пропускаем записи без имени ИЛИ telegram-ссылки
+        const cleanedParticipants = (data.participants || [])
+            .filter(p => p.name && p.telegram);
+
+        participants.push(
+            ...cleanedParticipants.map(p => ({
+                name          : p.name,
+                telegram      : p.telegram,
+                telegramId    : p.telegramId,
+                isAdmin       : p.isAdmin,
+                bathExperience: p.bathExperience
+            }))
+        );
+
+        /* ---------- РОЛИ ---------- */
         Object.keys(rolesInfo).forEach(key => delete rolesInfo[key]);
         const validRoles = [];
-        
+
         data.roles.forEach(role => {
             if (role.isActive && role.name) {
-                rolesInfo[role.name] = {
-                    icon: role.icon || '🔥',
-                    description: role.description || '',
-                    instructionUrl: role.instructionUrl || '',
-                    category: role.category || 'other'
-                };
-                validRoles.push(role.name);
-                console.log(`✅ Загружена роль: "${role.name}" (${role.category})`);
+                rolesInfo[role.id] = role;
+                validRoles.push(role.id);
             }
         });
-        
-        // ИСПРАВЛЕНО: Группируем роли по категориям с fallback
+
+        /* ---------- ГРУППЫ РОЛЕЙ ---------- */
         Object.keys(roleGroups).forEach(key => delete roleGroups[key]);
-        const rolesByCategory = {};
-        
-        // Сначала группируем по категориям из данных
-        data.roles.forEach(role => {
-            if (role.isActive && role.name) {
-                const category = role.category || 'other';
-                if (!rolesByCategory[category]) {
-                    rolesByCategory[category] = [];
-                }
-                rolesByCategory[category].push(role.name);
+        data.roleGroups.forEach(group => {
+            if (group.isActive && group.name) {
+                roleGroups[group.id] = group;
             }
         });
-        
-        // Если нет ролей из БД, используем статичный fallback
-        if (Object.keys(rolesByCategory).length === 0) {
-            console.warn('⚠️ Роли не загружены из Airtable, используем fallback');
-            rolesByCategory.banking = ['Главный банный мастер', 'Пармастер 2', 'Источник/Водовоз/Тех.гид'];
-            rolesByCategory.care = ['Гриттер 1', 'Гостевая Забота'];
-            rolesByCategory.lounge = ['Любовь+Забота - 1', 'Любовь+Забота+Мастер класс'];
-            rolesByCategory.kitchen = ['Поваренок'];
-            rolesByCategory.other = ['Музыка, ритм, голос', 'Страхующий/Уют'];
-        }
-        
-        // Создаем roleGroups с красивыми названиями
-        Object.entries(rolesByCategory).forEach(([category, roles]) => {
-            const categoryNames = {
-                'banking': 'Банные',
-                'care': 'Забота',
-                'lounge': 'Лаунж',
-                'kitchen': 'Кухня',
-                'other': 'Прочее'
-            };
-            
-            roleGroups[category] = {
-                name: categoryNames[category] || category,
-                roles: roles
-            };
-            
-            console.log(`📂 Группа "${categoryNames[category] || category}": ${roles.length} ролей`);
-        });
-        
-        // ИСПРАВЛЕНО: allRoles из всех групп
-        allRoles.length = 0;
-        Object.values(roleGroups).forEach(group => {
-            allRoles.push(...group.roles);
-        });
-        
-        console.log(`📋 Всего ролей: ${allRoles.length}`);
-        console.log('🔍 Список всех ролей:', allRoles);
-        
-        // Обрабатываем расписание
+
+        /* ---------- РАСПИСАНИЕ ---------- */
         Object.keys(schedule).forEach(key => delete schedule[key]);
-        data.schedule.forEach(session => {
-            const dateKey = session.date;
-            if (!schedule[dateKey]) {
-                schedule[dateKey] = [];
-            }
-            
-            let availableRoles = [];
-            if (session.availableRoles) {
-                availableRoles = session.availableRoles.split(',').map(r => r.trim());
-                console.log(`📅 Сессия ${session.startTime} ${dateKey}: ограниченные роли`, availableRoles);
-            }
-            
-            schedule[dateKey].push({
-               time: session.startTime,
-                endTime: session.endTime,
-                sessionNum: session.sessionNumber,
-                status: session.status,
-                type: session.type,
-                roles: availableRoles.length > 0 ? availableRoles : undefined,
-                slotLink: session.slotLink || null  
-            });
+        data.schedule.forEach(slot => {
+            schedule[slot.id] = slot;
         });
-        
-        // Сохраняем настройки
+
+        /* ---------- НАСТРОЙКИ ---------- */
         Object.keys(appSettings).forEach(key => delete appSettings[key]);
         Object.assign(appSettings, data.settings);
-        
-        // ИСПРАВЛЕНО: Загружаем назначения после того, как все роли готовы
+
+        /* ---------- НАЗНАЧЕНИЯ ---------- */
         await loadAssignments(data.assignments);
-        
-        isDataLoaded = true;
-        window.participants = participants; // для telegram.js
-        
+
+        isDataLoaded            = true;
+        window.participants     = participants; // для telegram.js
+
         console.log('✅ Данные успешно загружены:', {
-            participants: participants.length,
-            roles: Object.keys(rolesInfo).length,
-            roleGroups: Object.keys(roleGroups).length,
-            schedule: Object.keys(schedule).length,
-            assignments: Object.keys(assignments).length
+            participants : participants.length,
+            roles        : Object.keys(rolesInfo).length,
+            roleGroups   : Object.keys(roleGroups).length,
+            schedule     : Object.keys(schedule).length,
+            assignments  : Object.keys(assignments).length
         });
-        
-        // Уведомляем о загрузке данных
+
+        // Сообщаем приложению, что всё готово
         window.dispatchEvent(new CustomEvent('dataLoaded'));
-        
+
     } catch (error) {
         console.error('❌ Ошибка загрузки данных:', error);
-       // showErrorState(error.message);
+        // showErrorState(error.message);
         throw error;
+
     } finally {
         isDataLoading = false;
     }
 }
+
 
 async function loadAssignments(assignmentsData) {
     Object.keys(assignments).forEach(key => delete assignments[key]);
