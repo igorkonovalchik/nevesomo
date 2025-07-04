@@ -2039,4 +2039,19 @@ body {
     border-radius: 3px;
 }
 
+/* Для планшетов */
+@media (min-width: 481px) and (max-width: 768px) {
+    .roles-grid {
+        grid-template-columns: repeat(2, 1fr);
+        max-height: 280px;
+    }
+}
+
+/* Для больших экранов можно показать 3 колонки */
+@media (min-width: 1024px) {
+    .roles-grid {
+        grid-template-columns: repeat(3, 1fr);
+        max-height: 350px;
+    }
+}
 
