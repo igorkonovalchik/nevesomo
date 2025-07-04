@@ -364,6 +364,38 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// Функция для показа тултипа
+window.showProgressTooltip = function(element, emptySlots) {
+    // Удаляем существующий тултип
+    const existingTooltip = document.querySelector('.progress-tooltip');
+    if (existingTooltip) {
+        existingTooltip.remove();
+    }
+    
+    // Создаем новый тултип
+    const tooltip = document.createElement('div');
+    tooltip.className = 'progress-tooltip';
+    tooltip.textContent = `Осталось ${emptySlots} свободных слотов`;
+    
+    // Позиционируем относительно элемента
+    const rect = element.getBoundingClientRect();
+    tooltip.style.left = rect.left + (rect.width / 2) + 'px';
+    tooltip.style.top = (rect.top - 40) + 'px';
+    
+    document.body.appendChild(tooltip);
+    
+    // Удаляем через 3 секунды
+    setTimeout(() => {
+        tooltip.remove();
+    }, 3000);
+    
+    // Удаляем при клике в любом месте
+    document.addEventListener('click', function removeTooltip() {
+        tooltip.remove();
+        document.removeEventListener('click', removeTooltip);
+    });
+};
+
 // Обработчик ошибок для отладки
 window.addEventListener('error', (event) => {
     console.error('🚨 Глобальная ошибка:', event.error);
