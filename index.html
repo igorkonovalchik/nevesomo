@@ -187,6 +187,57 @@
     REDLOFT
   </a>
 </footer>
+<!-- Попап ввода комментария -->
+<div class="popup-overlay" id="commentPopup">
+    <div class="popup-bottom" onclick="event.stopPropagation()">
+        <div class="popup-header">
+            <div class="popup-title">Добавить комментарий к шифту</div>
+            <button class="popup-close" onclick="closeCommentPopup()">×</button>
+        </div>
+        <div class="popup-body">
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">
+                Добавьте комментарий к своему шифту если нужно. Например, если вы будете проводить мастер-класс.
+            </p>
+            <textarea 
+                id="shiftComment" 
+                placeholder="Например: МК Йога"
+                maxlength="50"
+                style="width: 100%; min-height: 80px; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); resize: none; font-family: inherit;"
+            ></textarea>
+            <p style="color: var(--text-secondary); font-size: 0.8em; margin-top: 8px;">
+                Максимум 50 символов. Изменить комментарий можно только удалив и заново выбрав шифт.
+            </p>
+            <div style="display: flex; gap: 12px; margin-top: 20px;">
+                <button onclick="skipComment()" style="flex: 1; padding: 12px; background: var(--bg-tertiary); border: none; border-radius: 8px; cursor: pointer;">
+                    Пропустить
+                </button>
+                <button onclick="saveComment()" style="flex: 1; padding: 12px; background: var(--accent-primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                    Сохранить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
+<!-- Попап подтверждения -->
+<div class="popup-overlay" id="confirmPopup">
+    <div class="popup-bottom" onclick="event.stopPropagation()">
+        <div class="popup-header">
+            <div class="popup-title" id="confirmTitle">Подтверждение</div>
+            <button class="popup-close" onclick="closeConfirmPopup()">×</button>
+        </div>
+        <div class="popup-body" style="text-align: center; padding: 32px 20px;">
+            <div id="confirmMessage" style="font-size: 1.1em; margin-bottom: 24px;"></div>
+            <div style="display: flex; gap: 16px;">
+                <button onclick="closeConfirmPopup()" style="flex: 1; padding: 14px; background: var(--bg-tertiary); border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                    Отмена
+                </button>
+                <button id="confirmAction" style="flex: 1; padding: 14px; background: var(--error-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                    Подтвердить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>
