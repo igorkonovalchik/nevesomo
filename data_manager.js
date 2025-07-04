@@ -253,7 +253,7 @@ async function saveAssignmentToAirtable(participantName, roleName, slotDate, slo
         console.log('Назначение сохранено в Airtable:', { participantName, roleName, slotDate, slotTime, comment });
     } catch (error) {
         console.error('Ошибка сохранения назначения:', error);
-        alert('Ошибка сохранения. Попробуйте еще раз.');
+        showNotification('Ошибка сохранения. Попробуйте еще раз.');
         throw error;
     }
 }
@@ -274,7 +274,7 @@ async function removeAssignmentFromAirtable(participantName, roleName, slotDate,
         }
     } catch (error) {
         console.error('Ошибка удаления назначения:', error);
-        alert('Ошибка удаления. Попробуйте еще раз.');
+        showNotification('Ошибка удаления. Попробуйте еще раз.');
         throw error;
     }
 }
