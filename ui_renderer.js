@@ -251,7 +251,7 @@ function renderUserStats(userStats) {
             .join('');
         
         const telegramLink = user.telegram ? 
-            `<a href="https://t.me/${user.telegram.replace('@', '')}" target="_blank" style="color: var(--accent-primary); text-decoration: none;">
+            `<a href="https://t.me/${user.telegram.replace('@', '')}" style="color: var(--accent-primary); text-decoration: none;">
                 ${user.telegram}
             </a>` : '';
         
