@@ -1784,3 +1784,259 @@ body {
         opacity: 0;
     }
 }
+
+/* Компактная сетка ролей */
+.roles-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Два столбца */
+    gap: 6px; /* Уменьшенный отступ */
+    max-height: 300px; /* Максимальная высота контейнера */
+    overflow-y: auto; /* Прокрутка если не помещается */
+    padding: 4px;
+}
+
+/* Компактный слот роли */
+.role-slot {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px 10px; /* Уменьшенные отступы */
+    background: var(--bg-primary);
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 50px; /* Минимальная высота */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.role-slot:hover {
+    border-color: var(--accent-primary);
+    background: var(--bg-secondary);
+    transform: translateY(-1px);
+}
+
+.role-slot.occupied {
+    background: var(--bg-secondary);
+}
+
+.role-slot.current-user {
+    background: #d1e7dd;
+    border-color: var(--success-color);
+    border-width: 2px;
+}
+
+[data-theme="dark"] .role-slot.current-user {
+    background: #2a4b35;
+    border-color: var(--success-color);
+}
+
+.role-slot.blocked {
+    background: var(--bg-secondary);
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.role-slot.faded {
+    opacity: 0.3;
+}
+
+/* Текст в слотах */
+.role-name {
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+    font-size: 0.85em; /* Уменьшенный шрифт */
+    line-height: 1.2;
+}
+
+.role-user {
+    color: var(--text-secondary);
+    font-size: 0.75em; /* Еще меньше для имени пользователя */
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.role-checkmark {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    color: var(--success-color);
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+/* Кастомный скроллбар для списка ролей */
+.roles-grid::-webkit-scrollbar {
+    width: 4px;
+}
+
+.roles-grid::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: 2px;
+}
+
+.roles-grid::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 2px;
+}
+
+.roles-grid::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 480px) {
+    .roles-grid {
+        grid-template-columns: 1fr; /* Один столбец на мобильных */
+        max-height: 250px;
+    }
+    
+    .role-slot {
+        padding: 6px 8px;
+        min-height: 45px;
+    }
+    
+    .role-name {
+        font-size: 0.8em;
+    }
+    
+    .role-user {
+        font-size: 0.7em;
+    }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 360px) {
+    .role-name {
+        font-size: 0.75em;
+    }
+    
+    .role-user {
+        font-size: 0.65em;
+    }
+}
+
+/* Компактные табы */
+.session-tabs {
+    display: flex;
+    flex-wrap: nowrap; /* Не переносить на новую строку */
+    gap: 4px;
+    margin: 8px 0;
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+    padding: 3px;
+    overflow-x: auto; /* Горизонтальная прокрутка если не помещается */
+}
+
+.session-tab {
+    flex: 0 0 auto; /* Не растягиваться */
+    padding: 5px 10px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-size: 0.8em; /* Уменьшенный шрифт */
+    transition: all 0.2s;
+    border-radius: 4px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.session-tab.active {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.empty-count {
+    background: var(--error-color);
+    color: white;
+    border-radius: 50%;
+    font-size: 0.65em;
+    font-weight: 600;
+    min-width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 3px;
+    padding: 0 3px;
+}
+
+/* Скрываем скроллбар для табов */
+.session-tabs::-webkit-scrollbar {
+    height: 0;
+}
+
+/* Компактная расширенная сессия */
+.session-expanded {
+    padding: 8px 12px 12px;
+    display: none;
+}
+
+.session.expanded .session-expanded {
+    display: block;
+}
+
+/* Ограничиваем высоту всей расширенной области */
+.roles-container {
+    max-height: 320px;
+    overflow-y: auto;
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    padding: 8px;
+    margin-top: 8px;
+}
+
+/* Скроллбар для контейнера ролей */
+.roles-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.roles-container::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+    border-radius: 3px;
+}
+
+.roles-container::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+/* Компактная расширенная сессия */
+.session-expanded {
+    padding: 8px 12px 12px;
+    display: none;
+}
+
+.session.expanded .session-expanded {
+    display: block;
+}
+
+/* Ограничиваем высоту всей расширенной области */
+.roles-container {
+    max-height: 320px;
+    overflow-y: auto;
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    padding: 8px;
+    margin-top: 8px;
+}
+
+/* Скроллбар для контейнера ролей */
+.roles-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.roles-container::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+    border-radius: 3px;
+}
+
+.roles-container::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+
