@@ -1083,7 +1083,13 @@ body {
     font-weight: 600;
     color: #5f6368;
 }
-.participantsList .participant-item {
+
+.participantsList .participant-item  {
         background: --bg-tertiary!important;
-        padding: 10px;
+        padding: 10px!important;
+}
+
+.participantsList .participant-item.selected  {
+        background: --success-color!important;
+        padding: 10px!important;
 }
