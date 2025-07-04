@@ -5,6 +5,7 @@ const AIRTABLE_CONFIG = {
     apiUrl: 'https://api.airtable.com/v0'
 };
 
+
 // Названия таблиц
 const TABLES = {
     PARTICIPANTS: 'participants',
