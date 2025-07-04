@@ -45,56 +45,6 @@ function renderSchedule() {
     }, 0);
 }
 
-function renderSession(day, session) {
-    const sessionKey = `${day}_${session.time}`;
-    const sessionAssignments = assignments[sessionKey];
-    
-    let sessionRoles = allRoles;
-    if (session.roles) {
-        sessionRoles = session.roles;
-    }
-    
-    const filledRoles = sessionRoles.filter(role => sessionAssignments[role] !== null && sessionAssignments[role] !== undefined).length;
-    const totalRoles = sessionRoles.length;
-    const percentage = totalRoles > 0 ? Math.round((filledRoles / totalRoles) * 100) : 0;
-    
-    const userRoles = currentMode === 'user' && currentUser ? 
-        getUserRolesInSession(sessionKey, currentUser) : [];
-    const hasUserAssignment = userRoles.length > 0;
-    
-    let progressClass = 'empty';
-    if (percentage === 100) {
-        progressClass = 'complete';
-    } else if (percentage > 0) {
-        progressClass = 'partial';
-    }
-    
-   const emptyRoles = totalRoles - filledRoles; // Количество пустых ролей
-    
-    const sessionHtml = `
-        <div class="session ${hasUserAssignment ? 'user-assigned' : ''}" data-session="${sessionKey}">
-            <div class="session-compact" onclick="toggleSession('${sessionKey}')">
-                <div class="session-info">
-                    <div class="session-basic-info">
-                        <div class="session-time">${session.time} - ${session.endTime}</div>
-                        <div class="session-details">
-                            <a href="#" class="bath-link" onclick="event.stopPropagation(); showBathInfo()">${session.type}</a>
-                        </div>
-                    </div>
-                    ${hasUserAssignment ? `<div class="session-user-indicator">Мой шифт: ${userRoles.join(', ')}</div>` : ''}
-                    <div class="session-stats">
-                        <div class="progress-display">
-                            <div class="progress-circle ${progressClass}">${emptyRoles}</div>
-                            <div class="progress-label">${emptyRoles === 0 ? 'Все заполнено' : `осталось ${emptyRoles}`}</div>
-                        </div>
-                        ${percentage < 100 && currentMode === 'admin' && session.status !== 'кухня' ? `<button class="auto-fill-btn-circle" onclick="event.stopPropagation(); autoFillSession('${sessionKey}')" title="Автозаполнение">⚡</button>` : ''}
-                    </div>
-                </div>
-            </div>
-    `;
-    
-    return sessionHtml;
-}
 
 function renderSessionRoles(sessionKey, filter) {
     let rolesToShow = allRoles;
@@ -366,7 +316,8 @@ function isSlotBlocked(sessionKey, role) {
     return false;
 }
 
-// Обновленная функция renderSession для минималистичного дизайна
+// УДАЛИ первую версию renderSession и оставь только эту исправленную версию:
+
 function renderSession(day, session) {
     const sessionKey = `${day}_${session.time}`;
     const sessionAssignments = assignments[sessionKey];
@@ -379,20 +330,17 @@ function renderSession(day, session) {
     const filledRoles = sessionRoles.filter(role => sessionAssignments[role] !== null && sessionAssignments[role] !== undefined).length;
     const totalRoles = sessionRoles.length;
     const percentage = totalRoles > 0 ? Math.round((filledRoles / totalRoles) * 100) : 0;
+    const emptyRoles = totalRoles - filledRoles; // Количество пустых ролей
     
     const userRoles = currentMode === 'user' && currentUser ? 
         getUserRolesInSession(sessionKey, currentUser) : [];
     const hasUserAssignment = userRoles.length > 0;
     
     let progressClass = 'empty';
-    let progressContent = `<span class="progress-text">${percentage}%</span>`;
-    
     if (percentage === 100) {
         progressClass = 'complete';
-        progressContent = ''; // Иконка ✓ добавится через CSS ::after
     } else if (percentage > 0) {
         progressClass = 'partial';
-        progressContent = `<span class="progress-text">${percentage}%</span>`;
     }
     
     const sessionHtml = `
@@ -405,14 +353,17 @@ function renderSession(day, session) {
                             <a href="#" class="bath-link" onclick="event.stopPropagation(); showBathInfo()">${session.type}</a>
                         </div>
                     </div>
+                    ${hasUserAssignment ? `<div class="session-user-indicator">Мой шифт: ${userRoles.join(', ')}</div>` : ''}
                     <div class="session-stats">
                         <div class="progress-display">
                             <div class="progress-circle ${progressClass}" ${percentage > 0 && percentage < 100 ? `style="--progress-percent: ${percentage}"` : ''}>
-                                ${progressContent}
+                                ${emptyRoles}
                             </div>
-                            <div class="progress-label">${totalRoles} шифтов</div>
+                            <div class="progress-label">${emptyRoles === 0 ? 'Все заполнено' : `осталось ${emptyRoles}`}</div>
                         </div>
-                        ${percentage < 100 && currentMode === 'admin' && session.status !== 'кухня' ? `<button class="auto-fill-slot-btn" onclick="event.stopPropagation(); autoFillSession('${sessionKey}')">Автозаполнение</button>` : ''}
+                        ${percentage < 100 && currentMode === 'admin' && session.status !== 'кухня' ? 
+                            `<button class="auto-fill-btn-circle" onclick="event.stopPropagation(); autoFillSession('${sessionKey}')" title="Автозаполнение">⚡</button>` : 
+                            ''}
                     </div>
                 </div>
             </div>
