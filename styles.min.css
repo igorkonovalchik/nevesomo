@@ -268,7 +268,7 @@ body {
 .session-stats {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 5px;
 }
 
 /* Новый дизайн прогресса как ring */
