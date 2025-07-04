@@ -95,10 +95,10 @@ function renderSessionRoles(sessionKey, filter) {
 
 function renderRoleSlot(sessionKey, role) {
     const assignedUser = assignments[sessionKey][role];
+    const assignmentData = getAssignmentData(sessionKey, role); // новая функция
+    const comment = assignmentData?.comment || '';
     const isBlocked = isSlotBlocked(sessionKey, role);
     const isCurrentUser = currentMode === 'user' && assignedUser === currentUser;
-    const shouldFade = currentMode === 'user' && currentUser && 
-                      getUserRolesInSession(sessionKey, currentUser).length > 0 && !isCurrentUser;
     
     let className = 'role-slot';
     let userDisplay = 'Свободно';
@@ -115,17 +115,62 @@ function renderRoleSlot(sessionKey, role) {
         userDisplay = 'Занято в это время';
     }
     
-    if (shouldFade) {
-        className += ' faded';
-    }
+    const roleDisplayName = comment ? `${role} (${comment})` : role;
     
     return `
         <div class="${className}" onclick="handleRoleSlotClick('${sessionKey}', '${role}')">
-            <div class="role-name">${role}</div>
+            <div class="role-name">${roleDisplayName}</div>
             <div class="role-user">${userDisplay}</div>
             ${isCurrentUser ? '<div class="role-checkmark">✓</div>' : ''}
+            ${isCurrentUser ? `<div class="role-edit-comment" onclick="editComment(event, '${sessionKey}', '${role}')">✏️</div>` : ''}
         </div>
     `;
+}
+
+// Добавь эти новые функции:
+function getAssignmentData(sessionKey, role) {
+    // Тут нужно будет сохранять полные данные assignments с комментариями
+    return window.assignmentComments?.[sessionKey]?.[role] || null;
+}
+
+function editComment(event, sessionKey, role) {
+    event.stopPropagation();
+    const currentComment = getAssignmentData(sessionKey, role)?.comment || '';
+    const newComment = prompt('Комментарий к шифту (макс 50 символов):', currentComment);
+    
+    if (newComment !== null) {
+        const trimmedComment = newComment.substring(0, 50);
+        updateAssignmentComment(sessionKey, role, trimmedComment);
+    }
+}
+
+async function updateAssignmentComment(sessionKey, role, comment) {
+    // Здесь обновляем комментарий в Airtable и локально
+    const [day, time] = sessionKey.split('_');
+    try {
+        // Находим существующее назначение и обновляем его
+        const assignments = await window.airtableService.getAssignments();
+        const assignment = assignments.find(a => 
+            a.participantName === currentUser && 
+            a.roleName === role && 
+            a.slotDate === day && 
+            a.slotTime === time
+        );
+        
+        if (assignment) {
+            await window.airtableService.updateAssignment(assignment.id, { Comment: comment });
+        }
+        
+        // Обновляем локально
+        if (!window.assignmentComments) window.assignmentComments = {};
+        if (!window.assignmentComments[sessionKey]) window.assignmentComments[sessionKey] = {};
+        window.assignmentComments[sessionKey][role] = { comment };
+        
+        renderSchedule();
+    } catch (error) {
+        console.error('Ошибка обновления комментария:', error);
+        alert('Ошибка сохранения комментария');
+    }
 }
 
 /* === ФУНКЦИИ ОБНОВЛЕНИЯ ТАБОВ === */
