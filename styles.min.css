@@ -1633,3 +1633,132 @@ body {
 
 .progress-circle.partial::before{z-index:0;}  /* было 1 */
 
+/* Табы дат календарем */
+.schedule-tabs-container {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 16px;
+}
+
+.schedule-date-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 0 4px;
+}
+
+.schedule-date-tab {
+    min-width: 60px;
+    padding: 12px 8px;
+    border-radius: 12px;
+    background: var(--bg-secondary);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.schedule-date-tab.active {
+    background: var(--accent-primary);
+    color: white;
+    transform: scale(1.05);
+}
+
+.schedule-date-tab:hover:not(.active) {
+    background: var(--bg-tertiary);
+}
+
+.tab-day {
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+.tab-month {
+    font-size: 0.8em;
+    opacity: 0.8;
+    text-transform: uppercase;
+}
+
+/* Компактные сессии */
+.schedule-days-container {
+    position: relative;
+}
+
+.schedule-day-content {
+    display: none;
+}
+
+.schedule-day-content.active {
+    display: block;
+}
+
+.compact-session-card {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.compact-session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.compact-session-time {
+    font-weight: 600;
+    color: var(--accent-primary);
+    font-size: 1.1em;
+}
+
+.compact-session-type {
+    color: var(--text-secondary);
+    font-size: 0.9em;
+}
+
+.compact-roles-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 8px;
+}
+
+.compact-role-item {
+    background: var(--bg-primary);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+}
+
+.compact-role-item.current-user {
+    background: #e8f5e8;
+    border-color: var(--success-color);
+    order: -1; /* Показываем первыми */
+}
+
+.compact-role-name {
+    font-size: 0.85em;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.compact-role-user {
+    font-size: 0.8em;
+    color: var(--text-secondary);
+}
+
+.compact-role-item.current-user .compact-role-user {
+    color: var(--success-color);
+    font-weight: 500;
+}
+
+/* Темная тема */
+[data-theme="dark"] .compact-role-item.current-user {
+    background: #2a4b35;
+    border-color: var(--success-color);
+}
+
