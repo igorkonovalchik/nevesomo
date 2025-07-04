@@ -218,7 +218,7 @@ window.addEventListener('dataLoaded', () => {
 
         if (match) {
             console.log('✅ Участник найден:', match.name);
-            
+
             // Инициализируем Telegram пользователя
             initializeTelegramUser(match.name);
             
@@ -226,9 +226,9 @@ window.addEventListener('dataLoaded', () => {
             const userMode = determineUserMode(match);
             setMode(userMode);
             
-            console.log(`👤 Режим пользователя: ${userMode}`);
+           // console.log(`👤 Режим пользователя: ${userMode}`);
         } else {
-            console.log('❌ Участник не найден в базе');
+          //  console.log('❌ Участник не найден в базе');
         }
     }
 });
