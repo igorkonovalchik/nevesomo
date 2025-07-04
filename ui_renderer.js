@@ -116,7 +116,6 @@ function renderRoleSlot(sessionKey, role) {
             <div class="role-name">${roleDisplayName}</div>
             <div class="role-user">${userDisplay}</div>
             ${isCurrentUser ? '<div class="role-checkmark">✓</div>' : ''}
-            ${isCurrentUser ? `<div class="role-edit-comment" onclick="editComment(event, '${sessionKey}', '${role}')">✏️</div>` : ''}
         </div>
     `;
 }
