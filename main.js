@@ -404,6 +404,23 @@ window.showProgressTooltip = function(element, emptySlots) {
     });
 };
 
+// Функция для проверки прокрутки табов
+window.checkTabsScroll = function(sessionKey) {
+    const wrapper = document.getElementById(`tabs-wrapper-${sessionKey}`);
+    const tabs = wrapper?.querySelector('.session-tabs');
+    
+    if (!tabs) return;
+    
+    const isScrollable = tabs.scrollWidth > tabs.clientWidth;
+    const isAtEnd = tabs.scrollLeft + tabs.clientWidth >= tabs.scrollWidth - 10;
+    
+    if (isScrollable && !isAtEnd) {
+        wrapper.classList.add('scrollable');
+    } else {
+        wrapper.classList.remove('scrollable');
+    }
+};
+
 // Обработчик ошибок для отладки
 window.addEventListener('error', (event) => {
     console.error('🚨 Глобальная ошибка:', event.error);
