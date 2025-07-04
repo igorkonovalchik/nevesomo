@@ -157,12 +157,13 @@ async function loadAirtableData() {
             }
             
             schedule[dateKey].push({
-                time: session.startTime,
+               time: session.startTime,
                 endTime: session.endTime,
                 sessionNum: session.sessionNumber,
                 status: session.status,
                 type: session.type,
-                roles: availableRoles.length > 0 ? availableRoles : undefined
+                roles: availableRoles.length > 0 ? availableRoles : undefined,
+                slotLink: session.slotLink || null  
             });
         });
         
