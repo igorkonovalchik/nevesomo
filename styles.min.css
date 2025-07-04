@@ -1402,14 +1402,13 @@ body {
 }
 
 /* Статистика */
-
-/* Заставка загрузки */
+/* Заставка загрузки на весь экран */
 .loading-screen {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     display: flex;
     flex-direction: column;
@@ -1417,6 +1416,8 @@ body {
     justify-content: center;
     z-index: 9999;
     transition: opacity 0.5s ease;
+    padding: 20px; /* Небольшой отступ от краев */
+    box-sizing: border-box;
 }
 
 .loading-screen.hidden {
@@ -1425,21 +1426,21 @@ body {
 }
 
 .loading-logo {
-    margin-bottom: 40px;
+    margin-bottom: 60px;
     transition: all 1s ease;
 }
 
 .loading-logo.blurred {
-    filter: blur(10px);
-    opacity: 0.3;
-    transform: scale(0.8);
+    filter: blur(15px);
+    opacity: 0.2;
+    transform: scale(0.7);
 }
 
 .logo-image {
-    width: 200px;
+    width: min(400px, 80vw); /* Увеличиваем логотип, но не больше 80% ширины экрана */
     height: auto;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     transition: all 1s ease;
 }
 
@@ -1457,24 +1458,20 @@ body {
 }
 
 .loading-spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid rgba(255, 255, 255, 0.3);
+    width: 70px;
+    height: 70px;
+    border: 6px solid rgba(255, 255, 255, 0.3);
     border-top-color: white;
     border-radius: 50%;
     animation: spin 1s linear infinite;
-    margin: 0 auto 20px;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
+    margin: 0 auto 30px;
 }
 
 .loading-text {
-    font-size: 1.2em;
+    font-size: 1.5em;
     font-weight: 500;
-    margin-bottom: 20px;
-    min-height: 30px;
+    margin-bottom: 30px;
+    min-height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1482,8 +1479,8 @@ body {
 
 .loading-error {
     color: #ffcccb;
-    font-size: 1em;
-    line-height: 1.6;
+    font-size: 1.2em;
+    line-height: 1.8;
 }
 
 .loading-error a {
@@ -1496,26 +1493,28 @@ body {
     color: #ffd700;
 }
 
-/* Анимация появления текста */
-.loading-text {
-    animation: fadeInText 0.5s ease;
-}
-
-@keyframes fadeInText {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    .logo-image {
+        width: min(300px, 75vw);
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border-width: 5px;
+    }
+    
+    .loading-text {
+        font-size: 1.2em;
     }
 }
 
 /* Темная тема для заставки */
 [data-theme="dark"] .loading-screen {
-    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
 }
+
 
 /* Кнопка календаря в статистике пользователей */
 .user-schedule-btn {
