@@ -86,10 +86,9 @@ function renderSessionRoles(sessionKey, filter) {
     
     return rolesHtml;
 }
-
 function renderRoleSlot(sessionKey, role) {
     const assignedUser = assignments[sessionKey][role];
-    const assignmentData = getAssignmentData(sessionKey, role); // новая функция
+    const assignmentData = getAssignmentData(sessionKey, role);
     const comment = assignmentData?.comment || '';
     const isBlocked = isSlotBlocked(sessionKey, role);
     const isCurrentUser = currentMode === 'user' && assignedUser === currentUser;
@@ -99,21 +98,30 @@ function renderRoleSlot(sessionKey, role) {
     
     if (assignedUser) {
         className += ' occupied';
-        userDisplay = assignedUser;
+        // Обрезаем длинные имена
+        userDisplay = assignedUser.length > 15 ? 
+            assignedUser.substring(0, 13) + '...' : 
+            assignedUser;
         
         if (isCurrentUser) {
             className += ' current-user';
         }
     } else if (isBlocked) {
         className += ' blocked';
-        userDisplay = 'Занято в это время';
+        userDisplay = 'Занято';
     }
     
+    // Обрезаем длинные названия ролей
     const roleDisplayName = comment ? `${role} (${comment})` : role;
+    const shortRoleName = roleDisplayName.length > 25 ? 
+        roleDisplayName.substring(0, 23) + '...' : 
+        roleDisplayName;
     
     return `
-        <div class="${className}" onclick="handleRoleSlotClick('${sessionKey}', '${role}')">
-            <div class="role-name">${roleDisplayName}</div>
+        <div class="${className}" 
+             onclick="handleRoleSlotClick('${sessionKey}', '${role}')"
+             title="${roleDisplayName}${assignedUser ? ' - ' + assignedUser : ''}">
+            <div class="role-name">${shortRoleName}</div>
             <div class="role-user">${userDisplay}</div>
             ${isCurrentUser ? '<div class="role-checkmark">✓</div>' : ''}
         </div>
