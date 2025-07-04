@@ -1083,7 +1083,7 @@ body {
     font-weight: 600;
     color: #5f6368;
 }
-.participantsList.participant-item {
-        background: #222f3d;
+.participantsList .participant-item {
+        background: --bg-tertiary!important;
         padding: 10px;
 }
