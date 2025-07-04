@@ -62,7 +62,6 @@ const sortedDays = Object.keys(schedule).sort((a, b) => {
     }, 0);
 }
 
-
 function renderSessionRoles(sessionKey, filter) {
     let rolesToShow = allRoles;
     
@@ -70,9 +69,19 @@ function renderSessionRoles(sessionKey, filter) {
         rolesToShow = roleGroups[filter]?.roles || [];
     }
     
+    // Сортируем роли: роли текущего пользователя наверх
+    const sortedRoles = rolesToShow.sort((a, b) => {
+        const sessionAssignments = assignments[sessionKey];
+        const aIsUser = sessionAssignments[a] === currentUser;
+        const bIsUser = sessionAssignments[b] === currentUser;
+        if (aIsUser && !bIsUser) return -1;
+        if (!aIsUser && bIsUser) return 1;
+        return a.localeCompare(b); // Алфавитная сортировка для остальных
+    });
+    
     const rolesHtml = `
         <div class="roles-grid">
-            ${rolesToShow.map(role => renderRoleSlot(sessionKey, role)).join('')}
+            ${sortedRoles.map(role => renderRoleSlot(sessionKey, role)).join('')}
         </div>
     `;
     
