@@ -450,13 +450,16 @@ function renderSession(day, session) {
                      </div>
                 </div>
             </div>
+           // В функции renderSession, найти место где рендерятся табы и изменить на:
             ${session.status !== 'кухня' ? `
             <div class="session-expanded">
-                <div class="session-tabs">
-                    <button class="session-tab active" data-filter="all" onclick="setSessionFilter('${sessionKey}', 'all')">Все</button>
-                    ${Object.entries(roleGroups).map(([key, group]) => 
-                        `<button class="session-tab" data-filter="${key}" onclick="setSessionFilter('${sessionKey}', '${key}')">${group.name}</button>`
-                    ).join('')}
+                <div class="session-tabs-wrapper" id="tabs-wrapper-${sessionKey}">
+                    <div class="session-tabs" onscroll="checkTabsScroll('${sessionKey}')">
+                        <button class="session-tab active" data-filter="all" onclick="setSessionFilter('${sessionKey}', 'all')">Все</button>
+                        ${Object.entries(roleGroups).map(([key, group]) => 
+                            `<button class="session-tab" data-filter="${key}" onclick="setSessionFilter('${sessionKey}', '${key}')">${group.name}</button>`
+                        ).join('')}
+                    </div>
                 </div>
                 <div class="roles-container" id="roles-${sessionKey}">
                     ${renderSessionRoles(sessionKey, 'all')}
@@ -464,7 +467,7 @@ function renderSession(day, session) {
             </div>
             ` : `
             <div class="session-expanded">
-                <div class="roles-grid">
+                <div class="roles-grid-compact">
                     ${sessionRoles.map(role => renderRoleSlot(sessionKey, role)).join('')}
                 </div>
             </div>
