@@ -262,8 +262,13 @@ function renderUserStats(userStats) {
                         <div class="stats-name">${user.name}</div>
                         ${telegramLink ? `<div style="font-size: 0.85em; margin-top: 4px;">${telegramLink}</div>` : ''}
                     </div>
-                    <div class="stats-total ${user.complete ? 'complete' : 'incomplete'}">
-                        ${user.shifts}/8 шифтов
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <div class="stats-total ${user.complete ? 'complete' : 'incomplete'}">
+                            ${user.shifts}/8 шифтов
+                        </div>
+                        <button class="user-schedule-btn" onclick="openUserScheduleFromStats('${user.name.replace(/'/g, "\\'")}'); event.stopPropagation();" title="Показать расписание ${user.name}">
+                            📅
+                        </button>
                     </div>
                 </div>
                 <div class="stats-categories">
