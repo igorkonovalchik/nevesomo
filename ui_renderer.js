@@ -205,22 +205,35 @@ function updateSessionTabs(sessionKey) {
 
 /* === ФУНКЦИИ РЕНДЕРИНГА ПОПАПОВ === */
 function renderParticipantsList(currentAssignment) {
-    let html = `
-        <div class="participant-item" onclick="selectParticipant(null)" style="border-bottom: 1px solid #E0E0E0; margin-bottom: 12px; padding-bottom: 12px;">
+    let html = '';
+    
+    // Кнопка очистки слота
+    html += `
+        <div class="participant-item special" onclick="selectParticipant(null)" style="margin-bottom: 12px;">
             <div class="participant-name">🗑️ Очистить слот</div>
             <div class="participant-telegram">Убрать назначение</div>
         </div>
-        <div class="participant-item" onclick="selectParticipant('Участник другого кемпа')" style="border-bottom: 1px solid #E0E0E0; margin-bottom: 12px; padding-bottom: 12px;">
+    `;
+    
+    // Кнопка для внешнего участника
+    html += `
+        <div class="participant-item special" onclick="selectParticipant('Участник другого кемпа')" style="margin-bottom: 16px;">
             <div class="participant-name">👤 Участник другого кемпа</div>
             <div class="participant-telegram">Внешний участник</div>
         </div>
     `;
     
+    // Список участников
     participants.forEach(participant => {
         const isSelected = participant.name === currentAssignment;
+        const selectedClass = isSelected ? ' selected' : '';
+        
         html += `
-            <div class="participant-item ${isSelected ? 'selected' : ''}" onclick="selectParticipant('${participant.name}')" style="background: ${isSelected ? '#E8F5E8' : '#F7F7F7'}; margin-bottom: 8px; border-radius: 8px;">
-                <div class="participant-name">${participant.name} ${isSelected ? '✓' : ''}</div>
+            <div class="participant-item${selectedClass}" onclick="selectParticipant('${participant.name.replace(/'/g, "\\'")}')">
+                <div class="participant-name">
+                    ${participant.name}
+                    ${isSelected ? ' ✓' : ''}
+                </div>
                 <div class="participant-telegram">${participant.telegram}</div>
             </div>
         `;
