@@ -1030,10 +1030,6 @@ body {
     color: #5f6368;
 }
 
-.progress-display {
-    margin-top: -15px;
-}
-
 /* Для очень узких мест */
 .progress-display.ultra-compact .progress-label {
     font-size: 0.6rem;
