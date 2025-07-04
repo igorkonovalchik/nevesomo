@@ -252,6 +252,14 @@ window.closeRoleDetailPopup = closeRoleDetailPopup;
 window.openDataEditPopup = openDataEditPopup;
 window.shareSchedule = shareSchedule;
 window.openUserScheduleFromStats = openUserScheduleFromStats;
+window.openCommentPopup = openCommentPopup;
+window.closeCommentPopup = closeCommentPopup;
+window.skipComment = skipComment;
+window.saveComment = saveComment;
+window.showConfirmation = showConfirmation;
+window.closeConfirmPopup = closeConfirmPopup;
+window.showNotification = showNotification;
+window.completeAssignment = completeAssignment;
 
 // Функции назначений
 window.handleRoleSlotClick = handleRoleSlotClick;
