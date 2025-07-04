@@ -1,4 +1,4 @@
-// ui-renderer.js - Отрисовка интерфейса (без ES6 модулей)
+// ui-renderer.js
 
 /* === ФУНКЦИИ ФОРМАТИРОВАНИЯ === */
 function formatDate(dateStr) {
