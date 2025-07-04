@@ -22,7 +22,24 @@ function renderSchedule() {
     
     scheduleDiv.innerHTML = '';
     
-    Object.keys(schedule).forEach(day => {
+    // Сортируем дни по дате
+const sortedDays = Object.keys(schedule).sort((a, b) => {
+        const dateA = new Date(a + 'T00:00:00');
+        const dateB = new Date(b + 'T00:00:00'); 
+        return dateA.getTime() - dateB.getTime();
+    });
+    
+    sortedDays.forEach(day => {
+        // Сортируем сессии внутри дня по времени
+        const sortedSessions = schedule[day].sort((a, b) => a.time.localeCompare(b.time));
+        
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'day-section';
+        
+        dayDiv.innerHTML = `
+            <div class="day-header">${formatDate(day)}</div>
+            ${sortedSessions.map(session => renderSession(day, session)).join('')}
+        `;
         const dayDiv = document.createElement('div');
         dayDiv.className = 'day-section';
         
