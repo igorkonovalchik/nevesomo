@@ -420,6 +420,108 @@ function openParticipantPopupWithSearch(sessionKey, role) {
     }, 300);
 }
 
+function openUserScheduleFromStats(userName) {
+    // Получаем информацию об участнике
+    const participant = participants.find(p => p.name === userName);
+    if (!participant) {
+        alert('Участник не найден');
+        return;
+    }
+    
+    let shiftsCount = 0;
+    const categoryStats = getUserCategoryStats(userName);
+    
+    // Подсчитываем шифты пользователя
+    Object.keys(assignments).forEach(sessionKey => {
+        const [day, time] = sessionKey.split('_');
+        const session = schedule[day].find(s => s.time === time);
+        
+        let sessionRoles = allRoles;
+        if (session.roles) {
+            sessionRoles = session.roles;
+        }
+        
+        sessionRoles.forEach(role => {
+            if (assignments[sessionKey][role] === userName) {
+                shiftsCount++;
+            }
+        });
+    });
+    
+    // Собираем шифты пользователя по дням
+    const userShiftsByDay = {};
+    
+    Object.keys(assignments).forEach(sessionKey => {
+        const [day, time] = sessionKey.split('_');
+        const session = schedule[day].find(s => s.time === time);
+        
+        let sessionRoles = allRoles;
+        if (session.roles) {
+            sessionRoles = session.roles;
+        }
+        
+        sessionRoles.forEach(role => {
+            if (assignments[sessionKey][role] === userName) {
+                if (!userShiftsByDay[day]) {
+                    userShiftsByDay[day] = [];
+                }
+                userShiftsByDay[day].push({
+                    time,
+                    endTime: session.endTime,
+                    sessionNum: session.sessionNumber,
+                    type: session.type,
+                    role
+                });
+            }
+        });
+    });
+    
+    // Отрисовываем расписание
+    const scheduleBody = document.getElementById('scheduleBody');
+    const html = renderUserSchedule(userName, userShiftsByDay, participant, shiftsCount, categoryStats);
+    scheduleBody.innerHTML = html;
+    
+    // Обновляем заголовок
+    const scheduleTitle = document.querySelector('#schedulePopup .popup-title');
+    if (scheduleTitle) {
+        scheduleTitle.textContent = `Расписание: ${userName}`;
+    }
+    
+    // Закрываем статистику и открываем расписание
+    closeStatsPopup();
+    document.getElementById('schedulePopup').classList.add('show');
+    
+    // Добавляем обработчик для возврата к статистике при закрытии
+    const originalCloseHandler = () => {
+        // Возвращаем заголовок обратно
+        if (scheduleTitle) {
+            scheduleTitle.textContent = 'Мое расписание';
+        }
+        // Открываем обратно статистику
+        setTimeout(() => {
+            openStatsPopup();
+        }, 100);
+    };
+    
+    // Заменяем обработчики закрытия временно
+    const backBtn = schedulePopup.querySelector('.popup-back');
+    const closeBtn = schedulePopup.querySelector('.popup-close');
+    
+    if (backBtn) {
+        backBtn.onclick = () => {
+            closeSchedulePopup();
+            originalCloseHandler();
+        };
+    }
+    
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            closeSchedulePopup();
+            originalCloseHandler();
+        };
+    }
+}
+
 // Делаем функции доступными глобально
 window.openParticipantPopup = openParticipantPopup;
 window.renderParticipantsList = renderParticipantsList;
