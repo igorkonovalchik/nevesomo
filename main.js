@@ -245,6 +245,7 @@ window.showRoleDetail = showRoleDetail;
 window.closeRoleDetailPopup = closeRoleDetailPopup;
 window.openDataEditPopup = openDataEditPopup;
 window.shareSchedule = shareSchedule;
+window.openUserScheduleFromStats = openUserScheduleFromStats;
 
 // Функции назначений
 window.handleRoleSlotClick = handleRoleSlotClick;
