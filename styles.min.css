@@ -450,6 +450,8 @@ body {
     background: var(--bg-secondary);
 }
 
+.progress-circle .progress-text{position:relative;z-index:2;}
+
 [data-theme="dark"] .progress-circle.complete {
     background: #2d3e2f;
     border-color: #81c995;
@@ -1628,3 +1630,6 @@ body {
     border-color: #8ab4f8;
     color: #202124;
 }
+
+.progress-circle.partial::before{z-index:0;}  /* было 1 */
+
