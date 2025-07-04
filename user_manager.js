@@ -106,6 +106,9 @@ function updateMenu() {
             <div class="menu-item" onclick="openMySchedule(); closeMenu();">
                 <span>📅 Мое расписание</span>
             </div>
+            <div class="menu-item" onclick="openFullSchedulePopup(); closeMenu();">
+                <span>📋 Общее расписание</span>
+            </div>
             <div class="menu-item" onclick="openRolesInfoPopup(); closeMenu();">
                 <span>❓ О шифтах</span>
             </div>
