@@ -360,16 +360,19 @@ function renderSession(day, session) {
                                     🔗
                                 </a>
                             ` : ''}
-                            <div class="progress-display">
-                                <div class="progress-circle ${progressClass}" 
-                                     onclick="event.stopPropagation(); showProgressTooltip(this, ${emptyRoles})"
-                                     ${percentage > 0 && percentage < 100 ? `style="--progress-percent: ${percentage}"` : ''}>
-                                    ${emptyRoles}
-                                </div>
-                            </div>
+
                             ${percentage < 100 && currentMode === 'admin' && session.status !== 'кухня' ? 
                                 `<button class="auto-fill-btn-circle" onclick="event.stopPropagation(); autoFillSession('${sessionKey}')" title="Автозаполнение">⚡</button>` : 
                                 ''}
+                            
+                             <div class="progress-display">
+                                    <div class="progress-circle ${progressClass}"
+                                         onclick="event.stopPropagation(); showProgressTooltip(this, ${emptyRoles})"
+                                         ${percentage>0&&percentage<100?`style="--progress-percent:${percentage}"`:''}>
+                                        <span class="progress-text">${emptyRoles}</span>   <!-- NEW -->
+                                    </div>
+                                </div>
+                            
                      </div>
                 </div>
             </div>
