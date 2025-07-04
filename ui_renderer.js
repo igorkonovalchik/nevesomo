@@ -23,7 +23,7 @@ function renderSchedule() {
     scheduleDiv.innerHTML = '';
     
     // Сортируем дни по дате
-const sortedDays = Object.keys(schedule).sort((a, b) => {
+    const sortedDays = Object.keys(schedule).sort((a, b) => {
         const dateA = new Date(a + 'T00:00:00');
         const dateB = new Date(b + 'T00:00:00'); 
         return dateA.getTime() - dateB.getTime();
@@ -40,13 +40,6 @@ const sortedDays = Object.keys(schedule).sort((a, b) => {
             <div class="day-header">${formatDate(day)}</div>
             ${sortedSessions.map(session => renderSession(day, session)).join('')}
         `;
-        const dayDiv = document.createElement('div');
-        dayDiv.className = 'day-section';
-        
-        dayDiv.innerHTML = `
-            <div class="day-header">${formatDate(day)}</div>
-            ${schedule[day].map(session => renderSession(day, session)).join('')}
-        `;
         
         scheduleDiv.appendChild(dayDiv);
     });
@@ -61,6 +54,7 @@ const sortedDays = Object.keys(schedule).sort((a, b) => {
         });
     }, 0);
 }
+
 
 function renderSessionRoles(sessionKey, filter) {
     let rolesToShow = allRoles;
