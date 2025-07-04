@@ -1550,3 +1550,84 @@ body {
 }
 
 /* Статистика */
+
+/* Убираем текст под прогрессом */
+.progress-label {
+    display: none !important;
+}
+
+/* Стиль для кнопки-ссылки */
+.slot-link-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #f8f9fa;
+    border: 2px solid #dadce0;
+    color: #5f6368;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    text-decoration: none;
+    margin-right: 8px;
+}
+
+.slot-link-btn:hover {
+    background: #1a73e8;
+    border-color: #1a73e8;
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+}
+
+/* Прогресс кружок теперь кликабельный */
+.progress-circle {
+    cursor: pointer;
+}
+
+.progress-circle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Тултип для прогресса */
+.progress-tooltip {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    z-index: 9999;
+    pointer-events: none;
+    transform: translateX(-50%);
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Темная тема */
+[data-theme="dark"] .slot-link-btn {
+    background: #3c4043;
+    border-color: #5f6368;
+    color: #9aa0a6;
+}
+
+[data-theme="dark"] .slot-link-btn:hover {
+    background: #8ab4f8;
+    border-color: #8ab4f8;
+    color: #202124;
+}
