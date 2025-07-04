@@ -625,6 +625,89 @@ function switchScheduleDay(day) {
     document.querySelector(`.schedule-day-content[data-day="${day}"]`).classList.add('active');
 }
 
+/* === ПОПАП КОММЕНТАРИЯ === */
+function openCommentPopup() {
+    document.getElementById('shiftComment').value = '';
+    document.getElementById('commentPopup').classList.add('show');
+}
+
+function closeCommentPopup() {
+    document.getElementById('commentPopup').classList.remove('show');
+    pendingAssignment = null;
+}
+
+function skipComment() {
+    closeCommentPopup();
+    if (pendingAssignment) {
+        completeAssignment('');
+    }
+}
+
+function saveComment() {
+    const comment = document.getElementById('shiftComment').value.trim();
+    closeCommentPopup();
+    if (pendingAssignment) {
+        completeAssignment(comment);
+    }
+}
+
+/* === ПОПАП ПОДТВЕРЖДЕНИЯ === */
+let confirmCallback = null;
+
+function showConfirmation(title, message, onConfirm) {
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmMessage').textContent = message;
+    confirmCallback = onConfirm;
+    document.getElementById('confirmPopup').classList.add('show');
+}
+
+function closeConfirmPopup() {
+    document.getElementById('confirmPopup').classList.remove('show');
+    confirmCallback = null;
+}
+
+// Обработчик кнопки подтверждения
+document.addEventListener('DOMContentLoaded', () => {
+    const confirmBtn = document.getElementById('confirmAction');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', () => {
+            if (confirmCallback) {
+                confirmCallback();
+            }
+            closeConfirmPopup();
+        });
+    }
+});
+
+/* === УВЕДОМЛЕНИЯ === */
+function showNotification(message) {
+    // Создаем временный попап для уведомления
+    const notification = document.createElement('div');
+    notification.className = 'notification-toast';
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 16px 24px;
+        border-radius: 8px;
+        z-index: 9999;
+        animation: slideUp 0.3s ease;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideDown 0.3s ease';
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 3000);
+}
+
 // Делаем функции доступными глобально
 window.openParticipantPopup = openParticipantPopup;
 window.renderParticipantsList = renderParticipantsList;
