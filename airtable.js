@@ -224,23 +224,24 @@ class AirtableService {
     }
 
     // Создать новое назначение
-    async createAssignment(participantName, roleName, slotDate, slotTime) {
-        try {
-            const fields = {
-                Participant_Name: participantName,
-                Role_Name: roleName,
-                Slot_Date: slotDate,
-                Slot_Time: slotTime,
-                Assigned_Date: new Date().toISOString().split('T')[0],
-                Status: 'Active'
-            };
+   async createAssignment(participantName, roleName, slotDate, slotTime, comment = '') {
+    try {
+        const fields = {
+            Participant_Name: participantName,
+            Role_Name: roleName,
+            Slot_Date: slotDate,
+            Slot_Time: slotTime,
+            Assigned_Date: new Date().toISOString().split('T')[0],
+            Status: 'Active',
+            Comment: comment
+        };
 
-            return await airtableAPI.create(TABLES.ASSIGNMENTS, fields);
-        } catch (error) {
-            console.error('Error creating assignment:', error);
-            throw error;
-        }
+        return await airtableAPI.create(TABLES.ASSIGNMENTS, fields);
+    } catch (error) {
+        console.error('Error creating assignment:', error);
+        throw error;
     }
+}
 
     // Удалить назначение
     async deleteAssignment(assignmentId) {
