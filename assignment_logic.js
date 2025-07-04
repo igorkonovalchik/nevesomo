@@ -1,5 +1,7 @@
 // assignment-logic.js - Логика назначений (без ES6 модулей)
 
+let pendingAssignment = null; // Для хранения данных о назначении в ожидании комментария
+
 /* === ПЕРЕМЕННЫЕ СОСТОЯНИЯ === */
 let currentPopupSession = null;
 let currentPopupRole = null;
@@ -120,17 +122,7 @@ function debugRoleAssignment(sessionKey, role) {
 
 async function toggleUserAssignment(sessionKey, role) {
     if (!currentUser) {
-        alert('Выберите участника');
-        return;
-    }
-    
-    // ДОБАВЛЕНО: отладка
-    debugRoleAssignment(sessionKey, role);
-    
-    // ИСПРАВЛЕНО: проверяем, что роль существует в assignments
-    if (!assignments[sessionKey] || assignments[sessionKey][role] === undefined) {
-        console.error(`❌ Роль "${role}" не найдена в сессии ${sessionKey}`);
-        alert(`Ошибка: роль "${role}" не найдена в этой сессии. Обратитесь к администратору.`);
+        showNotification('Выберите участника');
         return;
     }
     
@@ -138,68 +130,52 @@ async function toggleUserAssignment(sessionKey, role) {
     const isBlocked = isSlotBlocked(sessionKey, role);
     
     if (isBlocked && currentAssignment !== currentUser) {
-        alert('У вас уже есть другая роль в это время!');
+        showNotification('У вас уже есть другая роль в это время!');
         return;
     }
     
     const [day, time] = sessionKey.split('_');
     
-    // Запоминаем ТОЛЬКО ОДНУ раскрытую сессию (аккордеон)
+    if (currentAssignment === currentUser) {
+        // Удаление - показываем подтверждение
+        showConfirmation(
+            'Удалить шифт?',
+            `Вы уверены, что хотите отменить шифт "${role}"?`,
+            async () => {
+                await removeUserAssignment(sessionKey, role);
+            }
+        );
+    } else if (currentAssignment === null) {
+        // Назначение - сохраняем данные и показываем попап комментария
+        pendingAssignment = { sessionKey, role, day, time };
+        openCommentPopup();
+    } else {
+        showNotification('Этот слот уже занят. Обратитесь к администратору.');
+    }
+}
+
+async function completeAssignment(comment = '') {
+    if (!pendingAssignment) return;
+    
+    const { sessionKey, role, day, time } = pendingAssignment;
     const expandedSession = document.querySelector('.session.expanded')?.getAttribute('data-session');
     
-    showLoader(currentAssignment === currentUser ? 'Удаление шифта...' : 'Сохранение шифта...');
+    showLoader('Сохранение шифта...');
     
     try {
-        if (currentAssignment === currentUser) {
-            // Снимаем назначение
-            await removeAssignmentFromAirtable(currentUser, role, day, time);
-            
-            // ИСПРАВЛЕНО: проверка для правильного названия роли
-            if (role === 'Любовь+Забота+Мастер класс') {
-                const pairSlot = getMasterClassPairSlot(sessionKey);
-                if (pairSlot) {
-                    const [pairDay, pairTime] = pairSlot.split('_');
-                    await removeAssignmentFromAirtable(currentUser, role, pairDay, pairTime);
-                    if (assignments[pairSlot]) {
-                        assignments[pairSlot][role] = null;
-                    }
-                }
-            }
-            assignments[sessionKey][role] = null;
-            
-        } else if (currentAssignment === null) {
-            // Назначаем
-            await saveAssignmentToAirtable(currentUser, role, day, time);
-            
-            // ИСПРАВЛЕНО: проверка для правильного названия роли
-            if (role === 'Любовь+Забота+Мастер класс') {
-                const pairSlot = getMasterClassPairSlot(sessionKey);
-                if (pairSlot) {
-                    const [pairDay, pairTime] = pairSlot.split('_');
-                    await saveAssignmentToAirtable(currentUser, role, pairDay, pairTime);
-                    if (assignments[pairSlot]) {
-                        assignments[pairSlot][role] = currentUser;
-                    }
-                }
-            }
-            assignments[sessionKey][role] = currentUser;
-            
-        } else {
-            alert('Этот слот уже занят. Обратитесь к администратору.');
-            hideLoader();
-            return;
-        }
+        await saveAssignmentToAirtable(currentUser, role, day, time, comment);
         
-        console.log('✅ Назначение обновлено:', {
-            sessionKey,
-            role,
-            newAssignment: assignments[sessionKey][role]
-        });
+        // Сохраняем комментарий локально
+        if (!window.assignmentComments) window.assignmentComments = {};
+        if (!window.assignmentComments[sessionKey]) window.assignmentComments[sessionKey] = {};
+        window.assignmentComments[sessionKey][role] = { comment };
+        
+        assignments[sessionKey][role] = currentUser;
         
         renderSchedule();
         updateProgress();
         
-        // Восстанавливаем раскрытую сессию (только одну)
+        // Восстанавливаем раскрытую сессию
         setTimeout(() => {
             if (expandedSession) {
                 const element = document.querySelector(`[data-session="${expandedSession}"]`);
@@ -209,11 +185,50 @@ async function toggleUserAssignment(sessionKey, role) {
             }
         }, 50);
         
+        showNotification('Шифт успешно добавлен!');
+        
     } catch (error) {
-        console.error('Ошибка обновления назначения:', error);
-        await reloadData();
+        console.error('Ошибка сохранения:', error);
+        showNotification('Ошибка при сохранении. Попробуйте еще раз.');
+    } finally {
+        hideLoader();
+        pendingAssignment = null;
+    }
+}
+
+async function removeUserAssignment(sessionKey, role) {
+    const [day, time] = sessionKey.split('_');
+    const expandedSession = document.querySelector('.session.expanded')?.getAttribute('data-session');
+    
+    showLoader('Удаление шифта...');
+    
+    try {
+        await removeAssignmentFromAirtable(currentUser, role, day, time);
+        assignments[sessionKey][role] = null;
+        
+        // Удаляем комментарий
+        if (window.assignmentComments?.[sessionKey]?.[role]) {
+            delete window.assignmentComments[sessionKey][role];
+        }
+        
         renderSchedule();
         updateProgress();
+        
+        // Восстанавливаем раскрытую сессию
+        setTimeout(() => {
+            if (expandedSession) {
+                const element = document.querySelector(`[data-session="${expandedSession}"]`);
+                if (element) {
+                    element.classList.add('expanded');
+                }
+            }
+        }, 50);
+        
+        showNotification('Шифт успешно удален!');
+        
+    } catch (error) {
+        console.error('Ошибка удаления:', error);
+        showNotification('Ошибка при удалении. Попробуйте еще раз.');
     } finally {
         hideLoader();
     }
