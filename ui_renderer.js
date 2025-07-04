@@ -56,6 +56,7 @@ function renderSchedule() {
 }
 
 
+
 function renderSessionRoles(sessionKey, filter) {
     let rolesToShow = allRoles;
     
@@ -63,18 +64,18 @@ function renderSessionRoles(sessionKey, filter) {
         rolesToShow = roleGroups[filter]?.roles || [];
     }
     
-    // Сортируем роли: роли текущего пользователя наверх
+    // Сортируем роли
     const sortedRoles = rolesToShow.sort((a, b) => {
         const sessionAssignments = assignments[sessionKey];
         const aIsUser = sessionAssignments[a] === currentUser;
         const bIsUser = sessionAssignments[b] === currentUser;
         if (aIsUser && !bIsUser) return -1;
         if (!aIsUser && bIsUser) return 1;
-        return a.localeCompare(b); // Алфавитная сортировка для остальных
+        return a.localeCompare(b);
     });
     
     const rolesHtml = `
-        <div class="roles-grid">
+        <div class="roles-grid-compact">
             ${sortedRoles.map(role => renderRoleSlot(sessionKey, role)).join('')}
         </div>
     `;
@@ -86,6 +87,7 @@ function renderSessionRoles(sessionKey, filter) {
     
     return rolesHtml;
 }
+
 function renderRoleSlot(sessionKey, role) {
     const assignedUser = assignments[sessionKey][role];
     const assignmentData = getAssignmentData(sessionKey, role);
