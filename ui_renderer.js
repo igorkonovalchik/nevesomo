@@ -69,6 +69,8 @@ function renderSession(day, session) {
         progressClass = 'partial';
     }
     
+   const emptyRoles = totalRoles - filledRoles; // Количество пустых ролей
+    
     const sessionHtml = `
         <div class="session ${hasUserAssignment ? 'user-assigned' : ''}" data-session="${sessionKey}">
             <div class="session-compact" onclick="toggleSession('${sessionKey}')">
@@ -82,33 +84,13 @@ function renderSession(day, session) {
                     ${hasUserAssignment ? `<div class="session-user-indicator">Мой шифт: ${userRoles.join(', ')}</div>` : ''}
                     <div class="session-stats">
                         <div class="progress-display">
-                            <div class="progress-circle ${progressClass}">${percentage}%</div>
-                            <div class="progress-label">${totalRoles} шифтов</div>
+                            <div class="progress-circle ${progressClass}">${emptyRoles}</div>
+                            <div class="progress-label">${emptyRoles === 0 ? 'Все заполнено' : `осталось ${emptyRoles}`}</div>
                         </div>
-                        ${percentage < 100 && currentMode === 'admin' && session.status !== 'кухня' ? `<button class="auto-fill-slot-btn" onclick="event.stopPropagation(); autoFillSession('${sessionKey}')">Автозаполнение</button>` : ''}
+                        ${percentage < 100 && currentMode === 'admin' && session.status !== 'кухня' ? `<button class="auto-fill-btn-circle" onclick="event.stopPropagation(); autoFillSession('${sessionKey}')" title="Автозаполнение">⚡</button>` : ''}
                     </div>
                 </div>
             </div>
-            ${session.status !== 'кухня' ? `
-            <div class="session-expanded">
-                <div class="session-tabs">
-                    <button class="session-tab active" data-filter="all" onclick="setSessionFilter('${sessionKey}', 'all')">Все</button>
-                    ${Object.entries(roleGroups).map(([key, group]) => 
-                        `<button class="session-tab" data-filter="${key}" onclick="setSessionFilter('${sessionKey}', '${key}')">${group.name}</button>`
-                    ).join('')}
-                </div>
-                <div class="roles-container" id="roles-${sessionKey}">
-                    ${renderSessionRoles(sessionKey, 'all')}
-                </div>
-            </div>
-            ` : `
-            <div class="session-expanded">
-                <div class="roles-grid">
-                    ${sessionRoles.map(role => renderRoleSlot(sessionKey, role)).join('')}
-                </div>
-            </div>
-            `}
-        </div>
     `;
     
     return sessionHtml;
@@ -460,9 +442,9 @@ function renderSession(day, session) {
 }
 
 // Дополнительная функция для обновления прогресса в реальном времени
-function updateProgressRing(element, percentage) {
+function updateProgressRing(element, percentage, emptyRoles) {
     const progressCircle = element.querySelector('.progress-circle');
-    const progressText = element.querySelector('.progress-text');
+    const progressLabel = element.querySelector('.progress-label');
     
     if (!progressCircle) return;
     
@@ -471,21 +453,18 @@ function updateProgressRing(element, percentage) {
     
     if (percentage === 100) {
         progressCircle.classList.add('complete');
-        if (progressText) progressText.style.display = 'none';
+        progressCircle.textContent = '0';
+        if (progressLabel) progressLabel.textContent = 'Все заполнено';
     } else if (percentage > 0) {
         progressCircle.classList.add('partial');
         progressCircle.style.setProperty('--progress-percent', percentage);
-        if (progressText) {
-            progressText.textContent = `${percentage}%`;
-            progressText.style.display = 'block';
-        }
+        progressCircle.textContent = emptyRoles || '0';
+        if (progressLabel) progressLabel.textContent = `осталось ${emptyRoles || 0}`;
     } else {
         progressCircle.classList.add('empty');
         progressCircle.style.removeProperty('--progress-percent');
-        if (progressText) {
-            progressText.textContent = '0%';
-            progressText.style.display = 'block';
-        }
+        progressCircle.textContent = emptyRoles || '0';
+        if (progressLabel) progressLabel.textContent = `осталось ${emptyRoles || 0}`;
     }
 }
 
@@ -510,7 +489,8 @@ function updateSessionProgress(sessionKey) {
     const percentage = totalRoles > 0 ? Math.round((filledRoles / totalRoles) * 100) : 0;
     
     // Обновляем прогресс с анимацией
-    updateProgressRing(sessionElement, percentage);
+    const emptyRoles = totalRoles - filledRoles;
+    updateProgressRing(sessionElement, percentage, emptyRoles);
     
     // Обновляем индикатор пользовательского назначения
     const userRoles = currentMode === 'user' && currentUser ? 
