@@ -450,7 +450,6 @@ function renderSession(day, session) {
                      </div>
                 </div>
             </div>
-           // В функции renderSession, найти место где рендерятся табы и изменить на:
             ${session.status !== 'кухня' ? `
             <div class="session-expanded">
                 <div class="session-tabs-wrapper" id="tabs-wrapper-${sessionKey}">
