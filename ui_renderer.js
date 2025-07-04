@@ -354,17 +354,23 @@ function renderSession(day, session) {
                         </div>
                     </div>
                     ${hasUserAssignment ? `<div class="session-user-indicator">Мой шифт: ${userRoles.join(', ')}</div>` : ''}
-                    <div class="session-stats">
-                        <div class="progress-display">
-                            <div class="progress-circle ${progressClass}" ${percentage > 0 && percentage < 100 ? `style="--progress-percent: ${percentage}"` : ''}>
-                                ${emptyRoles}
+                   <div class="session-stats">
+                            ${session.slotLink ? `
+                                <a href="${session.slotLink}" target="_blank" class="slot-link-btn" title="Перейти по ссылке">
+                                    🔗
+                                </a>
+                            ` : ''}
+                            <div class="progress-display">
+                                <div class="progress-circle ${progressClass}" 
+                                     onclick="event.stopPropagation(); showProgressTooltip(this, ${emptyRoles})"
+                                     ${percentage > 0 && percentage < 100 ? `style="--progress-percent: ${percentage}"` : ''}>
+                                    ${emptyRoles}
+                                </div>
                             </div>
-                            <div class="progress-label">${emptyRoles === 0 ? 'Все заполнено' : `осталось ${emptyRoles}`}</div>
-                        </div>
-                        ${percentage < 100 && currentMode === 'admin' && session.status !== 'кухня' ? 
-                            `<button class="auto-fill-btn-circle" onclick="event.stopPropagation(); autoFillSession('${sessionKey}')" title="Автозаполнение">⚡</button>` : 
-                            ''}
-                    </div>
+                            ${percentage < 100 && currentMode === 'admin' && session.status !== 'кухня' ? 
+                                `<button class="auto-fill-btn-circle" onclick="event.stopPropagation(); autoFillSession('${sessionKey}')" title="Автозаполнение">⚡</button>` : 
+                                ''}
+                     </div>
                 </div>
             </div>
             ${session.status !== 'кухня' ? `
