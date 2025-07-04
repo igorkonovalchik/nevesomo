@@ -9,6 +9,22 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
+    <!-- Заставка загрузки -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-logo">
+            <img src="https://redloft.ru/wp-content/uploads/veterok.png" alt="Ветерок" class="logo-image">
+        </div>
+        <div class="loading-content" style="display: none;">
+            <div class="loading-spinner"></div>
+            <div class="loading-text" id="loadingText">Загрузка...</div>
+            <div class="loading-error" id="loadingError" style="display: none;">
+                <div>Система затупила 😅</div>
+                <div>Обратитесь к админу: <a href="https://t.me/konovalchik">@konovalchik</a></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Хедер в стиле Telegram -->
     <!-- Хедер в стиле Telegram -->
     <div class="header">
         <div class="header-left">NEVESOMO</div>
