@@ -421,6 +421,40 @@ window.checkTabsScroll = function(sessionKey) {
     }
 };
 
+// Touch swipe для табов и ролей
+document.addEventListener('DOMContentLoaded', () => {
+    // Включаем momentum scrolling для всех горизонтальных списков
+    const scrollableElements = document.querySelectorAll('.session-tabs, .roles-grid-compact');
+    
+    scrollableElements.forEach(element => {
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+        
+        element.addEventListener('mousedown', (e) => {
+            isDown = true;
+            startX = e.pageX - element.offsetLeft;
+            scrollLeft = element.scrollLeft;
+        });
+        
+        element.addEventListener('mouseleave', () => {
+            isDown = false;
+        });
+        
+        element.addEventListener('mouseup', () => {
+            isDown = false;
+        });
+        
+        element.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - element.offsetLeft;
+            const walk = (x - startX) * 2;
+            element.scrollLeft = scrollLeft - walk;
+        });
+    });
+});
+
 // Обработчик ошибок для отладки
 window.addEventListener('error', (event) => {
     console.error('🚨 Глобальная ошибка:', event.error);
