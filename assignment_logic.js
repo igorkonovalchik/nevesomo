@@ -16,13 +16,13 @@ function handleRoleSlotClick(sessionKey, role) {
         // Проверяем, что роль существует в assignments
         if (!assignments[sessionKey] || assignments[sessionKey][role] === undefined) {
             console.error(`❌ Роль "${role}" не найдена в сессии ${sessionKey}`);
-            alert(`Ошибка: роль "${role}" недоступна в этой сессии. Обратитесь к администратору.`);
+            showNotification(`Ошибка: роль "${role}" недоступна в этой сессии. Обратитесь к администратору.`);
             return;
         }
         
         // Проверяем правило мастер-класса
         if (role === 'Любовь+Забота+Мастер класс' && !hasLoungeRole(currentUser)) {
-            alert('Мастер-класс может быть выбран только участниками, которые уже записались в категорию "Лаунж". Сначала выберите себе шифт в лаунже!');
+            showNotification('Мастер-класс может быть выбран только участниками, которые уже записались в категорию "Лаунж". Сначала выберите себе шифт в лаунже!');
             return;
         }
         
@@ -333,7 +333,7 @@ async function autoFillSession(sessionKey) {
     const emptyRoles = sessionRoles.filter(role => !sessionAssignments[role]);
     
     if (emptyRoles.length === 0) {
-        alert('Все роли уже заполнены!');
+        showNotification('Все роли уже заполнены!');
         return;
     }
     
@@ -388,11 +388,11 @@ async function autoFillSession(sessionKey) {
             }
         }, 50);
         
-        alert('Сессия автоматически заполнена!');
+        showNotification('Сессия автоматически заполнена!');
         
     } catch (error) {
         console.error('Ошибка автозаполнения:', error);
-        alert('Ошибка при автозаполнении. Попробуйте еще раз.');
+        showNotification('Ошибка при автозаполнении. Попробуйте еще раз.');
         await reloadData();
         renderSchedule();
         updateProgress();
