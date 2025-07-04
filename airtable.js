@@ -176,7 +176,8 @@ class AirtableService {
                 status: record.fields.Status || '',
                 type: record.fields.Type || '',
                 availableRoles: record.fields.Available_Roles || '',
-                maxParticipants: record.fields.Max_Participants || 0
+                maxParticipants: record.fields.Max_Participants || 0,
+                slotLink: record.fields.slot_link || ''
             }));
         } catch (error) {
             console.error('Error getting schedule:', error);
