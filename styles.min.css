@@ -361,7 +361,37 @@ body {
     display: none;
 }
 
-/* Кнопка автозаполнения */
+/* Кнопка автозаполнения в виде кружка */
+.auto-fill-btn-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #f8f9fa;
+    border: 2px solid #dadce0;
+    color: #5f6368;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.auto-fill-btn-circle:hover {
+    background: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+    transform: scale(1.1) rotate(15deg);
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.auto-fill-btn-circle:active {
+    transform: scale(0.95) rotate(0deg);
+}
+
+/* Старая кнопка автозаполнения (удалить если не используется) */
 .auto-fill-slot-btn {
     background: #f8f9fa;
     color: #5f6368;
@@ -432,6 +462,18 @@ body {
 
 [data-theme="dark"] .session.user-assigned .session-time::after {
     color: #81c995;
+}
+
+[data-theme="dark"] .auto-fill-btn-circle {
+    background: #3c4043;
+    border-color: #5f6368;
+    color: #9aa0a6;
+}
+
+[data-theme="dark"] .auto-fill-btn-circle:hover {
+    background: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
 }
 
 [data-theme="dark"] .auto-fill-slot-btn {
@@ -937,17 +979,18 @@ body {
 }
 
 /* Полностью заполненные */
+
 .progress-circle.complete {
     background: #e8f5e8;
     border-color: #34a853;
     color: #137333;
+    font-weight: 700;
+    font-size: 0.8rem;
 }
 
+/* Убираем галочку, показываем цифру */
 .progress-circle.complete::after {
-    content: '✓';
-    position: absolute;
-    font-size: 0.875rem;
-    font-weight: 700;
+    display: none;
 }
 
 /* ИСПРАВЛЕНО: Лейбл под прогрессом */
