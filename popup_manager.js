@@ -522,6 +522,109 @@ function openUserScheduleFromStats(userName) {
     }
 }
 
+function openFullSchedulePopup() {
+    const scheduleBody = document.getElementById('scheduleBody');
+    let html = renderFullScheduleWithTabs();
+    scheduleBody.innerHTML = html;
+    
+    // Обновляем заголовок
+    const scheduleTitle = document.querySelector('#schedulePopup .popup-title');
+    if (scheduleTitle) {
+        scheduleTitle.textContent = 'Общее расписание';
+    }
+    
+    document.getElementById('schedulePopup').classList.add('show');
+}
+
+function renderFullScheduleWithTabs() {
+    const sortedDays = Object.keys(schedule).sort((a, b) => {
+        const dateA = new Date(a + 'T00:00:00');
+        const dateB = new Date(b + 'T00:00:00');
+        return dateA.getTime() - dateB.getTime();
+    });
+    
+    let html = `
+        <div class="schedule-tabs-container">
+            <div class="schedule-date-tabs">
+                ${sortedDays.map((day, index) => `
+                    <div class="schedule-date-tab ${index === 0 ? 'active' : ''}" 
+                         data-day="${day}" onclick="switchScheduleDay('${day}')">
+                        <div class="tab-day">${new Date(day + 'T00:00:00').getDate()}</div>
+                        <div class="tab-month">${formatDate(day).split(' ')[1].substring(0, 3)}</div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        <div class="schedule-days-container">
+    `;
+    
+    sortedDays.forEach((day, index) => {
+        const sortedSessions = schedule[day].sort((a, b) => a.time.localeCompare(b.time));
+        
+        html += `
+            <div class="schedule-day-content ${index === 0 ? 'active' : ''}" data-day="${day}">
+                ${sortedSessions.map(session => renderCompactSessionForFullSchedule(day, session)).join('')}
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    return html;
+}
+
+function renderCompactSessionForFullSchedule(day, session) {
+    const sessionKey = `${day}_${session.time}`;
+    const sessionAssignments = assignments[sessionKey];
+    
+    let sessionRoles = allRoles;
+    if (session.roles) {
+        sessionRoles = session.roles;
+    }
+    
+    let html = `
+        <div class="compact-session-card">
+            <div class="compact-session-header">
+                <div class="compact-session-time">${session.time} - ${session.endTime}</div>
+                <div class="compact-session-type">${session.type}</div>
+            </div>
+            <div class="compact-roles-list">
+    `;
+    
+    // Сортируем роли: роли текущего пользователя наверх
+    const sortedRoles = sessionRoles.sort((a, b) => {
+        const aIsUser = sessionAssignments[a] === currentUser;
+        const bIsUser = sessionAssignments[b] === currentUser;
+        if (aIsUser && !bIsUser) return -1;
+        if (!aIsUser && bIsUser) return 1;
+        return 0;
+    });
+    
+    sortedRoles.forEach(role => {
+        const assignedUser = sessionAssignments[role];
+        const isCurrentUser = assignedUser === currentUser;
+        
+        html += `
+            <div class="compact-role-item ${isCurrentUser ? 'current-user' : ''}">
+                <div class="compact-role-name">${role}</div>
+                <div class="compact-role-user">${assignedUser || 'Свободно'}</div>
+            </div>
+        `;
+    });
+    
+    html += '</div></div>';
+    return html;
+}
+
+function switchScheduleDay(day) {
+    // Переключаем активный таб
+    document.querySelectorAll('.schedule-date-tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelector(`[data-day="${day}"]`).classList.add('active');
+    
+    // Переключаем содержимое
+    document.querySelectorAll('.schedule-day-content').forEach(content => content.classList.remove('active'));
+    document.querySelector(`.schedule-day-content[data-day="${day}"]`).classList.add('active');
+}
+
 // Делаем функции доступными глобально
 window.openParticipantPopup = openParticipantPopup;
 window.renderParticipantsList = renderParticipantsList;
