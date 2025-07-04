@@ -1084,12 +1084,243 @@ body {
     color: #5f6368;
 }
 
-.participantsList .participant-item  {
-        background: --bg-tertiary!important;
-        padding: 10px!important;
+/* Исправленные стили для попапа выбора участника */
+
+/* Основной попап */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 3000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(4px);
 }
 
-.participantsList .participant-item.selected  {
-        background: --success-color!important;
-        padding: 10px!important;
+.popup-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Попап снизу */
+.popup-bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-height: 80vh;
+    background: var(--bg-primary);
+    border-radius: 16px 16px 0 0;
+    overflow-y: auto;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.15);
+}
+
+.popup-overlay.show .popup-bottom {
+    transform: translateY(0);
+}
+
+/* Заголовок попапа */
+.popup-header {
+    background: var(--accent-primary);
+    color: white;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 16px 16px 0 0;
+}
+
+.popup-title {
+    font-weight: 600;
+    font-size: 1.1em;
+}
+
+.popup-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5em;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.popup-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Тело попапа */
+.popup-body {
+    padding: 20px;
+    background: var(--bg-primary);
+}
+
+/* ИСПРАВЛЕНО: Карточки участников */
+.participant-item {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.participant-item:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--accent-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.participant-item.selected {
+    background: #e8f5e8;
+    border-color: var(--success-color);
+    box-shadow: 0 2px 8px rgba(52, 168, 83, 0.15);
+}
+
+/* Имя участника */
+.participant-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+/* Telegram ник */
+.participant-telegram {
+    font-size: 0.875rem;
+    color: var(--accent-primary);
+    font-weight: 400;
+}
+
+/* Специальные кнопки (Очистить слот, Внешний участник) */
+.participant-item.special {
+    background: var(--bg-tertiary);
+    border-style: dashed;
+    border-width: 2px;
+}
+
+.participant-item.special .participant-name {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.participant-item.special .participant-telegram {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.participant-item.special:hover {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: white;
+}
+
+.participant-item.special:hover .participant-name,
+.participant-item.special:hover .participant-telegram {
+    color: white;
+}
+
+/* Темная тема */
+[data-theme="dark"] .popup-bottom {
+    background: var(--bg-primary);
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .popup-body {
+    background: var(--bg-primary);
+}
+
+[data-theme="dark"] .participant-item {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .participant-item:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--accent-primary);
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .participant-item.selected {
+    background: #2a4b35;
+    border-color: var(--success-color);
+    box-shadow: 0 2px 8px rgba(129, 201, 149, 0.2);
+}
+
+[data-theme="dark"] .participant-name {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .participant-telegram {
+    color: var(--accent-primary);
+}
+
+[data-theme="dark"] .participant-item.special {
+    background: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .participant-item.special .participant-name,
+[data-theme="dark"] .participant-item.special .participant-telegram {
+    color: var(--text-secondary);
+}
+
+/* Дополнительные стили для лучшей читаемости */
+.participant-item {
+    min-height: 60px;
+    justify-content: center;
+}
+
+.participant-item:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Адаптивность */
+@media (max-width: 480px) {
+    .popup-body {
+        padding: 16px;
+    }
+    
+    .participant-item {
+        padding: 14px;
+        margin-bottom: 6px;
+    }
+    
+    .participant-name {
+        font-size: 0.9rem;
+    }
+    
+    .participant-telegram {
+        font-size: 0.8rem;
+    }
+}
+
+/* Скроллбар для попапа */
+.popup-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.popup-body::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+
+.popup-body::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+.popup-body::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
 }
