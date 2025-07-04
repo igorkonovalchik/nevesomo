@@ -275,4 +275,153 @@ function initPopupHandlers() {
     });
 }
 
+/* новое */ 
+
+// Обновленная функция openParticipantPopup
+function openParticipantPopup(sessionKey, role) {
+    currentPopupSession = sessionKey;
+    currentPopupRole = role;
+    
+    const participantsList = document.getElementById('participantsList');
+    const currentAssignment = assignments[sessionKey][role];
+    
+    const html = renderParticipantsList(currentAssignment);
+    participantsList.innerHTML = html;
+    
+    document.getElementById('participantPopup').classList.add('show');
+}
+
+// Альтернативный вариант с иконками и статусами
+function renderParticipantsListEnhanced(currentAssignment) {
+    let html = '';
+    
+    // Специальные действия
+    html += `
+        <div class="participant-item special" onclick="selectParticipant(null)">
+            <div class="participant-name">
+                <span style="font-size: 1.2em; margin-right: 8px;">🗑️</span>
+                Очистить слот
+            </div>
+            <div class="participant-telegram">Убрать текущее назначение</div>
+        </div>
+        
+        <div class="participant-item special" onclick="selectParticipant('Участник другого кемпа')" style="margin-bottom: 20px;">
+            <div class="participant-name">
+                <span style="font-size: 1.2em; margin-right: 8px;">👤</span>
+                Участник другого кемпа
+            </div>
+            <div class="participant-telegram">Гость из другого кемпа</div>
+        </div>
+    `;
+    
+    // Группируем участников
+    const sortedParticipants = participants.sort((a, b) => a.name.localeCompare(b.name));
+    
+    sortedParticipants.forEach(participant => {
+        const isSelected = participant.name === currentAssignment;
+        const selectedClass = isSelected ? ' selected' : '';
+        
+        // Определяем статус участника
+        let statusIcon = '';
+        if (participant.bathExperience) {
+            statusIcon = '<span style="color: #34a853; margin-left: 4px;" title="Опытный банщик">⭐</span>';
+        }
+        if (participant.isAdmin) {
+            statusIcon += '<span style="color: #1a73e8; margin-left: 4px;" title="Администратор">👑</span>';
+        }
+        
+        html += `
+            <div class="participant-item${selectedClass}" onclick="selectParticipant('${participant.name.replace(/'/g, "\\'")}')">
+                <div class="participant-name">
+                    ${participant.name}
+                    ${statusIcon}
+                    ${isSelected ? ' <span style="color: var(--success-color); margin-left: 8px;">✓</span>' : ''}
+                </div>
+                <div class="participant-telegram">
+                    <a href="https://t.me/${participant.telegram.replace('@', '')}" target="_blank" onclick="event.stopPropagation();">
+                        ${participant.telegram}
+                    </a>
+                </div>
+            </div>
+        `;
+    });
+    
+    return html;
+}
+
+// Функция для поиска участников
+function addParticipantSearch() {
+    const searchHtml = `
+        <div style="margin-bottom: 16px; position: sticky; top: 0; background: var(--bg-primary); padding: 8px 0; z-index: 10;">
+            <input 
+                type="text" 
+                id="participantSearch" 
+                placeholder="Поиск участника..." 
+                style="
+                    width: 100%; 
+                    padding: 12px; 
+                    border: 1px solid var(--border-color); 
+                    border-radius: 8px; 
+                    background: var(--bg-secondary); 
+                    color: var(--text-primary);
+                    font-size: 1rem;
+                "
+                oninput="filterParticipants(this.value)"
+            >
+        </div>
+    `;
+    
+    return searchHtml;
+}
+
+// Функция фильтрации участников
+window.filterParticipants = function(searchTerm) {
+    const items = document.querySelectorAll('.participant-item:not(.special)');
+    const term = searchTerm.toLowerCase();
+    
+    items.forEach(item => {
+        const name = item.querySelector('.participant-name').textContent.toLowerCase();
+        const telegram = item.querySelector('.participant-telegram').textContent.toLowerCase();
+        
+        if (name.includes(term) || telegram.includes(term)) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+};
+
+// Обновленная функция с поиском
+function openParticipantPopupWithSearch(sessionKey, role) {
+    currentPopupSession = sessionKey;
+    currentPopupRole = role;
+    
+    const participantsList = document.getElementById('participantsList');
+    const currentAssignment = assignments[sessionKey][role];
+    
+    let html = '';
+    
+    // Добавляем поиск если участников много
+    if (participants.length > 10) {
+        html += addParticipantSearch();
+    }
+    
+    html += renderParticipantsListEnhanced(currentAssignment);
+    
+    participantsList.innerHTML = html;
+    document.getElementById('participantPopup').classList.add('show');
+    
+    // Фокус на поиск если есть
+    setTimeout(() => {
+        const searchInput = document.getElementById('participantSearch');
+        if (searchInput) {
+            searchInput.focus();
+        }
+    }, 300);
+}
+
+// Делаем функции доступными глобально
+window.openParticipantPopup = openParticipantPopup;
+window.renderParticipantsList = renderParticipantsList;
+
 console.log('🪟 Popup Manager загружен');
