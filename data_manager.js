@@ -52,7 +52,7 @@ async function loadAirtableData() {
     if (isDataLoading) return;
     
     isDataLoading = true;
-    showLoadingState();
+   // showLoadingState();
     
     try {
         console.log('Загружаем данные из Airtable...');
@@ -189,7 +189,7 @@ async function loadAirtableData() {
         
     } catch (error) {
         console.error('❌ Ошибка загрузки данных:', error);
-        showErrorState(error.message);
+       // showErrorState(error.message);
         throw error;
     } finally {
         isDataLoading = false;
