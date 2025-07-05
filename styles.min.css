@@ -366,6 +366,7 @@ body {
     gap: 6px;
     padding: 4px;
 }
+
 .role-slot {
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
@@ -1104,8 +1105,7 @@ body {
     }
     .user-info, .user-stats { width: 100%; }
     .user-stats { gap: var(--spacing-lg); justify-content: flex-start; }
-    .roles-grid,
-    .roles-grid-compact {
+    .roles-grid {
         display: flex;
         flex-wrap: nowrap;
         overflow-x: auto;
@@ -1115,12 +1115,26 @@ body {
         -webkit-overflow-scrolling: touch;
         scroll-snap-type: x mandatory;
     }
+   
     .roles-grid .role-slot,
     .roles-grid-compact .role-slot {
         flex: 0 0 calc(50% - 4px);
         scroll-snap-align: start;
         min-width: 140px;
     }
+
+    .roles-grid-compact {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    padding: 4px;
+    /* Убираем эти строки:
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    */
+}
+    
     .session-tabs { gap: 4px; padding: 2px; }
     .session-tab { padding: 4px var(--spacing); font-size: 0.75em; }
     .popup-body { padding: var(--spacing-lg); }
