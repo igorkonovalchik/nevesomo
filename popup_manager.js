@@ -581,13 +581,32 @@ function renderCompactSessionForFullSchedule(day, session) {
         sessionRoles = session.roles;
     }
     
+    const filledRoles = sessionRoles.filter(role => sessionAssignments[role] !== null && sessionAssignments[role] !== undefined).length;
+    const totalRoles = sessionRoles.length;
+    const percentage = totalRoles > 0 ? Math.round((filledRoles / totalRoles) * 100) : 0;
+    const emptyRoles = totalRoles - filledRoles;
+    
+    const userRoles = currentMode === 'user' && currentUser ? 
+        getUserRolesInSession(sessionKey, currentUser) : [];
+    const hasUserAssignment = userRoles.length > 0;
+    
+    let progressClass = 'empty';
+    if (percentage === 100) {
+        progressClass = 'complete';
+    } else if (percentage > 0) {
+        progressClass = 'partial';
+    }
+    
     let html = `
         <div class="compact-session-card">
             <div class="compact-session-header">
                 <div class="compact-session-time">${session.time} - ${session.endTime}</div>
                 <div class="compact-session-type">${session.type}</div>
+                <div class="progress-circle ${progressClass}" style="width: 32px; height: 32px; font-size: 0.7rem;">
+                    <span class="progress-text">${emptyRoles}</span>
+                </div>
             </div>
-            <div class="compact-roles-list">
+            <div class="compact-roles-grid">
     `;
     
     // Сортируем роли: роли текущего пользователя наверх
@@ -604,7 +623,7 @@ function renderCompactSessionForFullSchedule(day, session) {
         const isCurrentUser = assignedUser === currentUser;
         
         html += `
-            <div class="compact-role-item ${isCurrentUser ? 'current-user' : ''}">
+            <div class="compact-role-slot ${isCurrentUser ? 'current-user' : ''}">
                 <div class="compact-role-name">${role}</div>
                 <div class="compact-role-user">${assignedUser || 'Свободно'}</div>
             </div>
