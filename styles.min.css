@@ -1004,6 +1004,11 @@ body {
     color: var(--text-primary);
     margin-bottom: 2px;
 }
+
+.compact-role-slot.current-user .compact-role-name{
+        color: #0f2b46;
+}
+
 .compact-role-user {
     font-size: 0.8em;
     color: var(--text-secondary);
