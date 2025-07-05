@@ -249,11 +249,16 @@ async function loadAssignments(assignmentsData) {
 /* === СОХРАНЕНИЕ ДАННЫХ В AIRTABLE === */
 async function saveAssignmentToAirtable(participantName, roleName, slotDate, slotTime, comment = '') {
     try {
+        console.log('Сохраняем в Airtable:', { participantName, roleName, slotDate, slotTime, comment });
+        
+        if (!window.airtableService) {
+            throw new Error('Airtable service не доступен');
+        }
+        
         await window.airtableService.createAssignment(participantName, roleName, slotDate, slotTime, comment);
         console.log('Назначение сохранено в Airtable:', { participantName, roleName, slotDate, slotTime, comment });
     } catch (error) {
         console.error('Ошибка сохранения назначения:', error);
-        showNotification('Ошибка сохранения. Попробуйте еще раз.');
         throw error;
     }
 }
