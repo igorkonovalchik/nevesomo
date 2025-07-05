@@ -75,10 +75,10 @@ function renderSessionRoles(sessionKey, filter) {
     });
     
     const rolesHtml = `
-        <div class="roles-grid-compact">
-            ${sortedRoles.map(role => renderRoleSlot(sessionKey, role)).join('')}
-        </div>
-    `;
+    <div class="roles-grid">
+        ${sortedRoles.map(role => renderRoleSlot(sessionKey, role)).join('')}
+    </div>
+`;
     
     const container = document.getElementById(`roles-${sessionKey}`);
     if (container) {
