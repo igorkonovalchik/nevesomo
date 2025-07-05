@@ -1,3 +1,4 @@
+/* CSS Variables */
 :root {
     --bg-primary: #FFFFFF;
     --bg-secondary: #F0F2F5;
@@ -12,10 +13,17 @@
     --error-color: #fa383e;
     --header-bg: #1877F2;
     --header-text: #FFFFFF;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --spacing: 8px;
+    --spacing-lg: 16px;
+    --spacing-xl: 20px;
+    --transition: 0.3s ease;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 [data-theme="dark"] {
-    /* ИСПРАВЛЕНО: Новая палитра в стиле Telegram Night */
     --bg-primary: #17212b;
     --bg-secondary: #232f3d;
     --bg-tertiary: #2c3a4a;
@@ -25,1536 +33,238 @@
     --accent-secondary: #5f9de3;
     --border-color: #2c3a4a;
     --success-color: #52ba57;
-    --warning-color: #f7b928;
     --error-color: #ff5c5c;
     --header-bg: #232f3d;
     --header-text: #e1e3e6;
 }
 
+/* Base */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: var(--bg-primary);
     color: var(--text-primary);
-    transition: background 0.3s, color 0.3s;
+    transition: background var(--transition), color var(--transition);
     padding-bottom: 70px;
 }
-.container { max-width: 800px; margin: 0 auto; padding: 16px; }
+.container { max-width: 800px; margin: 0 auto; padding: var(--spacing-lg); }
 
 /* Header */
 .header {
     background: var(--header-bg);
     color: var(--header-text);
-    padding: 10px 16px;
+    padding: 10px var(--spacing-lg);
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: sticky;
     top: 0;
     z-index: 1000;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
-.header-left, .header-center, .header-right { flex: 1; }
+.header > * { flex: 1; }
 .header-left { font-weight: 600; font-size: 1.1em; }
 .header-center { text-align: center; font-weight: 700; font-size: 1.1em; }
-.header-right { display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
-.theme-toggle, .burger-btn { background: none; border: none; color: var(--header-text); font-size: 24px; cursor: pointer; padding: 8px; border-radius: 50%; transition: background .2s; }
-.theme-toggle:hover, .burger-btn:hover { background: rgba(255, 255, 255, 0.1); }
-.burger-menu { width: 22px; height: 18px; display: flex; flex-direction: column; justify-content: space-between; }
-.burger-line { width: 100%; height: 2px; background: var(--header-text); border-radius: 1px; transition: all .3s; }
-.burger-btn.active .burger-line:nth-child(1) { transform: rotate(45deg) translate(4px, 4px); }
-.burger-btn.active .burger-line:nth-child(2) { opacity: 0; }
-.burger-btn.active .burger-line:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+.header-right { display: flex; justify-content: flex-end; align-items: center; gap: var(--spacing); }
 
-/* Main content */
-.deadline-warning { background: var(--bg-secondary); border-left: 4px solid var(--warning-color); padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 0.9em; }
-.countdown { font-weight: 600; margin-top: 4px; color: var(--warning-color); }
-.user-selector { margin-bottom: 16px; }
-.user-selector select { width: 100%; padding: 12px; font-size: 1em; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); }
-.my-schedule-btn { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--accent-primary); color: white; border: none; padding: 12px 24px; border-radius: 24px; font-size: 1em; font-weight: 600; cursor: pointer; z-index: 999; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); transition: all .2s; }
-.my-schedule-btn:hover { background: var(--accent-secondary); transform: translateX(-50%) translateY(-2px); }
-
-/* Progress Bar */
-#progressText { position: fixed; bottom: 8px; right: 16px; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; z-index: 1001; transition: opacity .3s; }
-#progressBar { position: fixed; bottom: 0; left: 0; width: 100%; height: 4px; background: var(--bg-tertiary); z-index: 1000; }
-#progressFill { width: 0; height: 100%; background: var(--success-color); transition: width .5s ease; }
-
-/* Schedule view */
-.day-section { margin-bottom: 12px; }
-.day-header { padding: 8px 12px; font-size: 1em; font-weight: 600; color: var(--accent-primary); background: var(--bg-secondary); border-radius: 8px; margin-bottom: 8px; }
-.session { background: var(--bg-secondary); border-radius: 12px; overflow: hidden; margin-bottom: 8px; }
-.session.user-assigned .session-compact { border-left: 4px solid var(--success-color); }
-.session-compact { padding: 12px; cursor: pointer; transition: background .2s; }
-.session-info { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.session-time { font-weight: 600; font-size: 1.1em; color: var(--text-primary); }
-.session-details { color: var(--text-secondary); font-size: .9em; }
-.session-user-indicator { background: var(--success-color); color: white; padding: 4px 8px; border-radius: 12px; font-size: .8em; font-weight: 600; }
-.session-stats { display: flex; align-items: center; gap: 8px; }
-.progress-display { text-align: center; }
-.progress-circle { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .7em; font-weight: 600; color: white; }
-.progress-circle.empty { background: var(--bg-tertiary); color: var(--text-secondary); }
-.progress-circle.partial { background: var(--warning-color); }
-.progress-circle.complete { background: var(--success-color); }
-.progress-label { font-size: .7em; color: var(--text-secondary); margin-top: 2px; }
-.session-expanded { padding: 0 12px 12px; display: none; }
-.session.expanded .session-expanded { display: block; }
-.session-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
-.session-tab { flex: none; padding: 6px 12px; border: none; background: var(--bg-tertiary); cursor: pointer; color: var(--text-primary); font-size: 0.9em; transition: all .2s; border-radius: 16px; }
-.session-tab.active { background: var(--accent-primary); color: white; }
-.empty-count { background: var(--error-color); color: white; border-radius: 8px; font-size: .8em; font-weight: 600; padding: 2px 5px; margin-left: 4px; }
-.roles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
-.role-slot { border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; background: var(--bg-primary); cursor: pointer; transition: all .2s; }
-.role-slot:hover { border-color: var(--accent-primary); background: var(--bg-secondary); }
-.role-slot.occupied { background: var(--bg-secondary); }
-.role-slot.current-user { background: #d1e7dd; border-color: var(--success-color); }
-[data-theme="dark"] .role-slot.current-user { background: #2a4b35; border-color: var(--success-color); }
-.role-slot.blocked { background: var(--bg-secondary); opacity: .5; cursor: not-allowed; }
-.role-name { font-weight: 500; color: var(--text-primary); margin-bottom: 4px; }
-.role-user { color: var(--text-secondary); font-size: .85em; }
-.role-checkmark { color: var(--success-color); font-weight: bold; float: right; }
-
-/* Popups & Menu */
-.menu-overlay, .popup-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.5); z-index: 2000; opacity: 0; visibility: hidden; transition: opacity .3s; }
-.menu-overlay.show, .popup-overlay.show { opacity: 1; visibility: visible; }
-.menu-content { position: absolute; top: 0; right: 0; width: 280px; height: 100%; background: var(--bg-primary); transform: translateX(100%); transition: transform .3s ease; display: flex; flex-direction: column; }
-.menu-overlay.show .menu-content { transform: translateX(0); }
-.menu-header { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border-color); }
-.menu-title { font-size: 1.2em; font-weight: 600; }
-.menu-close { background: none; border: none; font-size: 1.5em; cursor: pointer; color: var(--text-secondary); }
-.menu-item { padding: 16px; border-bottom: 1px solid var(--border-color); cursor: pointer; color: var(--text-primary); font-size: 1em; }
-.menu-item:hover { background: var(--bg-secondary); }
-.popup-right, .role-info-popup { position: fixed; top: 0; right: 0; width: 100%; height: 100%; background: var(--bg-primary); transform: translateX(100%); transition: transform .3s ease; display: flex; flex-direction: column; }
-.popup-overlay.show .popup-right, .popup-overlay.show .role-info-popup { transform: translateX(0); }
-.popup-header { display: flex; justify-content: space-between; align-items: center;  padding: 10px 25px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); }
-.popup-nav { flex: 1; display: flex; align-items: center; gap: 8px; }
-.popup-back { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--accent-primary); }
-.popup-title { font-weight: 600; font-size: 1.1em; }
-.popup-close { background: none; border: none; font-size: 1.8em; cursor: pointer; color: var(--text-secondary); }
-.popup-body { flex: 1; padding: 16px; overflow-y: auto; }
-
-/* Stats Popup */
-.stats-user { border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 8px; }
-.stats-user.complete { border-left: 4px solid var(--success-color); }
-.stats-user.incomplete { border-left: 4px solid var(--error-color); }
-.stats-user-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-.stats-name { font-weight: 600; }
-.stats-telegram a { color: var(--accent-primary); text-decoration: none; font-size: 0.9em; }
-.stats-total { font-size: .9em; font-weight: 500; color: var(--text-secondary); }
-.stats-categories { display: flex; flex-wrap: wrap; gap: 6px; }
-.stats-category { background: var(--bg-tertiary); padding: 3px 7px; border-radius: 8px; font-size: .8em; color: var(--text-secondary); }
-.stats-user.complete .stats-category { background: #d1e7dd; color: #0f5132; }
-[data-theme="dark"] .stats-user.complete .stats-category { background: #2a4b35; color: #a3cfbb; }
-
-/* My Schedule Popup */
-.user-profile { text-align: center; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); margin-bottom: 16px; }
-.user-name { font-size: 1.5em; font-weight: 600; }
-.stat-item { text-align: center; }
-.stat-number { font-size: 1.2em; font-weight: 600; }
-.stat-label { font-size: .8em; color: var(--text-secondary); }
-.day-header-popup { font-weight: 600; padding: 12px; background: var(--bg-secondary); margin: 16px -16px 8px; }
-.schedule-item-compact { background: var(--bg-secondary); padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-.schedule-compact-time { font-weight: 600; color: var(--accent-primary); }
-.schedule-compact-role { font-weight: 500; }
-.schedule-compact-type { font-size: 0.85em; color: var(--text-secondary); }
-.schedule-compact-arrow { color: var(--text-secondary); font-size: 1.2em; }
-
-/* Roles Info Popup */
-.roles-group-title { margin: 20px 0 10px; font-size: 1.1em; color: var(--accent-primary); }
-.roles-list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border-color); cursor: pointer; }
-.roles-list-item:hover { background: var(--bg-secondary); }
-.roles-list-item-name { font-weight: 500; }
-.roles-list-item-desc { font-size: 0.9em; color: var(--text-secondary); }
-.roles-list-item-arrow { color: var(--text-secondary); font-size: 1.5em; }
-
-/* Role Detail Popup */
-.role-image { height: 150px; background: var(--accent-primary); display: flex; align-items: center; justify-content: center; font-size: 4em; color: white; }
-.role-description { padding: 20px; line-height: 1.6; }
-.role-link { display: block; margin: 16px; padding: 12px; background: var(--accent-primary); color: white; text-align: center; border-radius: 8px; text-decoration: none; font-weight: 500; }
-
-/* Loader */
-.loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 9999; display: none; align-items: center; justify-content: center; }
-.loading-overlay.show { display: flex; }
-.loading-spinner { width: 40px; height: 40px; border: 4px solid rgba(255, 255, 255, 0.2); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.loading-text { color: white; margin-top: 12px; font-size: 1.1em; }
-
-/* ---------- bottom-sheet popup ---------- */
-.popup-bottom{
-  position: fixed;
-  bottom: 0; left: 0;
-  width: 100%;
-  max-height: 80vh;          /* прокрутим, если длинно */
-  background: var(--bg-primary);
-  border-radius: 16px 16px 0 0;
-  overflow-y: auto;
-  transform: translateY(100%);
-  transition: transform .3s ease;
-  box-shadow: 0 -4px 12px rgba(0,0,0,.15);
-}
-.popup-overlay.show .popup-bottom{ transform: translateY(0); }
-.day-header{
-  font-size: 1.4em;        /* было 1em */
-  font-weight: 700;
-}
-
-/* cессия: название бани/кухни внутрь компакт-карточки */
-.bath-link{
-  color: #fff !important;
-  text-decoration: none;
-}
-
-
-/* Обновленный минималистичный дизайн */
-
-/* Основная карточка сессии */
-.session {
-    background: var(--bg-primary);
-    border: 1px solid #e8eaed;
-    border-radius: 16px;
-    margin-bottom: 16px;
-    transition: all 0.3s ease;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-.session:hover {
-    border-color: #dadce0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-/* Компактная секция */
-.session-compact {
-    padding: 20px 24px;
+/* Header Controls */
+.theme-toggle, .burger-btn {
+    background: none;
+    border: none;
+    color: var(--header-text);
+    font-size: 24px;
     cursor: pointer;
-}
-
-/* Информация о сессии */
-.session-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-}
-
-.session-basic-info {
-    flex: 1;
-}
-
-.session-time {
-    font-weight: 600;
-    font-size: 1.125rem;
-    color: #202124;
-    margin-bottom: 4px;
-    letter-spacing: -0.01em;
-}
-
-.session-details {
-    color: #5f6368;
-    font-size: 0.875rem;
-    font-weight: 400;
-}
-
-.bath-link {
-    color: #5f6368 !important;
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-.bath-link:hover {
-    color: #1a73e8 !important;
-}
-
-/* Статистика сессии */
-.session-stats {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-/* Новый дизайн прогресса как ring */
-.progress-display {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.progress-circle {
-    position: relative;
-    width: 44px;
-    height: 44px;
+    padding: var(--spacing);
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #5f6368;
-    background: #f8f9fa;
-    border: 2px solid #e8eaed;
-    transition: all 0.3s ease;
+    transition: background 0.2s;
 }
+.theme-toggle:hover, .burger-btn:hover { background: rgba(255,255,255,0.1); }
+.burger-menu { width: 22px; height: 18px; display: flex; flex-direction: column; justify-content: space-between; }
+.burger-line { width: 100%; height: 2px; background: var(--header-text); border-radius: 1px; }
 
-/* Ring прогресс для частично заполненных */
-.progress-circle.partial {
-    background: conic-gradient(#34a853 var(--progress-angle, 0deg), #e8eaed 0deg);
-    color: #137333;
-    border-color: #34a853;
+/* Main Layout */
+.deadline-warning {
+    background: var(--bg-secondary);
+    border-left: 4px solid var(--warning-color);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius);
+    margin-bottom: var(--spacing-lg);
 }
-
-.progress-circle.partial::before {
-    content: '';
-    position: absolute;
-    width: 32px;
-    height: 32px;
+.countdown { font-weight: 600; margin-top: 4px; color: var(--warning-color); }
+.user-selector { margin-bottom: var(--spacing-lg); }
+.user-selector select {
+    width: 100%;
+    padding: var(--spacing-lg);
+    font-size: 1em;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
     background: var(--bg-primary);
-    border-radius: 50%;
-    z-index: 1;
+    color: var(--text-primary);
 }
 
-.progress-circle.partial .progress-text {
-    position: relative;
-    z-index: 2;
-}
-
-/* Полностью заполненные */
-.progress-circle.complete {
-    background: #e8f5e8;
-    border-color: #34a853;
-    color: #137333;
-}
-
-.progress-circle.complete::after {
-    content: '✓';
-    position: absolute;
-    font-size: 0.875rem;
-    font-weight: 700;
-}
-
-/* Лейбл под прогрессом */
-.progress-label {
-    position: absolute;
-    top: 52px;
+/* Fixed Button */
+.my-schedule-btn {
+    position: fixed;
+    bottom: var(--spacing-lg);
     left: 50%;
     transform: translateX(-50%);
-    font-size: 0.75rem;
-    color: #9aa0a6;
-    white-space: nowrap;
-    font-weight: 400;
-}
-
-/* Индикатор пользовательского шифта - минималистичный */
-.session.user-assigned {
-    border-left: 3px solid #34a853;
-    background: linear-gradient(90deg, rgba(52, 168, 83, 0.03) 0%, transparent 100%);
-}
-
-.session.user-assigned .session-time::after {
-    content: '✓';
-    margin-left: 8px;
-    color: #34a853;
-    font-weight: 700;
-    font-size: 0.875rem;
-}
-
-/* Убираем старую зеленую плашку */
-.session-user-indicator {
-    display: none;
-}
-
-/* Кнопка автозаполнения в виде кружка */
-.auto-fill-btn-circle {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #f8f9fa;
-    border: 2px solid #dadce0;
-    color: #5f6368;
-    font-size: 1rem;
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 24px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
+    z-index: 999;
+    box-shadow: var(--shadow);
+    transition: all 0.2s;
 }
-
-.auto-fill-btn-circle:hover {
-    background: #ffc107;
-    border-color: #ffc107;
-    color: #212529;
-    transform: scale(1.1) rotate(15deg);
-    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
-}
-
-.auto-fill-btn-circle:active {
-    transform: scale(0.95) rotate(0deg);
-}
-
-/* Старая кнопка автозаполнения (удалить если не используется) */
-.auto-fill-slot-btn {
-    background: #f8f9fa;
-    color: #5f6368;
-    border: 1px solid #dadce0;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.auto-fill-slot-btn:hover {
-    background: #f1f3f4;
-    border-color: #c4c7c5;
-    color: #3c4043;
-}
-
-/* Темная тема */
-[data-theme="dark"] .session {
-    background: var(--bg-secondary);
-    border-color: #3c4043;
-}
-
-[data-theme="dark"] .session:hover {
-    border-color: #5f6368;
-}
-
-[data-theme="dark"] .session-time {
-    color: var(--text-primary);
-}
-
-[data-theme="dark"] .session-details,
-[data-theme="dark"] .bath-link {
-    color: #9aa0a6 !important;
-}
-
-[data-theme="dark"] .bath-link:hover {
-    color: #8ab4f8 !important;
-}
-
-[data-theme="dark"] .progress-circle {
-    background: #3c4043;
-    border-color: #5f6368;
-    color: #9aa0a6;
-}
-
-[data-theme="dark"] .progress-circle.partial {
-    background: conic-gradient(#81c995 var(--progress-angle, 0deg), #3c4043 0deg);
-    color: #81c995;
-    border-color: #81c995;
-}
-
-[data-theme="dark"] .progress-circle.partial::before {
-    background: var(--bg-secondary);
-}
-
-.progress-circle .progress-text{position:relative;z-index:2;}
-
-[data-theme="dark"] .progress-circle.complete {
-    background: #2d3e2f;
-    border-color: #81c995;
-    color: #81c995;
-}
-
-[data-theme="dark"] .session.user-assigned {
-    border-left-color: #81c995;
-    background: linear-gradient(90deg, rgba(129, 201, 149, 0.08) 0%, transparent 100%);
-}
-
-[data-theme="dark"] .session.user-assigned .session-time::after {
-    color: #81c995;
-}
-
-[data-theme="dark"] .auto-fill-btn-circle {
-    background: #3c4043;
-    border-color: #5f6368;
-    color: #9aa0a6;
-}
-
-[data-theme="dark"] .auto-fill-btn-circle:hover {
-    background: #ffc107;
-    border-color: #ffc107;
-    color: #212529;
-}
-
-[data-theme="dark"] .auto-fill-slot-btn {
-    background: #3c4043;
-    border-color: #5f6368;
-    color: #9aa0a6;
-}
-
-[data-theme="dark"] .auto-fill-slot-btn:hover {
-    background: #444746;
-    color: #e8eaed;
-}
-
-/* CSS переменная для анимированного прогресса */
-.progress-circle.partial {
-    --progress-angle: calc(var(--progress-percent, 0) * 3.6deg);
-}
-
-/* Анимированный ring прогресс */
-.progress-circle {
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.progress-circle.partial {
-    background: conic-gradient(
-        #34a853 var(--progress-angle, 0deg), 
-        #e8eaed var(--progress-angle, 0deg)
-    );
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Анимация появления чекмарка */
-.progress-circle.complete::after {
-    animation: checkmark-appear 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-}
-
-@keyframes checkmark-appear {
-    0% {
-        transform: scale(0) rotate(45deg);
-        opacity: 0;
-    }
-    50% {
-        transform: scale(1.2) rotate(45deg);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(1) rotate(0deg);
-        opacity: 1;
-    }
-}
-
-/* Плавная анимация прогресса */
-@property --progress-angle {
-    syntax: '<angle>';
-    initial-value: 0deg;
-    inherits: false;
-}
-
-.progress-circle.partial {
-    --progress-angle: calc(var(--progress-percent, 0) * 3.6deg);
-    animation: progress-fill 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes progress-fill {
-    from {
-        --progress-angle: 0deg;
-    }
-    to {
-        --progress-angle: calc(var(--progress-percent, 0) * 3.6deg);
-    }
-}
-
-/* Hover эффекты */
-.session:hover .progress-circle {
-    transform: scale(1.05);
-    box-shadow: 0 2px 8px rgba(52, 168, 83, 0.15);
-}
-
-.session:hover .progress-circle.complete {
-    box-shadow: 0 2px 8px rgba(52, 168, 83, 0.25);
-}
-
-/* Пульсация для активных пользовательских шифтов */
-.session.user-assigned .progress-circle.complete {
-    animation: gentle-pulse 2s ease-in-out infinite;
-}
-
-@keyframes gentle-pulse {
-    0%, 100% {
-        box-shadow: 0 0 0 0 rgba(52, 168, 83, 0.4);
-    }
-    50% {
-        box-shadow: 0 0 0 4px rgba(52, 168, 83, 0.1);
-    }
-}
-
-/* Текст внутри ring'а */
-.progress-text {
-    font-variant-numeric: tabular-nums;
-    transition: all 0.3s ease;
-}
-
-/* Улучшенные микро-интерактивности */
-.progress-circle:hover .progress-text {
-    font-weight: 700;
-    transform: scale(1.1);
-}
-
-/* Темная тема анимации */
-[data-theme="dark"] .progress-circle.partial {
-    background: conic-gradient(
-        #81c995 var(--progress-angle, 0deg), 
-        #3c4043 var(--progress-angle, 0deg)
-    );
-}
-
-[data-theme="dark"] .session:hover .progress-circle {
-    box-shadow: 0 2px 8px rgba(129, 201, 149, 0.15);
-}
-
-[data-theme="dark"] .session:hover .progress-circle.complete {
-    box-shadow: 0 2px 8px rgba(129, 201, 149, 0.25);
-}
-
-[data-theme="dark"] .session.user-assigned .progress-circle.complete {
-    animation: gentle-pulse-dark 2s ease-in-out infinite;
-}
-
-@keyframes gentle-pulse-dark {
-    0%, 100% {
-        box-shadow: 0 0 0 0 rgba(129, 201, 149, 0.4);
-    }
-    50% {
-        box-shadow: 0 0 0 4px rgba(129, 201, 149, 0.1);
-    }
-}
-
-/* Дополнительная полировка для лейблов */
-.progress-label {
-    transition: color 0.3s ease;
-}
-
-.session:hover .progress-label {
-    color: #5f6368;
-}
-
-[data-theme="dark"] .session:hover .progress-label {
-    color: #e8eaed;
-}
-
-/* Компактный профиль пользователя в одну строку */
-.user-profile {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border-color);
-    margin-bottom: 16px;
-    gap: 16px;
-    min-height: auto;
-}
-
-.user-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex: 1;
-}
-
-.user-name {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin: 0;
-}
-
-.user-telegram {
-    font-size: 0.875rem;
-    color: var(--accent-primary);
-    text-decoration: none;
-    margin: 0;
-}
-
-.user-telegram:hover {
-    text-decoration: underline;
-}
-
-.user-stats {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    flex-shrink: 0;
-}
-
-.stat-item {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    min-width: auto;
-}
-
-.stat-number {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.stat-label {
-    font-size: 0.8125rem;
-    color: var(--text-secondary);
-    font-weight: 400;
-}
-
-/* Альтернативный вариант - еще более компактный */
-.user-profile.ultra-compact {
-    padding: 12px 20px;
-    gap: 12px;
-}
-
-.user-profile.ultra-compact .user-name {
-    font-size: 1rem;
-}
-
-.user-profile.ultra-compact .stat-item {
-    gap: 2px;
-}
-
-.user-profile.ultra-compact .stat-number {
-    font-size: 0.875rem;
-}
-
-.user-profile.ultra-compact .stat-label {
-    font-size: 0.75rem;
-}
-
-/* Разделитель между статистиками */
-.stat-separator {
-    width: 1px;
-    height: 16px;
-    background: var(--border-color);
-    margin: 0;
-}
-
-/* Мобильная адаптация */
-@media (max-width: 480px) {
-    .user-profile {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-        padding: 12px 16px;
-    }
-    
-    .user-info {
-        width: 100%;
-    }
-    
-    .user-stats {
-        gap: 12px;
-        width: 100%;
-        justify-content: flex-start;
-    }
-}
-
-/* Темная тема */
-[data-theme="dark"] .user-telegram {
-    color: var(--accent-primary);
-}
-
-[data-theme="dark"] .stat-separator {
-    background: var(--border-color);
-}
-
-/* Компактные карточки шифтов в одну строку */
-.schedule-item-compact {
-    background: var(--bg-secondary);
-    padding: 14px 18px;
-    border-radius: 12px;
-    margin-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    min-height: auto;
-}
-
-.schedule-item-compact:hover {
-    background: var(--bg-tertiary);
-    transform: translateY(-1px);
-}
-
-.schedule-compact-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex: 1;
-    min-width: 0; /* Для правильного truncate */
-}
-
-.schedule-compact-time {
-    font-weight: 600;
-    color: var(--accent-primary);
-    font-size: 1rem;
-    flex-shrink: 0;
-    min-width: 45px;
-}
-
-.schedule-compact-details {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
-    min-width: 0;
-}
-
-.schedule-compact-role {
-    font-weight: 500;
-    color: var(--text-primary);
-    font-size: 0.9rem;
-    flex-shrink: 0;
-}
-
-.schedule-compact-separator {
-    color: var(--text-secondary);
-    font-size: 0.8rem;
-    flex-shrink: 0;
-}
-
-.schedule-compact-type {
-    color: var(--text-secondary);
-    font-size: 0.8rem;
-    font-weight: 400;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-width: 0;
-}
-
-.schedule-compact-arrow {
-    color: var(--text-secondary);
-    font-size: 1.2rem;
-    flex-shrink: 0;
-    padding: 4px;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-}
-
-.schedule-compact-arrow:hover {
-    color: var(--accent-primary);
-    background: rgba(var(--accent-primary-rgb, 24, 119, 232), 0.1);
-}
-
-/* Альтернативный вариант с точками */
-.schedule-item-compact.dots-style .schedule-compact-details {
-    gap: 6px;
-}
-
-.schedule-item-compact.dots-style .schedule-compact-separator::before {
-    content: '•';
-    color: var(--text-secondary);
-    font-weight: bold;
-}
-
-/* Очень компактный вариант для мобильных */
-@media (max-width: 480px) {
-    .schedule-item-compact {
-        padding: 12px 16px;
-        gap: 8px;
-    }
-    
-    .schedule-compact-info {
-        gap: 8px;
-    }
-    
-    .schedule-compact-time {
-        font-size: 0.9rem;
-        min-width: 40px;
-    }
-    
-    .schedule-compact-role {
-        font-size: 0.85rem;
-    }
-    
-    .schedule-compact-type {
-        font-size: 0.75rem;
-    }
-    
-    /* На мобильных можем скрыть тип сессии если места совсем мало */
-    .schedule-compact-type.mobile-hidden {
-        display: none;
-    }
-}
-
-/* Стиль для очень длинных названий ролей */
-.schedule-compact-role.long {
-    max-width: 120px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Темная тема */
-[data-theme="dark"] .schedule-item-compact {
-    background: var(--bg-secondary);
-}
-
-[data-theme="dark"] .schedule-item-compact:hover {
-    background: var(--bg-tertiary);
-}
-
-[data-theme="dark"] .schedule-compact-arrow:hover {
-    background: rgba(var(--accent-primary-rgb, 58, 175, 236), 0.15);
-}
-
-/* Дополнительные варианты компоновки */
-
-/* Вариант 1: Время | Роль • Тип */
-.schedule-item-compact.style-1 .schedule-compact-details::before {
-    content: '|';
-    color: var(--text-secondary);
-    margin: 0 4px;
-}
-
-/* Вариант 2: Время - Роль (Тип) */
-.schedule-item-compact.style-2 .schedule-compact-details {
-    gap: 4px;
-}
-
-.schedule-item-compact.style-2 .schedule-compact-type::before {
-    content: '(';
-}
-
-.schedule-item-compact.style-2 .schedule-compact-type::after {
-    content: ')';
-}
-
-/* Вариант 3: Максимально компактный */
-.schedule-item-compact.ultra-compact {
-    padding: 10px 16px;
-    font-size: 0.85rem;
-}
-
-.schedule-item-compact.ultra-compact .schedule-compact-time {
-    font-size: 0.85rem;
-}
-
-.schedule-item-compact.ultra-compact .schedule-compact-role {
-    font-size: 0.8rem;
-}
-
-.schedule-item-compact.ultra-compact .schedule-compact-type {
-    display: none; /* Совсем убираем тип в ультра-компактном режиме */
-}
-
-/* Исправленный дизайн для лейбла количества шифтов */
-
-.progress-display {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-width: 60px; /* Увеличиваем минимальную ширину */
-}
-
-.progress-circle {
-    position: relative;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #5f6368;
-    background: #f8f9fa;
-    border: 2px solid #e8eaed;
-    transition: all 0.3s ease;
-    flex-shrink: 0; /* Не сжимается */
-}
-
-/* Ring прогресс для частично заполненных */
-.progress-circle.partial {
-    background: conic-gradient(#34a853 var(--progress-angle, 0deg), #e8eaed 0deg);
-    color: #137333;
-    border-color: #34a853;
-}
-
-.progress-circle.partial::before {
-    content: '';
-    position: absolute;
-    width: 32px;
-    height: 32px;
-    background: var(--bg-primary);
-    border-radius: 50%;
-    z-index: 1;
-}
-
-.progress-circle.partial .progress-text {
-    position: relative;
-    z-index: 2;
-}
-
-/* Полностью заполненные */
-
-.progress-circle.complete {
-    background: #e8f5e8;
-    border-color: #34a853;
-    color: #137333;
-    font-weight: 700;
-    font-size: 0.8rem;
-}
-
-/* Убираем галочку, показываем цифру */
-.progress-circle.complete::after {
-    display: none;
-}
-
-/* ИСПРАВЛЕНО: Лейбл под прогрессом */
-.progress-label {
-    margin-top: -3px; /* Увеличиваем отступ сверху */
-    font-size: 0.7rem;
-    color: #9aa0a6;
-    white-space: nowrap;
-    font-weight: 400;
-    text-align: center;
-    min-width: 50px; /* Минимальная ширина для текста */
-    line-height: 1.2;
-}
-
-/* Альтернативный вариант - в две строки для длинных текстов */
-.progress-label.multiline {
-    white-space: normal;
-    max-width: 70px;
-    line-height: 1.1;
-    font-size: 0.65rem;
-}
-
-/* Вариант с сокращением текста */
-.progress-label.compact {
-    font-size: 0.65rem;
-}
-
-.progress-label.compact::after {
-    content: attr(data-full-text);
-    display: none;
-}
-
-/* Вариант только с цифрой */
-.progress-label.number-only {
-    font-weight: 600;
-    color: #5f6368;
-}
-
-/* Для очень узких мест */
-.progress-display.ultra-compact .progress-label {
-    font-size: 0.6rem;
-    margin-top: 4px;
-    max-width: 44px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Темная тема */
-[data-theme="dark"] .progress-circle {
-    background: #3c4043;
-    border-color: #5f6368;
-    color: #9aa0a6;
-}
-
-[data-theme="dark"] .progress-circle.partial {
-    background: conic-gradient(#81c995 var(--progress-angle, 0deg), #3c4043 0deg);
-    color: #81c995;
-    border-color: #81c995;
-}
-
-[data-theme="dark"] .progress-circle.partial::before {
-    background: var(--bg-secondary);
-}
-
-[data-theme="dark"] .progress-circle.complete {
-    background: #2d3e2f;
-    border-color: #81c995;
-    color: #81c995;
-}
-
-[data-theme="dark"] .progress-label {
-    color: #9aa0a6;
-}
-
-/* Адаптивные размеры для разных контекстов */
-@media (max-width: 768px) {
-    .progress-display {
-        min-width: 50px;
-    }
-    
-    .progress-label {
-        font-size: 0.65rem;
-        max-width: 60px;
-    }
-}
-
-/* Для совсем маленьких экранов */
-@media (max-width: 480px) {
-    .progress-display {
-        min-width: 45px;
-    }
-    
-    .progress-circle {
-        width: 38px;
-        height: 38px;
-        font-size: 0.7rem;
-    }
-    
-    .progress-circle.partial::before {
-        width: 28px;
-        height: 28px;
-    }
-    
-    .progress-label {
-        font-size: 0.6rem;
-        margin-top: 4px;
-        max-width: 50px;
-    }
-}
-
-/* Специальный класс для сессий с большим количеством ролей */
-.session-stats .progress-display.many-roles .progress-label {
-    font-size: 0.65rem;
-    max-width: 80px;
-    line-height: 1.1;
-}
-
-/* Стили для различных вариантов отображения */
-.progress-label.style-short {
-    /* Сокращенный вариант: "9 шт" вместо "9 шифтов" */
-}
-
-.progress-label.style-icon {
-    /* С иконкой: "👥 9" */
-}
-
-.progress-label.style-minimal {
-    /* Только цифра: "9" */
-    font-weight: 600;
-    color: #5f6368;
-}
-
-/* Исправленные стили для попапа выбора участника */
-
-/* Основной попап */
-.popup-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 3000;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(4px);
-}
-
-.popup-overlay.show {
-    opacity: 1;
-    visibility: visible;
+.my-schedule-btn:hover {
+    background: var(--accent-secondary);
+    transform: translateX(-50%) translateY(-2px);
 }
 
-/* Попап снизу */
-.popup-bottom {
+/* Progress Bar */
+#progressBar {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
-    max-height: 80vh;
-    background: var(--bg-primary);
-    border-radius: 16px 16px 0 0;
-    overflow-y: auto;
-    transform: translateY(100%);
-    transition: transform 0.3s ease;
-    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.15);
+    height: 4px;
+    background: var(--bg-tertiary);
+    z-index: 1000;
 }
-
-.popup-overlay.show .popup-bottom {
-    transform: translateY(0);
+#progressFill {
+    height: 100%;
+    background: var(--success-color);
+    transition: width 0.5s ease;
 }
-
-/* Заголовок попапа */
-.popup-header {
-    background: var(--accent-primary);
+#progressText {
+    position: fixed;
+    bottom: var(--spacing);
+    right: var(--spacing-lg);
+    background: rgba(0,0,0,0.7);
     color: white;
-    padding: 16px 20px;
+    padding: 5px 10px;
+    border-radius: var(--radius-lg);
+    font-size: 0.75rem;
+    z-index: 1001;
+}
+
+/* Day Section */
+.day-section { margin-bottom: var(--spacing-lg); }
+.day-header {
+    padding: var(--spacing) var(--spacing-lg);
+    font-size: 1.1em;
+    font-weight: 700;
+    color: var(--accent-primary);
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    margin-bottom: var(--spacing);
+}
+
+/* Session Card */
+.session {
+    background: var(--bg-primary);
+    border: 1px solid #e8eaed;
+    border-radius: var(--radius-xl);
+    margin-bottom: var(--spacing-lg);
+    transition: all var(--transition);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.session:hover {
+    border-color: #dadce0;
+    box-shadow: var(--shadow);
+}
+.session.user-assigned {
+    border-left: 3px solid var(--success-color);
+    background: linear-gradient(90deg, rgba(52,168,83,0.03) 0%, transparent 100%);
+}
+.session-compact {
+    padding: var(--spacing-xl) 24px;
+    cursor: pointer;
+}
+.session-info {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-radius: 16px 16px 0 0;
+    gap: var(--spacing-xl);
 }
-
-.popup-title {
+.session-time {
     font-weight: 600;
-    font-size: 1.1em;
-}
-
-.popup-close {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 1.5em;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    transition: background 0.2s;
-}
-
-.popup-close:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-/* Тело попапа */
-.popup-body {
-    padding: 20px;
-    background: var(--bg-primary);
-}
-
-/* ИСПРАВЛЕНО: Карточки участников */
-.participant-item {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.participant-item:hover {
-    background: var(--bg-tertiary);
-    border-color: var(--accent-primary);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.participant-item.selected {
-    background: #e8f5e8;
-    border-color: var(--success-color);
-    box-shadow: 0 2px 8px rgba(52, 168, 83, 0.15);
-}
-
-/* Имя участника */
-.participant-name {
-    font-weight: 600;
-    font-size: 1rem;
+    font-size: 1.125rem;
     color: var(--text-primary);
-    margin-bottom: 2px;
+    margin-bottom: 4px;
 }
-
-/* Telegram ник */
-.participant-telegram {
+.session.user-assigned .session-time::after {
+    content: '✓';
+    margin-left: var(--spacing);
+    color: var(--success-color);
+    font-weight: 700;
     font-size: 0.875rem;
-    color: var(--accent-primary);
-    font-weight: 400;
 }
-
-/* Специальные кнопки (Очистить слот, Внешний участник) */
-.participant-item.special {
-    background: var(--bg-tertiary);
-    border-style: dashed;
-    border-width: 2px;
-}
-
-.participant-item.special .participant-name {
+.session-details {
     color: var(--text-secondary);
-    font-weight: 500;
+    font-size: 0.875rem;
 }
-
-.participant-item.special .participant-telegram {
+.bath-link {
     color: var(--text-secondary);
-    font-style: italic;
+    text-decoration: none;
+    transition: color 0.2s;
 }
-
-.participant-item.special:hover {
-    background: var(--accent-primary);
-    border-color: var(--accent-primary);
-    color: white;
-}
-
-.participant-item.special:hover .participant-name,
-.participant-item.special:hover .participant-telegram {
-    color: white;
-}
-
-/* Темная тема */
-[data-theme="dark"] .popup-bottom {
-    background: var(--bg-primary);
-    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
-}
-
-[data-theme="dark"] .popup-body {
-    background: var(--bg-primary);
-}
-
-[data-theme="dark"] .participant-item {
-    background: var(--bg-secondary);
-    border-color: var(--border-color);
-}
-
-[data-theme="dark"] .participant-item:hover {
-    background: var(--bg-tertiary);
-    border-color: var(--accent-primary);
-    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .participant-item.selected {
-    background: #2a4b35;
-    border-color: var(--success-color);
-    box-shadow: 0 2px 8px rgba(129, 201, 149, 0.2);
-}
-
-[data-theme="dark"] .participant-name {
-    color: var(--text-primary);
-}
-
-[data-theme="dark"] .participant-telegram {
-    color: var(--accent-primary);
-}
-
-[data-theme="dark"] .participant-item.special {
-    background: var(--bg-tertiary);
-}
-
-[data-theme="dark"] .participant-item.special .participant-name,
-[data-theme="dark"] .participant-item.special .participant-telegram {
-    color: var(--text-secondary);
-}
-
-/* Дополнительные стили для лучшей читаемости */
-.participant-item {
-    min-height: 60px;
-    justify-content: center;
-}
-
-.participant-item:active {
-    transform: translateY(0);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Адаптивность */
-@media (max-width: 480px) {
-    .popup-body {
-        padding: 16px;
-    }
-    
-    .participant-item {
-        padding: 14px;
-        margin-bottom: 6px;
-    }
-    
-    .participant-name {
-        font-size: 0.9rem;
-    }
-    
-    .participant-telegram {
-        font-size: 0.8rem;
-    }
-}
-
-/* Скроллбар для попапа */
-.popup-body::-webkit-scrollbar {
-    width: 6px;
-}
-
-.popup-body::-webkit-scrollbar-track {
-    background: var(--bg-secondary);
-}
-
-.popup-body::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 3px;
-}
-
-.popup-body::-webkit-scrollbar-thumb:hover {
-    background: var(--text-secondary);
-}
-
-/* Кнопка календаря в статистике пользователей */
-.user-schedule-btn {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 8px 10px;
-    font-size: 1.2em;
-    cursor: pointer;
-    transition: all 0.2s ease;
+.bath-link:hover { color: var(--accent-primary); }
+.session-stats {
     display: flex;
     align-items: center;
-    justify-content: center;
-    min-width: 36px;
-    height: 36px;
+    gap: var(--spacing);
 }
 
-.user-schedule-btn:hover {
-    background: var(--accent-primary);
-    border-color: var(--accent-primary);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme="dark"] .user-schedule-btn {
-    background: var(--bg-tertiary);
-    border-color: var(--border-color);
-}
-
-[data-theme="dark"] .user-schedule-btn:hover {
-    background: var(--accent-primary);
-    border-color: var(--accent-primary);
-}
-
-/* Статистика */
-/* Заставка загрузки на весь экран */
-.loading-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    transition: opacity 0.5s ease;
-    padding: 20px; /* Небольшой отступ от краев */
-    box-sizing: border-box;
-}
-
-.loading-screen.hidden {
-    opacity: 0;
-    pointer-events: none;
-}
-
-.loading-logo {
-    margin-bottom: 60px;
-    transition: all 1s ease;
-}
-
-.loading-logo.blurred {
-    filter: blur(15px);
-    opacity: 0.2;
-    transform: scale(0.7);
-}
-
-.logo-image {
-    width: min(400px, 80vw); /* Увеличиваем логотип, но не больше 80% ширины экрана */
-    height: auto;
-    border-radius: 24px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    transition: all 1s ease;
-}
-
-.loading-content {
-    text-align: center;
-    color: white;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: all 0.5s ease;
-}
-
-.loading-content.visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.loading-spinner {
-    width: 70px;
-    height: 70px;
-    border: 6px solid rgba(255, 255, 255, 0.3);
-    border-top-color: white;
+/* Progress Circle */
+.progress-circle {
+    position: relative;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 30px;
-}
-
-.loading-text {
-    font-size: 1.5em;
-    font-weight: 500;
-    margin-bottom: 30px;
-    min-height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.loading-error {
-    color: #ffcccb;
-    font-size: 1.2em;
-    line-height: 1.8;
-}
-
-.loading-error a {
-    color: white;
-    text-decoration: underline;
+    font-size: 0.75rem;
     font-weight: 600;
-}
-
-.loading-error a:hover {
-    color: #ffd700;
-}
-
-/* Адаптивность для мобильных */
-@media (max-width: 768px) {
-    .logo-image {
-        width: min(300px, 75vw);
-    }
-    
-    .loading-spinner {
-        width: 50px;
-        height: 50px;
-        border-width: 5px;
-    }
-    
-    .loading-text {
-        font-size: 1.2em;
-    }
-}
-
-/* Темная тема для заставки */
-[data-theme="dark"] .loading-screen {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-}
-
-
-/* Кнопка календаря в статистике пользователей */
-.user-schedule-btn {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 8px 10px;
-    font-size: 1.2em;
+    color: #5f6368;
+    background: #f8f9fa;
+    border: 2px solid #e8eaed;
+    transition: all var(--transition);
     cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 36px;
-    height: 36px;
+}
+.progress-circle:hover {
+    transform: scale(1.1);
+    box-shadow: var(--shadow);
+}
+.progress-circle.partial {
+    background: conic-gradient(#34a853 var(--progress-angle, 0deg), #e8eaed 0deg);
+    color: #137333;
+    border-color: #34a853;
+}
+.progress-circle.partial::before {
+    content: '';
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    background: var(--bg-primary);
+    border-radius: 50%;
+}
+.progress-circle .progress-text {
+    position: relative;
+    z-index: 2;
+}
+.progress-circle.complete {
+    background: #e8f5e8;
+    border-color: #34a853;
+    color: #137333;
 }
 
-.user-schedule-btn:hover {
-    background: var(--accent-primary);
-    border-color: var(--accent-primary);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme="dark"] .user-schedule-btn {
-    background: var(--bg-tertiary);
-    border-color: var(--border-color);
-}
-
-[data-theme="dark"] .user-schedule-btn:hover {
-    background: var(--accent-primary);
-    border-color: var(--accent-primary);
-}
-
-/* Статистика */
-
-/* Убираем текст под прогрессом */
-.progress-label {
-    display: none !important;
-}
-
-/* Стиль для кнопки-ссылки */
+/* Auto Fill Button */
+.auto-fill-btn-circle,
 .slot-link-btn {
     width: 36px;
     height: 36px;
@@ -1565,389 +275,66 @@ body {
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all var(--transition);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
     text-decoration: none;
-    margin-right: 8px;
 }
-
+.auto-fill-btn-circle:hover {
+    background: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+    transform: scale(1.1) rotate(15deg);
+    box-shadow: 0 4px 12px rgba(255,193,7,0.3);
+}
 .slot-link-btn:hover {
     background: #1a73e8;
     border-color: #1a73e8;
     color: white;
     transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+    box-shadow: 0 4px 12px rgba(26,115,232,0.3);
 }
 
-/* Прогресс кружок теперь кликабельный */
-.progress-circle {
-    cursor: pointer;
-}
-
-.progress-circle:hover {
-    transform: scale(1.1);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-/* Тултип для прогресса */
-.progress-tooltip {
-    position: fixed;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 0.9em;
-    z-index: 9999;
-    pointer-events: none;
-    transform: translateX(-50%);
-    animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(5px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-    }
-}
-
-/* Темная тема */
-[data-theme="dark"] .slot-link-btn {
-    background: #3c4043;
-    border-color: #5f6368;
-    color: #9aa0a6;
-}
-
-[data-theme="dark"] .slot-link-btn:hover {
-    background: #8ab4f8;
-    border-color: #8ab4f8;
-    color: #202124;
-}
-
-.progress-circle.partial::before{z-index:0;}  /* было 1 */
-
-/* Табы дат календарем */
-.schedule-tabs-container {
-    padding: 16px 0;
-    border-bottom: 1px solid var(--border-color);
-    margin-bottom: 16px;
-}
-
-.schedule-date-tabs {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding: 0 4px;
-}
-
-.schedule-date-tab {
-    min-width: 60px;
-    padding: 12px 8px;
-    border-radius: 12px;
-    background: var(--bg-secondary);
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: 2px solid transparent;
-}
-
-.schedule-date-tab.active {
-    background: var(--accent-primary);
-    color: white;
-    transform: scale(1.05);
-}
-
-.schedule-date-tab:hover:not(.active) {
-    background: var(--bg-tertiary);
-}
-
-.tab-day {
-    font-size: 1.1em;
-    font-weight: 600;
-}
-
-.tab-month {
-    font-size: 0.8em;
-    opacity: 0.8;
-    text-transform: uppercase;
-}
-
-/* Компактные сессии */
-.schedule-days-container {
-    position: relative;
-}
-
-.schedule-day-content {
+/* Session Expanded */
+.session-expanded {
+    padding: var(--spacing) var(--spacing-lg) var(--spacing-lg);
     display: none;
 }
+.session.expanded .session-expanded { display: block; }
 
-.schedule-day-content.active {
-    display: block;
-}
-
-.compact-session-card {
-    background: var(--bg-secondary);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
-}
-
-.compact-session-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.compact-session-time {
-    font-weight: 600;
-    color: var(--accent-primary);
-    font-size: 1.1em;
-}
-
-.compact-session-type {
-    color: var(--text-secondary);
-    font-size: 0.9em;
-}
-
-.compact-roles-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 8px;
-}
-
-.compact-role-item {
-    background: var(--bg-primary);
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    transition: all 0.2s ease;
-}
-
-.compact-role-item.current-user {
-    background: #e8f5e8;
-    border-color: var(--success-color);
-    order: -1; /* Показываем первыми */
-}
-
-.compact-role-name {
-    font-size: 0.85em;
-    font-weight: 500;
-    color: var(--text-primary);
-    margin-bottom: 2px;
-}
-
-.compact-role-user {
-    font-size: 0.8em;
-    color: var(--text-secondary);
-}
-
-.compact-role-item.current-user .compact-role-user {
-    color: var(--success-color);
-    font-weight: 500;
-}
-
-/* Темная тема */
-[data-theme="dark"] .compact-role-item.current-user {
-    background: #2a4b35;
-    border-color: var(--success-color);
-}
-
-/* Анимации для уведомлений */
-@keyframes slideUp {
-    from {
-        transform: translateX(-50%) translateY(20px);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(-50%) translateY(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slideDown {
-    from {
-        transform: translateX(-50%) translateY(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(-50%) translateY(20px);
-        opacity: 0;
-    }
-}
-
-/* Компактная сетка ролей */
-.roles-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* Два столбца */
-    gap: 6px; /* Уменьшенный отступ */
-    max-height: 300px; /* Максимальная высота контейнера */
-    overflow-y: auto; /* Прокрутка если не помещается */
-    padding: 4px;
-}
-
-/* Компактный слот роли */
-.role-slot {
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 8px 10px; /* Уменьшенные отступы */
-    background: var(--bg-primary);
-    cursor: pointer;
-    transition: all 0.2s;
-    min-height: 50px; /* Минимальная высота */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.role-slot:hover {
-    border-color: var(--accent-primary);
-    background: var(--bg-secondary);
-    transform: translateY(-1px);
-}
-
-.role-slot.occupied {
-    background: var(--bg-secondary);
-}
-
-.role-slot.current-user {
-    background: #d1e7dd;
-    border-color: var(--success-color);
-    border-width: 2px;
-}
-
-[data-theme="dark"] .role-slot.current-user {
-    background: #2a4b35;
-    border-color: var(--success-color);
-}
-
-.role-slot.blocked {
-    background: var(--bg-secondary);
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.role-slot.faded {
-    opacity: 0.3;
-}
-
-/* Текст в слотах */
-.role-name {
-    font-weight: 500;
-    color: var(--text-primary);
-    margin-bottom: 2px;
-    font-size: 0.85em; /* Уменьшенный шрифт */
-    line-height: 1.2;
-}
-
-.role-user {
-    color: var(--text-secondary);
-    font-size: 0.75em; /* Еще меньше для имени пользователя */
-    line-height: 1.2;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.role-checkmark {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    color: var(--success-color);
-    font-weight: bold;
-    font-size: 0.9em;
-}
-
-/* Кастомный скроллбар для списка ролей */
-.roles-grid::-webkit-scrollbar {
-    width: 4px;
-}
-
-.roles-grid::-webkit-scrollbar-track {
-    background: var(--bg-secondary);
-    border-radius: 2px;
-}
-
-.roles-grid::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 2px;
-}
-
-.roles-grid::-webkit-scrollbar-thumb:hover {
-    background: var(--text-secondary);
-}
-
-/* Адаптивность для мобильных */
-@media (max-width: 480px) {
-    .roles-grid {
-        grid-template-columns: 1fr; /* Один столбец на мобильных */
-        max-height: 250px;
-    }
-    
-    .role-slot {
-        padding: 6px 8px;
-        min-height: 45px;
-    }
-    
-    .role-name {
-        font-size: 0.8em;
-    }
-    
-    .role-user {
-        font-size: 0.7em;
-    }
-}
-
-/* Для очень маленьких экранов */
-@media (max-width: 360px) {
-    .role-name {
-        font-size: 0.75em;
-    }
-    
-    .role-user {
-        font-size: 0.65em;
-    }
-}
-
-/* Компактные табы */
+/* Session Tabs */
 .session-tabs {
     display: flex;
-    flex-wrap: nowrap; /* Не переносить на новую строку */
-    gap: 4px;
-    margin: 8px 0;
-    background: var(--bg-tertiary);
-    border-radius: 6px;
-    padding: 3px;
-    overflow-x: auto; /* Горизонтальная прокрутка если не помещается */
+    flex-wrap: nowrap;
+    gap: 6px;
+    margin: var(--spacing) 0;
+    padding: 4px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
 }
-
+.session-tabs::-webkit-scrollbar { display: none; }
 .session-tab {
-    flex: 0 0 auto; /* Не растягиваться */
-    padding: 5px 10px;
+    flex: 0 0 auto;
+    padding: 6px 12px;
     border: none;
-    background: none;
+    background: var(--bg-secondary);
     cursor: pointer;
     color: var(--text-primary);
-    font-size: 0.8em; /* Уменьшенный шрифт */
+    font-size: 0.85em;
     transition: all 0.2s;
-    border-radius: 4px;
-    text-align: center;
+    border-radius: var(--radius-xl);
     white-space: nowrap;
+    user-select: none;
 }
-
+.session-tab:active { transform: scale(0.95); }
 .session-tab.active {
     background: var(--accent-primary);
     color: white;
 }
-
 .empty-count {
     background: var(--error-color);
     color: white;
@@ -1963,251 +350,818 @@ body {
     padding: 0 3px;
 }
 
-/* Скрываем скроллбар для табов */
-.session-tabs::-webkit-scrollbar {
-    height: 0;
-}
-
-/* Компактная расширенная сессия */
-.session-expanded {
-    padding: 8px 12px 12px;
-    display: none;
-}
-
-.session.expanded .session-expanded {
-    display: block;
-}
-
-/* Ограничиваем высоту всей расширенной области */
+/* Roles Grid */
 .roles-container {
     max-height: 320px;
     overflow-y: auto;
-    border-radius: 8px;
+    border-radius: var(--radius);
     background: var(--bg-secondary);
-    padding: 8px;
-    margin-top: 8px;
+    padding: var(--spacing);
+    margin-top: var(--spacing);
 }
-
-/* Скроллбар для контейнера ролей */
-.roles-container::-webkit-scrollbar {
-    width: 6px;
-}
-
-.roles-container::-webkit-scrollbar-track {
-    background: var(--bg-primary);
-    border-radius: 3px;
-}
-
-.roles-container::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 3px;
-}
-
-/* Компактная расширенная сессия */
-.session-expanded {
-    padding: 8px 12px 12px;
-    display: none;
-}
-
-.session.expanded .session-expanded {
-    display: block;
-}
-
-/* Ограничиваем высоту всей расширенной области */
-.roles-container {
-    max-height: 320px;
-    overflow-y: auto;
-    border-radius: 8px;
-    background: var(--bg-secondary);
-    padding: 8px;
-    margin-top: 8px;
-}
-
-/* Скроллбар для контейнера ролей */
-.roles-container::-webkit-scrollbar {
-    width: 6px;
-}
-
-.roles-container::-webkit-scrollbar-track {
-    background: var(--bg-primary);
-    border-radius: 3px;
-}
-
-.roles-container::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 3px;
-}
-
-/* Для планшетов */
-@media (min-width: 481px) and (max-width: 768px) {
-    .roles-grid {
-        grid-template-columns: repeat(2, 1fr);
-        max-height: 280px;
-    }
-}
-
-/* Для больших экранов можно показать 3 колонки */
-@media (min-width: 1024px) {
-    .roles-grid {
-        grid-template-columns: repeat(3, 1fr);
-        max-height: 350px;
-    }
-}
-
-/* Компактная сетка ролей - 2 колонки */
+.roles-grid,
 .roles-grid-compact {
     display: grid;
-    grid-template-columns: repeat(2, 1fr) !important; /* Принудительно 2 колонки */
+    grid-template-columns: repeat(2, 1fr);
     gap: 6px;
     padding: 4px;
-    max-height: 300px;
-    overflow-y: auto;
-    overflow-x: hidden;
 }
-
-/* На мобильных - одна колонка, но со свайпом */
-@media (max-width: 480px) {
-    .roles-grid-compact {
-        display: flex !important;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        overflow-y: hidden;
-        gap: 8px;
-        padding: 8px 4px;
-        -webkit-overflow-scrolling: touch; /* Плавный скролл на iOS */
-        scroll-snap-type: x mandatory;
-    }
-    
-    .roles-grid-compact .role-slot {
-        flex: 0 0 calc(50% - 4px); /* Показываем по 2 карточки */
-        scroll-snap-align: start;
-        min-width: 140px;
-    }
-}
-
-/* Свайпающиеся табы фильтров */
-.session-tabs {
+.role-slot {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: var(--spacing) 10px;
+    background: var(--bg-primary);
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 50px;
     display: flex;
-    flex-wrap: nowrap;
-    gap: 6px;
-    margin: 8px 0;
-    padding: 4px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth;
-    
-    /* Градиент для индикации прокрутки */
-    background: linear-gradient(90deg, 
-        var(--bg-tertiary) 0%,
-        var(--bg-tertiary) 2%,
-        transparent 10%,
-        transparent 90%,
-        var(--bg-tertiary) 98%,
-        var(--bg-tertiary) 100%
-    );
+    flex-direction: column;
+    justify-content: center;
 }
-
-/* Скрываем скроллбары но оставляем функциональность */
-.session-tabs::-webkit-scrollbar,
-.roles-grid-compact::-webkit-scrollbar {
-    display: none;
-}
-
-.session-tabs {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-}
-
-/* Табы не должны сжиматься */
-.session-tab {
-    flex: 0 0 auto;
-    padding: 6px 12px;
-    border: none;
+.role-slot:hover {
+    border-color: var(--accent-primary);
     background: var(--bg-secondary);
+    transform: translateY(-1px);
+}
+.role-slot.occupied { background: var(--bg-secondary); }
+.role-slot.current-user {
+    background: #d1e7dd;
+    border-color: var(--success-color);
+    border-width: 2px;
+}
+.role-slot.blocked {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.role-slot.faded { opacity: 0.3; }
+.role-name {
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+    font-size: 0.85em;
+    line-height: 1.2;
+}
+.role-user {
+    color: var(--text-secondary);
+    font-size: 0.75em;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.role-checkmark {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    color: var(--success-color);
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+/* Popups Base */
+.menu-overlay,
+.popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 3000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--transition);
+    backdrop-filter: blur(4px);
+}
+.menu-overlay.show,
+.popup-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Menu */
+.menu-content {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 280px;
+    height: 100%;
+    background: var(--bg-primary);
+    transform: translateX(100%);
+    transition: transform var(--transition);
+    display: flex;
+    flex-direction: column;
+}
+.menu-overlay.show .menu-content { transform: translateX(0); }
+.menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
+}
+.menu-title {
+    font-size: 1.2em;
+    font-weight: 600;
+}
+.menu-close,
+.popup-close {
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+.menu-item {
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
     cursor: pointer;
     color: var(--text-primary);
-    font-size: 0.85em;
-    transition: all 0.2s;
-    border-radius: 16px;
-    text-align: center;
-    white-space: nowrap;
-    user-select: none;
-    -webkit-user-select: none;
 }
+.menu-item:hover { background: var(--bg-secondary); }
 
-.session-tab:active {
-    transform: scale(0.95);
-}
-
-/* Индикатор прокрутки для табов */
-.session-tabs-wrapper {
-    position: relative;
-}
-
-.session-tabs-wrapper::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 0;
+/* Popup Bottom */
+.popup-bottom {
+    position: fixed;
     bottom: 0;
-    width: 30px;
-    background: linear-gradient(90deg, transparent, var(--bg-primary));
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.3s;
+    left: 0;
+    width: 100%;
+    max-height: 80vh;
+    background: var(--bg-primary);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    overflow-y: auto;
+    transform: translateY(100%);
+    transition: transform var(--transition);
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.15);
+}
+.popup-overlay.show .popup-bottom { transform: translateY(0); }
+
+/* Popup Right */
+.popup-right,
+.role-info-popup {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-primary);
+    transform: translateX(100%);
+    transition: transform var(--transition);
+    display: flex;
+    flex-direction: column;
+}
+.popup-overlay.show .popup-right,
+.popup-overlay.show .role-info-popup {
+    transform: translateX(0);
 }
 
-.session-tabs-wrapper.scrollable::after {
-    opacity: 1;
+/* Popup Header */
+.popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 25px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+.popup-header.accent {
+    background: var(--accent-primary);
+    color: white;
+}
+.popup-nav {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing);
+}
+.popup-back {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--accent-primary);
+}
+.popup-title {
+    font-weight: 600;
+    font-size: 1.1em;
+}
+.popup-body {
+    flex: 1;
+    padding: var(--spacing-lg);
+    overflow-y: auto;
 }
 
-/* Стили для попапа "Общее расписание" */
-.compact-roles-list {
+/* Stats */
+.stats-user {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing);
+}
+.stats-user.complete { border-left: 4px solid var(--success-color); }
+.stats-user.incomplete { border-left: 4px solid var(--error-color); }
+.stats-user-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing);
+}
+.stats-name { font-weight: 600; }
+.stats-telegram a {
+    color: var(--accent-primary);
+    text-decoration: none;
+    font-size: 0.9em;
+}
+.stats-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.stats-category {
+    background: var(--bg-tertiary);
+    padding: 3px 7px;
+    border-radius: var(--radius);
+    font-size: 0.8em;
+    color: var(--text-secondary);
+}
+.stats-user.complete .stats-category {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+/* User Profile */
+.user-profile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: var(--spacing-lg);
+    gap: var(--spacing-lg);
+}
+.user-name {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.user-telegram {
+    font-size: 0.875rem;
+    color: var(--accent-primary);
+    text-decoration: none;
+}
+.user-stats {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    flex-shrink: 0;
+}
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.stat-number {
+    font-size: 1rem;
+    font-weight: 600;
+}
+.stat-label {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+}
+
+/* Schedule Item */
+.schedule-item-compact {
+    background: var(--bg-secondary);
+    padding: 14px 18px;
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--spacing);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.schedule-item-compact:hover {
+    background: var(--bg-tertiary);
+    transform: translateY(-1px);
+}
+.schedule-compact-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    flex: 1;
+    min-width: 0;
+}
+.schedule-compact-time {
+    font-weight: 600;
+    color: var(--accent-primary);
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+.schedule-compact-details {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing);
+    flex: 1;
+    min-width: 0;
+}
+.schedule-compact-role {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+.schedule-compact-type {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.schedule-compact-arrow {
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+.schedule-compact-arrow:hover {
+    color: var(--accent-primary);
+    background: rgba(24,119,242,0.1);
+}
+
+/* Roles Info */
+.roles-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+}
+.roles-list-item:hover { background: var(--bg-secondary); }
+.role-image {
+    height: 150px;
+    background: var(--accent-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4em;
+    color: white;
+}
+.role-description {
+    padding: var(--spacing-xl);
+    line-height: 1.6;
+}
+.role-link {
+    display: block;
+    margin: var(--spacing-lg);
+    padding: var(--spacing-lg);
+    background: var(--accent-primary);
+    color: white;
+    text-align: center;
+    border-radius: var(--radius);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+/* Participant Item */
+.participant-item {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing);
+    cursor: pointer;
+    transition: all 0.2s;
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
-
-.compact-role-item {
+.participant-item:hover {
     background: var(--bg-tertiary);
-    padding: 10px 14px;
-    border-radius: 8px;
+    border-color: var(--accent-primary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+}
+.participant-item.selected {
+    background: #e8f5e8;
+    border-color: var(--success-color);
+    box-shadow: 0 2px 8px rgba(52,168,83,0.15);
+}
+.participant-item.special {
+    background: var(--bg-tertiary);
+    border-style: dashed;
+    border-width: 2px;
+}
+.participant-item.special:hover {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+.participant-item.special:hover .participant-name,
+.participant-item.special:hover .participant-telegram {
+    color: white;
+}
+.participant-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+.participant-telegram {
+    font-size: 0.875rem;
+    color: var(--accent-primary);
+}
+
+/* Loading */
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+.loading-overlay.show { display: flex; }
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255,255,255,0.2);
+    border-top-color: var(--accent-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+.loading-text {
+    color: white;
+    margin-top: var(--spacing-lg);
+    font-size: 1.1em;
+}
+
+/* Loading Screen */
+.loading-screen {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: opacity 0.5s;
+    padding: var(--spacing-xl);
+}
+.loading-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+.loading-logo {
+    margin-bottom: 60px;
+    transition: all 1s;
+}
+.loading-logo.blurred {
+    filter: blur(15px);
+    opacity: 0.2;
+    transform: scale(0.7);
+}
+.logo-image {
+    width: min(400px, 80vw);
+    height: auto;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.loading-content {
+    text-align: center;
+    color: white;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.5s;
+}
+.loading-content.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+.loading-error {
+    color: #ffcccb;
+    font-size: 1.2em;
+    line-height: 1.8;
+}
+.loading-error a {
+    color: white;
+    text-decoration: underline;
+    font-weight: 600;
+}
+
+/* User Schedule Button */
+.user-schedule-btn {
+    background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
-    transition: all 0.2s ease;
+    border-radius: var(--radius);
+    padding: var(--spacing) 10px;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+}
+.user-schedule-btn:hover {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+}
+
+/* Schedule Tabs */
+.schedule-tabs-container {
+    padding: var(--spacing-lg) 0;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: var(--spacing-lg);
+}
+.schedule-date-tabs {
+    display: flex;
+    gap: var(--spacing);
+    overflow-x: auto;
+    padding: 0 4px;
+}
+.schedule-date-tab {
+    min-width: 60px;
+    padding: var(--spacing-lg) var(--spacing);
+    border-radius: var(--radius-lg);
+    background: var(--bg-secondary);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+}
+.schedule-date-tab.active {
+    background: var(--accent-primary);
+    color: white;
+    transform: scale(1.05);
+}
+.schedule-date-tab:hover:not(.active) {
+    background: var(--bg-tertiary);
+}
+.tab-day {
+    font-size: 1.1em;
+    font-weight: 600;
+}
+.tab-month {
+    font-size: 0.8em;
+    opacity: 0.8;
+    text-transform: uppercase;
+}
+
+/* Compact Session Card */
+.compact-session-card {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+.compact-session-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    min-height: 48px;
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing);
+    border-bottom: 1px solid var(--border-color);
 }
-
+.compact-session-time {
+    font-weight: 600;
+    color: var(--accent-primary);
+    font-size: 1.1em;
+}
+.compact-session-type {
+    color: var(--text-secondary);
+    font-size: 0.9em;
+}
+.compact-role-item {
+    background: var(--bg-primary);
+    padding: var(--spacing) var(--spacing-lg);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    transition: all 0.2s;
+    margin-bottom: var(--spacing);
+}
 .compact-role-item.current-user {
     background: #e8f5e8;
     border-color: var(--success-color);
     order: -1;
 }
-
-[data-theme="dark"] .compact-role-item.current-user {
-    background: #2a4b35;
-}
-
 .compact-role-name {
-    font-size: 0.9em;
+    font-size: 0.85em;
     font-weight: 500;
     color: var(--text-primary);
+    margin-bottom: 2px;
 }
-
 .compact-role-user {
-    font-size: 0.85em;
+    font-size: 0.8em;
     color: var(--text-secondary);
-    text-align: right;
-    max-width: 45%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
-
 .compact-role-item.current-user .compact-role-user {
     color: var(--success-color);
     font-weight: 500;
 }
+
+/* Tooltip */
+.progress-tooltip {
+    position: fixed;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: var(--spacing) var(--spacing-lg);
+    border-radius: var(--radius);
+    font-size: 0.9em;
+    z-index: 9999;
+    pointer-events: none;
+    transform: translateX(-50%);
+    animation: fadeIn 0.3s;
+}
+
+/* Big Greeting */
+.big-greeting {
+    font-size: 1.5em;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+    color: var(--accent-primary);
+}
+
+/* Access Block */
+.access-block {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-primary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    text-align: center;
+    padding: var(--spacing-xl);
+}
+.access-block a {
+    color: var(--accent-primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* Animations */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(5px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes slideUp {
+    from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+    to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+@keyframes slideDown {
+    from { transform: translateX(-50%) translateY(0); opacity: 1; }
+    to { transform: translateX(-50%) translateY(20px); opacity: 0; }
+}
+
+/* Dark Theme Specifics */
+[data-theme="dark"] .session {
+    background: var(--bg-secondary);
+    border-color: #3c4043;
+}
+[data-theme="dark"] .session:hover { border-color: #5f6368; }
+[data-theme="dark"] .bath-link { color: #9aa0a6; }
+[data-theme="dark"] .bath-link:hover { color: #8ab4f8; }
+[data-theme="dark"] .progress-circle {
+    background: #3c4043;
+    border-color: #5f6368;
+    color: #9aa0a6;
+}
+[data-theme="dark"] .progress-circle.partial {
+    background: conic-gradient(#81c995 var(--progress-angle, 0deg), #3c4043 0deg);
+    color: #81c995;
+    border-color: #81c995;
+}
+[data-theme="dark"] .progress-circle.partial::before {
+    background: var(--bg-secondary);
+}
+[data-theme="dark"] .progress-circle.complete {
+    background: #2d3e2f;
+    border-color: #81c995;
+    color: #81c995;
+}
+[data-theme="dark"] .session.user-assigned {
+    border-left-color: #81c995;
+    background: linear-gradient(90deg, rgba(129,201,149,0.08) 0%, transparent 100%);
+}
+[data-theme="dark"] .session.user-assigned .session-time::after {
+    color: #81c995;
+}
+[data-theme="dark"] .auto-fill-btn-circle,
+[data-theme="dark"] .slot-link-btn {
+    background: #3c4043;
+    border-color: #5f6368;
+    color: #9aa0a6;
+}
+[data-theme="dark"] .auto-fill-btn-circle:hover {
+    background: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+}
+[data-theme="dark"] .slot-link-btn:hover {
+    background: #8ab4f8;
+    border-color: #8ab4f8;
+    color: #202124;
+}
+[data-theme="dark"] .role-slot.current-user {
+    background: #2a4b35;
+    border-color: var(--success-color);
+}
+[data-theme="dark"] .participant-item.selected {
+    background: #2a4b35;
+    border-color: var(--success-color);
+    box-shadow: 0 2px 8px rgba(129,201,149,0.2);
+}
+[data-theme="dark"] .participant-item.special {
+    background: var(--bg-tertiary);
+}
+[data-theme="dark"] .stats-user.complete .stats-category {
+    background: #2a4b35;
+    color: #a3cfbb;
+}
+[data-theme="dark"] .compact-role-item.current-user {
+    background: #2a4b35;
+}
+[data-theme="dark"] .loading-screen {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+    .container { padding: var(--spacing-lg); }
+    .user-profile {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing);
+        padding: var(--spacing-lg) var(--spacing-lg);
+    }
+    .user-info, .user-stats { width: 100%; }
+    .user-stats { gap: var(--spacing-lg); justify-content: flex-start; }
+    .roles-grid,
+    .roles-grid-compact {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        gap: var(--spacing);
+        padding: var(--spacing) 4px;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+    }
+    .roles-grid .role-slot,
+    .roles-grid-compact .role-slot {
+        flex: 0 0 calc(50% - 4px);
+        scroll-snap-align: start;
+        min-width: 140px;
+    }
+    .session-tabs { gap: 4px; padding: 2px; }
+    .session-tab { padding: 4px var(--spacing); font-size: 0.75em; }
+    .popup-body { padding: var(--spacing-lg); }
+    .participant-item { padding: 14px; margin-bottom: 6px; }
+    .participant-name { font-size: 0.9rem; }
+    .participant-telegram { font-size: 0.8rem; }
+    .schedule-item-compact { padding: var(--spacing-lg) var(--spacing-lg); gap: var(--spacing); }
+    .schedule-compact-info { gap: var(--spacing); }
+    .schedule-compact-time { font-size: 0.9rem; min-width: 40px; }
+    .schedule-compact-role { font-size: 0.85rem; }
+    .schedule-compact-type { font-size: 0.75rem; }
+}
+
+/* Tablet */
+@media (min-width: 481px) and (max-width: 768px) {
+    .roles-grid,
+    .roles-grid-compact {
+        max-height: 280px;
+    }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+    .roles-grid,
+    .roles-grid-compact {
+        grid-template-columns: repeat(3, 1fr);
+        max-height: 350px;
+    }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+/* Utility Classes */
+.hidden { display: none !important; }
+.text-center { text-align: center; }
+.font-bold { font-weight: 600; }
+.mt-1 { margin-top: var(--spacing); }
+.mt-2 { margin-top: var(--spacing-lg); }
+.mb-1 { margin-bottom: var(--spacing); }
+.mb-2 { margin-bottom: var(--spacing-lg); }
