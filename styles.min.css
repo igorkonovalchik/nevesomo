@@ -1157,13 +1157,16 @@ body {
     .user-stats { gap: var(--spacing-lg); justify-content: flex-start; }
     .roles-grid {
         display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+      /*
         flex-wrap: nowrap;
         overflow-x: auto;
         overflow-y: hidden;
         gap: var(--spacing);
         padding: var(--spacing) 4px;
         -webkit-overflow-scrolling: touch;
-        scroll-snap-type: x mandatory;
+        scroll-snap-type: x mandatory; */
     }
    
     .roles-grid .role-slot,
