@@ -163,6 +163,50 @@ body {
     margin-bottom: var(--spacing);
 }
 
+.compact-roles-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    margin-top: 12px;
+}
+
+.compact-role-slot {
+    background: var(--bg-primary);
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    min-height: 45px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.compact-role-slot.current-user {
+    background: #e8f5e8;
+    border-color: var(--success-color);
+}
+
+.compact-role-name {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+    line-height: 1.2;
+}
+
+.compact-role-user {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.compact-role-slot.current-user .compact-role-user {
+    color: var(--success-color);
+    font-weight: 500;
+}
+
 /* Session Card */
 .session {
     background: var(--bg-primary);
