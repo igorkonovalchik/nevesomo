@@ -155,9 +155,21 @@ async function toggleUserAssignment(sessionKey, role) {
 }
 
 async function completeAssignment(comment = '') {
-    if (!pendingAssignment) return;
+    if (!pendingAssignment) {
+        console.error('Нет данных о назначении для завершения');
+        return;
+    }
     
     const { sessionKey, role, day, time } = pendingAssignment;
+    
+    // Добавить отладку
+    console.log('Завершаем назначение:', { sessionKey, role, day, time, currentUser, comment });
+    
+    if (!currentUser) {
+        showNotification('Не выбран пользователь');
+        return;
+    }
+    
     const expandedSession = document.querySelector('.session.expanded')?.getAttribute('data-session');
     
     showLoader('Сохранение шифта...');
