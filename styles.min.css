@@ -494,6 +494,11 @@ body {
 }
 .popup-overlay.show .popup-bottom { transform: translateY(0); }
 
+#shiftComment {
+    font-size: 1.1rem !important;
+    line-height: 1.4;
+}
+
 /* Popup Right */
 .popup-right,
 .role-info-popup {
