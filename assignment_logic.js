@@ -9,6 +9,8 @@ let currentPopupRole = null;
 /* === ОСНОВНЫЕ ФУНКЦИИ НАЗНАЧЕНИЙ === */
 function handleRoleSlotClick(sessionKey, role) {
     console.log('🔍 Клик по роли:', { sessionKey, role, currentMode, currentUser });
+    console.log('🔍 Assignments для сессии:', assignments[sessionKey]);
+    console.log('🔍 Роль доступна:', assignments[sessionKey]?.[role] !== undefined);
     
     if (currentMode === 'admin') {
         openParticipantPopup(sessionKey, role);
