@@ -860,33 +860,61 @@ async function saveShiftComment() {
     console.log('💾 saveShiftComment вызван');
     
     const comment = document.getElementById('editComment').value.trim();
+    console.log('💬 Получен комментарий:', comment);
+    
+    // ИСПРАВЛЕНИЕ: Проверяем переменные ПЕРЕД закрытием попапа
+    console.log('🔍 Проверяем переменные попапа:', {
+        currentPopupSession: window.currentPopupSession,
+        currentPopupRole: window.currentPopupRole
+    });
     
     if (!window.currentPopupSession || !window.currentPopupRole) {
-        console.error('❌ Данные попапа не установлены');
+        console.error('❌ Данные попапа не установлены ПЕРЕД сохранением');
         showNotification('Ошибка: данные шифта не найдены');
         return;
     }
     
-    console.log('💬 Сохраняем комментарий:', comment);
+    // ИСПРАВЛЕНИЕ: Сохраняем переменные В ЛОКАЛЬНЫЕ переменные ПЕРЕД закрытием попапа
+    const sessionToUpdate = window.currentPopupSession;
+    const roleToUpdate = window.currentPopupRole;
     
+    console.log('💾 Сохранили данные для обновления:', {
+        sessionToUpdate,
+        roleToUpdate,
+        comment
+    });
+    
+    // Закрываем попап
     closeEditShiftPopup();
     
-    try {
-        showLoader('Сохранение комментария...');
+    // ИСПРАВЛЕНИЕ: Используем ЛОКАЛЬНЫЕ переменные, а не глобальные
+    if (sessionToUpdate && roleToUpdate) {
+        console.log('💬 Вызываем updateAssignmentComment с сохраненными данными');
         
-        // Обновляем комментарий
-        await updateAssignmentComment(window.currentPopupSession, window.currentPopupRole, comment);
-        
-        showNotification('Комментарий сохранен!');
-        console.log('✅ Комментарий успешно сохранен');
-        
-    } catch (error) {
-        console.error('❌ Ошибка сохранения комментария:', error);
-        showNotification('Ошибка сохранения комментария');
-    } finally {
-        hideLoader();
+        try {
+            showLoader('Сохранение комментария...');
+            
+            // Используем локальные переменные
+            await updateAssignmentComment(sessionToUpdate, roleToUpdate, comment);
+            
+            showNotification('Комментарий сохранен!');
+            console.log('✅ Комментарий успешно сохранен');
+            
+        } catch (error) {
+            console.error('❌ Ошибка сохранения комментария:', error);
+            showNotification('Ошибка сохранения комментария');
+        } finally {
+            hideLoader();
+        }
+    } else {
+        console.error('❌ Локальные переменные тоже не установлены:', {
+            sessionToUpdate,
+            roleToUpdate
+        });
+        showNotification('Ошибка: не удалось сохранить данные шифта');
     }
 }
+
 
 async function releaseShift() {
     // 🔧 СОХРАНЯЕМ переменные ПЕРЕД закрытием попапа
