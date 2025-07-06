@@ -236,16 +236,22 @@ window.addEventListener('dataLoaded', () => {
         if (match) {
             console.log('✅ Участник найден:', match.name);
 
+            // ИСПРАВЛЕНИЕ: Устанавливаем currentUser правильно
+            window.currentUser = match.name;
+            currentUser = match.name;
+            
             // Инициализируем Telegram пользователя
-            initializeTelegramUser(match.name);
+            if (typeof initializeTelegramUser === 'function') {
+                initializeTelegramUser(match.name);
+            }
             
             // Определяем и устанавливаем режим
             const userMode = determineUserMode(match);
             setMode(userMode);
             
-           // console.log(`👤 Режим пользователя: ${userMode}`);
+            console.log(`👤 Режим пользователя: ${userMode}, currentUser: ${window.currentUser}`);
         } else {
-          //  console.log('❌ Участник не найден в базе');
+            console.log('❌ Участник не найден в базе');
         }
     }
 });
@@ -476,5 +482,35 @@ document.addEventListener('DOMContentLoaded', () => {
 window.addEventListener('error', (event) => {
     console.error('🚨 Глобальная ошибка:', event.error);
 });
+
+window.debugBookingSystem = function() {
+    console.log('🔍 === ОТЛАДКА СИСТЕМЫ БРОНИРОВАНИЯ ===');
+    
+    console.log('👤 Текущий пользователь:');
+    console.log('  window.currentUser:', window.currentUser);
+    console.log('  currentUser (локальный):', typeof currentUser !== 'undefined' ? currentUser : 'не определен');
+    
+    console.log('🎯 Переменные попапа:');
+    console.log('  window.currentPopupSession:', window.currentPopupSession);
+    console.log('  window.currentPopupRole:', window.currentPopupRole);
+    console.log('  window.pendingAssignment:', window.pendingAssignment);
+    
+    console.log('🔧 Функции:');
+    console.log('  openBookShiftPopup:', typeof window.openBookShiftPopup);
+    console.log('  confirmBookShift:', typeof window.confirmBookShift);
+    console.log('  completeAssignment:', typeof window.completeAssignment);
+    console.log('  handleRoleSlotClick:', typeof window.handleRoleSlotClick);
+    
+    console.log('📊 Данные:');
+    console.log('  assignments keys:', Object.keys(window.assignments || {}));
+    console.log('  participants:', window.participants?.length || 0);
+    
+    return {
+        currentUser: window.currentUser,
+        popupSession: window.currentPopupSession,
+        popupRole: window.currentPopupRole,
+        pendingAssignment: window.pendingAssignment
+    };
+};
 
 console.log('🎯 Main.js загружен и готов к инициализации');
