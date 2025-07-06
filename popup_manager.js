@@ -727,7 +727,123 @@ function showNotification(message) {
     }, 3000);
 }
 
-// Делаем функции доступными глобально
+// Добавить в конец файла:
+
+/* === ПОПАП БРОНИРОВАНИЯ ШИФТА === */
+function openBookShiftPopup(sessionKey, role) {
+    currentPopupSession = sessionKey;
+    currentPopupRole = role;
+    
+    document.getElementById('bookTitle').textContent = 'Занять шифт?';
+    document.getElementById('bookRoleInfo').textContent = role;
+    document.getElementById('bookComment').value = '';
+    
+    document.getElementById('bookShiftPopup').classList.add('show');
+}
+
+function closeBookShiftPopup() {
+    document.getElementById('bookShiftPopup').classList.remove('show');
+    currentPopupSession = null;
+    currentPopupRole = null;
+}
+
+function confirmBookShift() {
+    const comment = document.getElementById('bookComment').value.trim();
+    closeBookShiftPopup();
+    
+    if (currentPopupSession && currentPopupRole) {
+        // Сохраняем данные для completeAssignment
+        pendingAssignment = {
+            sessionKey: currentPopupSession,
+            role: currentPopupRole,
+            day: currentPopupSession.split('_')[0],
+            time: currentPopupSession.split('_')[1]
+        };
+        completeAssignment(comment);
+    }
+}
+
+/* === ПОПАП РЕДАКТИРОВАНИЯ ШИФТА === */
+function openEditShiftPopup(sessionKey, role) {
+    currentPopupSession = sessionKey;
+    currentPopupRole = role;
+    
+    // Получаем текущий комментарий
+    const currentComment = getAssignmentData(sessionKey, role)?.comment || '';
+    
+    document.getElementById('editTitle').textContent = 'Данные шифта';
+    document.getElementById('editRoleInfo').textContent = role;
+    document.getElementById('editComment').value = currentComment;
+    document.getElementById('editOriginalComment').value = currentComment; // Сохраняем оригинал
+    
+    updateEditButtons(false); // Изначально кнопка "Освободить шифт"
+    
+    document.getElementById('editShiftPopup').classList.add('show');
+}
+
+function closeEditShiftPopup() {
+    document.getElementById('editShiftPopup').classList.remove('show');
+    currentPopupSession = null;
+    currentPopupRole = null;
+}
+
+function onEditCommentChange() {
+    const currentComment = document.getElementById('editComment').value.trim();
+    const originalComment = document.getElementById('editOriginalComment').value.trim();
+    const changed = currentComment !== originalComment;
+    updateEditButtons(changed);
+}
+
+function updateEditButtons(commentChanged) {
+    const actionBtn = document.getElementById('editActionBtn');
+    if (commentChanged) {
+        actionBtn.textContent = 'Сохранить';
+        actionBtn.onclick = saveShiftComment;
+    } else {
+        actionBtn.textContent = 'Освободить шифт';
+        actionBtn.onclick = releaseShift;
+    }
+}
+
+async function saveShiftComment() {
+    const comment = document.getElementById('editComment').value.trim();
+    closeEditShiftPopup();
+    
+    if (currentPopupSession && currentPopupRole) {
+        const [day, time] = currentPopupSession.split('_');
+        
+        try {
+            // Обновляем комментарий в базе
+            await updateAssignmentComment(currentPopupSession, currentPopupRole, comment);
+            showNotification('Комментарий сохранен!');
+        } catch (error) {
+            console.error('Ошибка сохранения комментария:', error);
+            showNotification('Ошибка сохранения комментария');
+        }
+    }
+}
+
+async function releaseShift() {
+    if (!confirm('Вы уверены, что хотите освободить этот шифт?')) {
+        return;
+    }
+    
+    closeEditShiftPopup();
+    
+    if (currentPopupSession && currentPopupRole) {
+        await removeUserAssignment(currentPopupSession, currentPopupRole);
+    }
+}
+
+// Обновляем глобальные функции
+window.openBookShiftPopup = openBookShiftPopup;
+window.closeBookShiftPopup = closeBookShiftPopup;
+window.confirmBookShift = confirmBookShift;
+window.openEditShiftPopup = openEditShiftPopup;
+window.closeEditShiftPopup = closeEditShiftPopup;
+window.onEditCommentChange = onEditCommentChange;
+window.saveShiftComment = saveShiftComment;
+window.releaseShift = releaseShift;
 window.openParticipantPopup = openParticipantPopup;
 window.renderParticipantsList = renderParticipantsList;
 
