@@ -310,16 +310,21 @@ function isUserBusyInSession(sessionKey, userName) {
 
 function getUserRolesInSession(sessionKey, userName) {
     const [day, time] = sessionKey.split('_');
-    const session = schedule[day].find(s => s.time === time);
-    const sessionAssignments = assignments[sessionKey];
+    const session = schedule[day]?.find(s => s.time === time);
     
-   let sessionRoles = [];
+    if (!session) return [];
+    
+    const sessionAssignments = assignments[sessionKey];
+    if (!sessionAssignments) return [];
+    
+    let sessionRoles = [];
     if (session.availableRoles && session.availableRoles.trim()) {
         sessionRoles = session.availableRoles.split(',').map(r => r.trim()).filter(r => r);
     } else {
-        // Если нет ролей в базе - возвращаем пустой массив
         return [];
     }
+    
+    return sessionRoles.filter(role => sessionAssignments[role] === userName);
 }
 
 async function reloadData() {
