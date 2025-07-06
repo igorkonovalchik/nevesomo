@@ -90,10 +90,10 @@ function renderSessionRoles(sessionKey, filter) {
 
 function renderRoleSlot(sessionKey, role) {
     const assignedUser = assignments[sessionKey][role];
-    const assignmentData = getAssignmentData(sessionKey, role);
+    const assignmentData = getAssignmentData ? getAssignmentData(sessionKey, role) : null;
     const comment = assignmentData?.comment || '';
     const isBlocked = isSlotBlocked(sessionKey, role);
-    const isCurrentUser = currentMode === 'user' && assignedUser === currentUser;
+    const isCurrentUser = currentMode === 'user' && assignedUser === (window.currentUser || currentUser);
     
     let className = 'role-slot';
     let userDisplay = 'Свободно';
@@ -113,8 +113,13 @@ function renderRoleSlot(sessionKey, role) {
         userDisplay = 'Занято';
     }
     
+    // Создаем отображаемое название роли с комментарием
+    let roleDisplayName = role;
+    if (comment && assignedUser === (window.currentUser || currentUser)) {
+        roleDisplayName = `${role} (${comment})`;
+    }
+    
     // Обрезаем длинные названия ролей
-    const roleDisplayName = comment ? `${role} (${comment})` : role;
     const shortRoleName = roleDisplayName.length > 25 ? 
         roleDisplayName.substring(0, 23) + '...' : 
         roleDisplayName;
