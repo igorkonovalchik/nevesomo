@@ -634,13 +634,18 @@ function renderCompactSessionForFullSchedule(day, session) {
     return html;
 }
 
+// ЗАМЕНИТЬ функцию switchScheduleDay:
 function switchScheduleDay(day) {
     // Переключаем активный таб
-    document.querySelectorAll('.schedule-date-tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.schedule-date-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
     document.querySelector(`[data-day="${day}"]`).classList.add('active');
     
     // Переключаем содержимое
-    document.querySelectorAll('.schedule-day-content').forEach(content => content.classList.remove('active'));
+    document.querySelectorAll('.schedule-day-content').forEach(content => {
+        content.classList.remove('active');
+    });
     document.querySelector(`.schedule-day-content[data-day="${day}"]`).classList.add('active');
 }
 
