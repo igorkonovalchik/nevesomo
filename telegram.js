@@ -32,7 +32,7 @@
   }
 
   /* === Основная логика доступа === */
-  function applyAccess() {
+ function applyAccess() {
     const participants = window.participants;
     
     // Ищем участника по Telegram_ID или username
@@ -69,12 +69,17 @@
     const userSelect = document.getElementById('currentUser');
     if (userSelect) {
       userSelect.value = match.name;
-      // Сохраняем в глобальную переменную для script.js
-      window.currentUser = match.name;
+    }
+
+    // ИСПРАВЛЕНИЕ: Вызываем функцию setCurrentUser правильно
+    if (typeof window.setCurrentUser === 'function') {
+        window.setCurrentUser(match.name);
+    } else {
+        // Fallback если функция еще не загружена
+        window.currentUser = match.name;
     }
 
     // 4. Определяем режим (admin / user)
-    // Для Игоря проверяем только поле isAdmin из таблицы
     const isAdmin = match.isAdmin === true;
     
     // Сохраняем режим в глобальную переменную
@@ -92,7 +97,7 @@
     if (typeof window.updateMenu === 'function') {
       window.updateMenu();
     }
-  }
+}
 
   /* === Ждём, когда данные и DOM будут готовы === */
   function waitForData() {
