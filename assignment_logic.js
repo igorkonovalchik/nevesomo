@@ -8,18 +8,46 @@ let currentPopupRole = null;
 
 /* === ОСНОВНЫЕ ФУНКЦИИ НАЗНАЧЕНИЙ === */
 function handleRoleSlotClick(sessionKey, role) {
+    console.log('🖱️ Клик по слоту:', {
+        sessionKey,
+        role,
+        currentMode: window.currentMode || currentMode,
+        currentUser: window.currentUser || currentUser,
+        assignedUser: assignments[sessionKey][role]
+    });
+    
     if (currentMode === 'admin') {
+        console.log('👨‍💼 Админ режим - открываем попап участника');
         openParticipantPopup(sessionKey, role);
     } else {
         const assignedUser = assignments[sessionKey][role];
         
-        if (assignedUser === currentUser) {
+        console.log('👤 Пользовательский режим:', {
+            assignedUser,
+            currentUser: window.currentUser || currentUser,
+            isCurrentUser: assignedUser === (window.currentUser || currentUser)
+        });
+        
+        if (assignedUser === (window.currentUser || currentUser)) {
             // Пользователь кликнул на свой слот - открываем попап редактирования
-            openEditShiftPopup(sessionKey, role);
+            console.log('✏️ Открываем редактирование шифта');
+            if (typeof openEditShiftPopup === 'function') {
+                openEditShiftPopup(sessionKey, role);
+            } else {
+                console.error('❌ Функция openEditShiftPopup не найдена');
+                showNotification('Ошибка: функция редактирования недоступна');
+            }
         } else if (assignedUser === null) {
             // Свободный слот - открываем попап бронирования
-            openBookShiftPopup(sessionKey, role);
+            console.log('📝 Открываем бронирование шифта');
+            if (typeof openBookShiftPopup === 'function') {
+                openBookShiftPopup(sessionKey, role);
+            } else {
+                console.error('❌ Функция openBookShiftPopup не найдена');
+                showNotification('Ошибка: функция бронирования недоступна');
+            }
         } else {
+            console.log('🚫 Слот занят другим участником');
             showNotification('Этот слот уже занят другим участником');
         }
     }
