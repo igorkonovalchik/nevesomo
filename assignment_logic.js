@@ -2,9 +2,22 @@
 
 let pendingAssignment = null; // Для хранения данных о назначении в ожидании комментария
 
-/* === ПЕРЕМЕННЫЕ СОСТОЯНИЯ === */
+// Делаем переменные глобальными для синхронизации между модулями
+window.pendingAssignment = null;
+window.currentPopupSession = null;
+window.currentPopupRole = null;
+
+// Локальные ссылки для обратной совместимости
+let pendingAssignment = null;
 let currentPopupSession = null;
 let currentPopupRole = null;
+
+// Функция синхронизации глобальных переменных
+function syncGlobalState() {
+    window.pendingAssignment = pendingAssignment;
+    window.currentPopupSession = currentPopupSession;
+    window.currentPopupRole = currentPopupRole;
+}
 
 /* === ОСНОВНЫЕ ФУНКЦИИ НАЗНАЧЕНИЙ === */
 function handleRoleSlotClick(sessionKey, role) {
@@ -156,17 +169,30 @@ async function toggleUserAssignment(sessionKey, role) {
 }
 
 async function completeAssignment(comment = '') {
-    if (!pendingAssignment) {
-        console.error('Нет данных о назначении для завершения');
+    console.log('🚀 completeAssignment вызван:', {
+        comment,
+        pendingAssignment: window.pendingAssignment || pendingAssignment,
+        currentUser: window.currentUser,
+        globalCurrentUser: currentUser
+    });
+    
+    const assignment = window.pendingAssignment || pendingAssignment;
+    
+    if (!assignment) {
+        console.error('❌ Нет данных о назначении для завершения');
+        showNotification('Ошибка: нет данных о назначении');
         return;
     }
     
-    const { sessionKey, role, day, time } = pendingAssignment;
+    const { sessionKey, role, day, time } = assignment;
+    const user = window.currentUser || currentUser;
     
-    console.log('Завершаем назначение:', { sessionKey, role, day, time, currentUser, comment });
+    console.log('📝 Завершаем назначение:', { sessionKey, role, day, time, user, comment });
     
-    if (!currentUser) {
+    if (!user) {
+        console.error('❌ Не выбран пользователь');
         showNotification('Не выбран пользователь');
+        window.pendingAssignment = null;
         pendingAssignment = null;
         return;
     }
@@ -174,32 +200,42 @@ async function completeAssignment(comment = '') {
     showLoader('Сохранение шифта...');
     
     try {
+        console.log('💾 Сохраняем в Airtable...');
         // Сохраняем в Airtable с комментарием
-        await saveAssignmentToAirtable(currentUser, role, day, time, comment);
+        await saveAssignmentToAirtable(user, role, day, time, comment);
         
+        console.log('📊 Обновляем локальные assignments...');
         // Обновляем локальные assignments
-        assignments[sessionKey][role] = currentUser;
+        assignments[sessionKey][role] = user;
         
         // Сохраняем комментарий локально если есть
         if (comment) {
             if (!window.assignmentComments) window.assignmentComments = {};
             if (!window.assignmentComments[sessionKey]) window.assignmentComments[sessionKey] = {};
             window.assignmentComments[sessionKey][role] = { comment };
+            console.log('💬 Комментарий сохранен:', comment);
         }
         
+        console.log('🎨 Перерисовываем интерфейс...');
         renderSchedule();
         updateProgress();
         
         showNotification('Шифт успешно добавлен!');
+        console.log('✅ Шифт успешно добавлен');
         
     } catch (error) {
-        console.error('Ошибка сохранения:', error);
+        console.error('❌ Ошибка сохранения:', error);
         showNotification('Ошибка при сохранении. Попробуйте еще раз.');
     } finally {
         hideLoader();
+        window.pendingAssignment = null;
         pendingAssignment = null;
+        console.log('🧹 Очищен pendingAssignment');
     }
 }
+
+// Экспортируем функцию глобально
+window.completeAssignment = completeAssignment;
 
 async function removeUserAssignment(sessionKey, role) {
     const [day, time] = sessionKey.split('_');
