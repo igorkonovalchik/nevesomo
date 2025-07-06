@@ -7,10 +7,15 @@ window.pendingAssignment = null;
 window.currentPopupSession = null;
 window.currentPopupRole = null;
 
-// Локальные ссылки для обратной совместимости
-let pendingAssignment = null;
-let currentPopupSession = null;
-let currentPopupRole = null;
+if (typeof window.pendingAssignment === 'undefined') {
+    window.pendingAssignment = null;
+}
+if (typeof window.currentPopupSession === 'undefined') {
+    window.currentPopupSession = null; 
+}
+if (typeof window.currentPopupRole === 'undefined') {
+    window.currentPopupRole = null;
+}
 
 // Функция синхронизации глобальных переменных
 function syncGlobalState() {
@@ -21,50 +26,23 @@ function syncGlobalState() {
 
 /* === ОСНОВНЫЕ ФУНКЦИИ НАЗНАЧЕНИЙ === */
 function handleRoleSlotClick(sessionKey, role) {
-    console.log('🖱️ Клик по слоту:', {
-        sessionKey,
-        role,
-        currentMode: window.currentMode || currentMode,
-        currentUser: window.currentUser || currentUser,
-        assignedUser: assignments[sessionKey][role]
-    });
-    
     if (currentMode === 'admin') {
-        console.log('👨‍💼 Админ режим - открываем попап участника');
         openParticipantPopup(sessionKey, role);
     } else {
         const assignedUser = assignments[sessionKey][role];
         
-        console.log('👤 Пользовательский режим:', {
-            assignedUser,
-            currentUser: window.currentUser || currentUser,
-            isCurrentUser: assignedUser === (window.currentUser || currentUser)
-        });
-        
-        if (assignedUser === (window.currentUser || currentUser)) {
+        if (assignedUser === currentUser) {
             // Пользователь кликнул на свой слот - открываем попап редактирования
-            console.log('✏️ Открываем редактирование шифта');
-            if (typeof openEditShiftPopup === 'function') {
-                openEditShiftPopup(sessionKey, role);
-            } else {
-                console.error('❌ Функция openEditShiftPopup не найдена');
-                showNotification('Ошибка: функция редактирования недоступна');
-            }
+            openEditShiftPopup(sessionKey, role);
         } else if (assignedUser === null) {
             // Свободный слот - открываем попап бронирования
-            console.log('📝 Открываем бронирование шифта');
-            if (typeof openBookShiftPopup === 'function') {
-                openBookShiftPopup(sessionKey, role);
-            } else {
-                console.error('❌ Функция openBookShiftPopup не найдена');
-                showNotification('Ошибка: функция бронирования недоступна');
-            }
+            openBookShiftPopup(sessionKey, role);
         } else {
-            console.log('🚫 Слот занят другим участником');
             showNotification('Этот слот уже занят другим участником');
         }
     }
 }
+
 
 function isSlotBlocked(sessionKey, roleToCheck) {
     if (currentMode !== 'user' || !currentUser) return false;
@@ -171,20 +149,17 @@ async function toggleUserAssignment(sessionKey, role) {
 async function completeAssignment(comment = '') {
     console.log('🚀 completeAssignment вызван:', {
         comment,
-        pendingAssignment: window.pendingAssignment || pendingAssignment,
-        currentUser: window.currentUser,
-        globalCurrentUser: currentUser
+        pendingAssignment: window.pendingAssignment,
+        currentUser: window.currentUser || currentUser
     });
     
-    const assignment = window.pendingAssignment || pendingAssignment;
-    
-    if (!assignment) {
+    if (!window.pendingAssignment) {
         console.error('❌ Нет данных о назначении для завершения');
         showNotification('Ошибка: нет данных о назначении');
         return;
     }
     
-    const { sessionKey, role, day, time } = assignment;
+    const { sessionKey, role, day, time } = window.pendingAssignment;
     const user = window.currentUser || currentUser;
     
     console.log('📝 Завершаем назначение:', { sessionKey, role, day, time, user, comment });
@@ -193,18 +168,15 @@ async function completeAssignment(comment = '') {
         console.error('❌ Не выбран пользователь');
         showNotification('Не выбран пользователь');
         window.pendingAssignment = null;
-        pendingAssignment = null;
         return;
     }
     
     showLoader('Сохранение шифта...');
     
     try {
-        console.log('💾 Сохраняем в Airtable...');
         // Сохраняем в Airtable с комментарием
         await saveAssignmentToAirtable(user, role, day, time, comment);
         
-        console.log('📊 Обновляем локальные assignments...');
         // Обновляем локальные assignments
         assignments[sessionKey][role] = user;
         
@@ -213,15 +185,12 @@ async function completeAssignment(comment = '') {
             if (!window.assignmentComments) window.assignmentComments = {};
             if (!window.assignmentComments[sessionKey]) window.assignmentComments[sessionKey] = {};
             window.assignmentComments[sessionKey][role] = { comment };
-            console.log('💬 Комментарий сохранен:', comment);
         }
         
-        console.log('🎨 Перерисовываем интерфейс...');
         renderSchedule();
         updateProgress();
         
         showNotification('Шифт успешно добавлен!');
-        console.log('✅ Шифт успешно добавлен');
         
     } catch (error) {
         console.error('❌ Ошибка сохранения:', error);
@@ -229,12 +198,10 @@ async function completeAssignment(comment = '') {
     } finally {
         hideLoader();
         window.pendingAssignment = null;
-        pendingAssignment = null;
-        console.log('🧹 Очищен pendingAssignment');
     }
 }
 
-// Экспортируем функцию глобально
+// ЭКСПОРТИРУЕМ функцию глобально СРАЗУ
 window.completeAssignment = completeAssignment;
 
 async function removeUserAssignment(sessionKey, role) {
