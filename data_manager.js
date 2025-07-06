@@ -195,27 +195,34 @@ async function loadAirtableData() {
 }
 
 async function loadAssignments(assignmentsData) {
+    // Очищаем все существующие assignments
     Object.keys(assignments).forEach(key => delete assignments[key]);
     
-    // ИСПРАВЛЕНО: Сначала создаем assignments для всех сессий и всех ролей
+    // Создаем assignments только для сессий с ролями в базе данных
     Object.keys(schedule).forEach(day => {
         schedule[day].forEach(session => {
             const sessionKey = `${day}_${session.time}`;
-            assignments[sessionKey] = {};
             
-            // ВАЖНО: Используем роли из сессии, если они заданы, иначе все роли
-            let sessionRoles = [];
-            if (session.availableRoles && session.availableRoles.trim()) {
-                // Парсим роли из поля availableRoles
-                sessionRoles = session.availableRoles.split(',').map(r => r.trim());
-                console.log(`📝 Сессия ${sessionKey} имеет ограниченные роли:`, sessionRoles);
-            } else {
-                // Если в базе не указаны роли - используем все доступные
-                sessionRoles = allRoles;
-                console.log(`📝 Сессия ${sessionKey} использует все роли по умолчанию`);
+            // Проверяем есть ли роли в базе данных для этой сессии
+            if (!session.availableRoles || !session.availableRoles.trim()) {
+                console.log(`⚠️ Сессия ${sessionKey} не имеет ролей в базе данных - пропускаем`);
+                return; // Пропускаем сессии без ролей
             }
             
-            // Инициализируем все роли как null
+            // Парсим роли из базы данных
+            const sessionRoles = session.availableRoles.split(',').map(r => r.trim()).filter(r => r);
+            
+            if (sessionRoles.length === 0) {
+                console.log(`⚠️ Сессия ${sessionKey} имеет пустой список ролей - пропускаем`);
+                return;
+            }
+            
+            console.log(`📝 Сессия ${sessionKey} роли из базы:`, sessionRoles);
+            
+            // Инициализируем assignments для этой сессии
+            assignments[sessionKey] = {};
+            
+            // Инициализируем только роли из базы данных
             sessionRoles.forEach(role => {
                 assignments[sessionKey][role] = null;
             });
@@ -224,12 +231,12 @@ async function loadAssignments(assignmentsData) {
     
     console.log('📦 Инициализированы assignments:', Object.keys(assignments).length, 'сессий');
     
-    // ИСПРАВЛЕНО: Применяем назначения из Airtable
+    // Применяем назначения из Airtable
     assignmentsData.forEach(assignment => {
         const sessionKey = `${assignment.slotDate}_${assignment.slotTime}`;
         
         if (!assignments[sessionKey]) {
-            console.warn(`⚠️ Сессия ${sessionKey} не найдена для назначения:`, assignment);
+            console.warn(`⚠️ Сессия ${sessionKey} не найдена в assignments (нет ролей в базе)`);
             return;
         }
         
