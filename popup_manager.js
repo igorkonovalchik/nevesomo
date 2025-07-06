@@ -111,7 +111,11 @@ function openSchedulePopup() {
     } else {
         // Для админа показываем полное расписание
         Object.keys(schedule).forEach(day => {
-            html += `<h3 style="margin: 20px 0 16px 0; color: var(--accent-primary);">${formatDate(day)}</h3>`;
+            hhtml += `
+                <div class="schedule-date-sticky">
+                    <h2 style="margin: 0; color: var(--accent-primary); font-size: 1.4em; padding: 16px 0;">${formatDate(day)}</h2>
+                </div>
+            `;
             
             schedule[day].forEach(session => {
                 const sessionKey = `${day}_${session.time}`;
