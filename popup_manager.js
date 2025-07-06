@@ -740,35 +740,80 @@ function showNotification(message) {
 
 /* === ПОПАП БРОНИРОВАНИЯ ШИФТА === */
 function openBookShiftPopup(sessionKey, role) {
+    console.log('📝 openBookShiftPopup вызван:', { sessionKey, role });
+    
+    // Сохраняем в глобальные переменные
+    window.currentPopupSession = sessionKey;
+    window.currentPopupRole = role;
     currentPopupSession = sessionKey;
     currentPopupRole = role;
+    
+    console.log('💾 Установлены переменные попапа:', {
+        currentPopupSession: window.currentPopupSession,
+        currentPopupRole: window.currentPopupRole
+    });
     
     document.getElementById('bookTitle').textContent = 'Занять шифт?';
     document.getElementById('bookRoleInfo').textContent = role;
     document.getElementById('bookComment').value = '';
     
     document.getElementById('bookShiftPopup').classList.add('show');
+    console.log('👁️ Попап бронирования показан');
 }
 
 function closeBookShiftPopup() {
+    console.log('❌ Закрываем попап бронирования');
     document.getElementById('bookShiftPopup').classList.remove('show');
-    currentPopupSession = null;
-    currentPopupRole = null;
+    
+    // НЕ очищаем переменные сразу, они нужны для completeAssignment
+    // window.currentPopupSession = null;
+    // window.currentPopupRole = null;
 }
 
 function confirmBookShift() {
+    console.log('🎯 confirmBookShift вызван');
+    
     const comment = document.getElementById('bookComment').value.trim();
+    console.log('💬 Получен комментарий:', comment);
+    
+    console.log('🔍 Проверяем переменные:', {
+        currentPopupSession: window.currentPopupSession,
+        currentPopupRole: window.currentPopupRole,
+        currentUser: window.currentUser
+    });
+    
     closeBookShiftPopup();
     
-    if (currentPopupSession && currentPopupRole) {
-        // Сохраняем данные для completeAssignment
-        pendingAssignment = {
-            sessionKey: currentPopupSession,
-            role: currentPopupRole,
-            day: currentPopupSession.split('_')[0],
-            time: currentPopupSession.split('_')[1]
+    if (window.currentPopupSession && window.currentPopupRole) {
+        console.log('✅ Переменные попапа установлены, создаем pendingAssignment');
+        
+        // Создаем pendingAssignment
+        const assignment = {
+            sessionKey: window.currentPopupSession,
+            role: window.currentPopupRole,
+            day: window.currentPopupSession.split('_')[0],
+            time: window.currentPopupSession.split('_')[1]
         };
-        completeAssignment(comment);
+        
+        console.log('📦 Создан pendingAssignment:', assignment);
+        
+        // Сохраняем глобально
+        window.pendingAssignment = assignment;
+        
+        // Вызываем completeAssignment
+        if (typeof window.completeAssignment === 'function') {
+            console.log('🚀 Вызываем completeAssignment...');
+            window.completeAssignment(comment);
+        } else {
+            console.error('❌ window.completeAssignment не найден');
+            showNotification('Ошибка: функция завершения назначения недоступна');
+        }
+    } else {
+        console.error('❌ Переменные попапа не установлены:', {
+            currentPopupSession: window.currentPopupSession,
+            currentPopupRole: window.currentPopupRole
+        });
+        showNotification('Ошибка: данные о шифте не найдены');
     }
 }
 
