@@ -909,4 +909,4 @@ window.showConfirmation = showConfirmation;
 window.closeConfirmPopup = closeConfirmPopup;
 window.showNotification = showNotification;
 
-console.log('🪟 Popup Manager загружен');
+console.log('📤 Функции попапов экспортированы глобально');
