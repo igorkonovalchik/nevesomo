@@ -352,7 +352,7 @@ body {
 /* Session Tabs */
 .session-tabs {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: 6px;
     margin: var(--spacing) 0;
     padding: 4px;
