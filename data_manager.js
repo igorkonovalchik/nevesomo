@@ -207,12 +207,15 @@ async function loadAssignments(assignmentsData) {
             assignments[sessionKey] = {};
             
             // ВАЖНО: Используем роли из сессии, если они заданы, иначе все роли
-            let sessionRoles = allRoles;
-            if (session.roles && session.roles.length > 0) {
-                sessionRoles = session.roles;
+            let sessionRoles = [];
+            if (session.availableRoles && session.availableRoles.trim()) {
+                // Парсим роли из поля availableRoles
+                sessionRoles = session.availableRoles.split(',').map(r => r.trim());
                 console.log(`📝 Сессия ${sessionKey} имеет ограниченные роли:`, sessionRoles);
             } else {
-                console.log(`📝 Сессия ${sessionKey} использует все роли:`, allRoles.length);
+                // Если в базе не указаны роли - используем все доступные
+                sessionRoles = allRoles;
+                console.log(`📝 Сессия ${sessionKey} использует все роли по умолчанию`);
             }
             
             // Инициализируем все роли как null
