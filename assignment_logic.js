@@ -256,15 +256,6 @@ function validateRolesData() {
             }
         });
     });
-    
-    // Проверяем assignments
-    Object.entries(assignments).forEach(([sessionKey, sessionRoles]) => {
-        const availableRoles = Object.keys(sessionRoles);
-        const missingRoles = allRoles.filter(role => !availableRoles.includes(role));
-        if (missingRoles.length > 0) {
-            console.warn(`⚠️ В сессии ${sessionKey} отсутствуют роли:`, missingRoles);
-        }
-    });
 }
 
 // Добавляем вызов проверки после загрузки данных
