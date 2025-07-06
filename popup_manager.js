@@ -889,26 +889,16 @@ async function saveShiftComment() {
 }
 
 async function releaseShift() {
-    console.log('🗑️ releaseShift вызван');
+    // 🔧 СОХРАНЯЕМ переменные ПЕРЕД закрытием попапа
+    const sessionToDelete = window.currentPopupSession;
+    const roleToDelete = window.currentPopupRole;
     
-    if (!confirm('Вы уверены, что хотите освободить этот шифт?')) {
-        return;
-    }
-    
-    if (!window.currentPopupSession || !window.currentPopupRole) {
-        console.error('❌ Данные попапа не установлены');
-        showNotification('Ошибка: данные шифта не найдены');
-        return;
-    }
-    
-    console.log('🗑️ Освобождаем шифт:', {
-        session: window.currentPopupSession,
-        role: window.currentPopupRole
-    });
+    if (!confirm('Вы уверены?')) return;
     
     closeEditShiftPopup();
     
-    await removeUserAssignment(window.currentPopupSession, window.currentPopupRole);
+    // 🔧 Используем ЛОКАЛЬНЫЕ переменные
+    await removeUserAssignment(sessionToDelete, roleToDelete);
 }
 
 /* === ЭКСПОРТ ГЛОБАЛЬНЫХ ФУНКЦИЙ === */
