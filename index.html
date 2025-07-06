@@ -7,6 +7,36 @@
     <link rel="stylesheet" href="https://nevesomo.vercel.app/styles.min.css">
     <!-- Telegram Mini‑App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+// Глобальная отладка
+window.debugShifts = function() {
+    console.log('🔍 === ОТЛАДКА СОСТОЯНИЯ СИСТЕМЫ ===');
+    console.log('👤 currentUser:', window.currentUser);
+    console.log('🔧 currentMode:', window.currentMode);
+    console.log('📦 assignments keys:', Object.keys(window.assignments || {}));
+    console.log('👥 participants:', window.participants?.length || 0);
+    
+    // Проверяем доступность функций
+    const functions = [
+        'openBookShiftPopup',
+        'openEditShiftPopup', 
+        'handleRoleSlotClick',
+        'setCurrentUser',
+        'renderSchedule'
+    ];
+    
+    functions.forEach(funcName => {
+        console.log(`🔧 ${funcName}:`, typeof window[funcName]);
+    });
+};
+
+// Вызываем отладку через 5 секунд после загрузки
+setTimeout(() => {
+    if (window.debugShifts) {
+        window.debugShifts();
+    }
+}, 5000);
+</script>
 </head>
 <body>
     <!-- Заставка загрузки -->
