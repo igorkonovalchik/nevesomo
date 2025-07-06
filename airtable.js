@@ -196,7 +196,8 @@ class AirtableService {
                 slotDate: record.fields.Slot_Date || '',
                 slotTime: record.fields.Slot_Time || '',
                 assignedDate: record.fields.Assigned_Date || '',
-                status: record.fields.Status || ''
+                status: record.fields.Status || '',
+                comment: record.fields.Comment || ''
             }));
         } catch (error) {
             console.error('Error getting assignments:', error);
