@@ -519,8 +519,40 @@ async function removeUserAssignment(sessionKey, role) {
 async function updateAssignmentComment(sessionKey, role, comment) {
     console.log('💬 updateAssignmentComment вызван:', { sessionKey, role, comment });
     
+    // ИСПРАВЛЕНИЕ: Добавляем проверку на null/undefined
+    if (!sessionKey || !role) {
+        console.error('❌ Некорректные параметры:', { sessionKey, role });
+        showNotification('Ошибка: некорректные данные шифта');
+        return;
+    }
+    
+    // ИСПРАВЛЕНИЕ: Проверяем что sessionKey содержит '_'
+    if (typeof sessionKey !== 'string' || !sessionKey.includes('_')) {
+        console.error('❌ Некорректный формат sessionKey:', sessionKey);
+        showNotification('Ошибка: некорректный формат данных');
+        return;
+    }
+    
     const [day, time] = sessionKey.split('_');
+    
+    // ИСПРАВЛЕНИЕ: Проверяем что day и time получены корректно
+    if (!day || !time) {
+        console.error('❌ Не удалось извлечь день и время:', { day, time, sessionKey });
+        showNotification('Ошибка: некорректные данные времени');
+        return;
+    }
+    
     const currentUserForComment = window.currentUser || currentUser;
+    
+    // ИСПРАВЛЕНИЕ: Проверяем что пользователь установлен
+    if (!currentUserForComment) {
+        console.error('❌ Пользователь не установлен');
+        showNotification('Ошибка: пользователь не определен');
+        return;
+    }
+    
+    console.log('👤 Обновляем комментарий для пользователя:', currentUserForComment);
+    console.log('📅 День и время:', { day, time });
     
     try {
         console.log('💾 Обновляем комментарий в Airtable...');
@@ -538,10 +570,16 @@ async function updateAssignmentComment(sessionKey, role, comment) {
             await window.airtableService.updateAssignment(assignment.id, { Comment: comment });
             console.log('✅ Комментарий обновлен в Airtable');
         } else {
-            console.warn('⚠️ Назначение не найдено в Airtable');
+            console.warn('⚠️ Назначение не найдено в Airtable:', {
+                participantName: currentUserForComment,
+                roleName: role,
+                slotDate: day,
+                slotTime: time
+            });
+            showNotification('Предупреждение: назначение не найдено в базе, но комментарий сохранен локально');
         }
         
-        // Обновляем локально
+        // Обновляем локально в любом случае
         if (!window.assignmentComments) window.assignmentComments = {};
         if (!window.assignmentComments[sessionKey]) window.assignmentComments[sessionKey] = {};
         window.assignmentComments[sessionKey][role] = { comment };
