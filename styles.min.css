@@ -360,8 +360,33 @@ body {
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    scroll-behavior: smooth;
 }
-.session-tabs::-webkit-scrollbar { display: none; }
+
+.session-tabs::-webkit-scrollbar { 
+    display: none; 
+}
+
+/* Добавить поддержку touch-действий */
+.session-tabs {
+    touch-action: pan-x;
+}
+
+@media (max-width: 768px) {
+    .session-tabs {
+        gap: 4px;
+        padding: 2px;
+        margin: 8px 0;
+    }
+    
+    .session-tab {
+        padding: 6px 12px;
+        font-size: 0.8em;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+}
+
 .session-tab {
     flex: 0 0 auto;
     padding: 6px 12px;
