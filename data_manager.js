@@ -150,21 +150,18 @@ async function loadAirtableData() {
                 schedule[dateKey] = [];
             }
             
-            let availableRoles = [];
-            if (session.availableRoles) {
-                availableRoles = session.availableRoles.split(',').map(r => r.trim());
-                console.log(`📅 Сессия ${session.startTime} ${dateKey}: ограниченные роли`, availableRoles);
-            }
-            
+           // НОВЫЙ блок - без fallback и без лишних полей:
             schedule[dateKey].push({
-               time: session.startTime,
+                time: session.startTime,
                 endTime: session.endTime,
                 sessionNum: session.sessionNumber,
                 status: session.status,
                 type: session.type,
-                roles: availableRoles.length > 0 ? availableRoles : undefined,
+                availableRoles: session.availableRoles, // Сохраняем как есть из базы
                 slotLink: session.slotLink || null  
             });
+            
+            console.log(`📅 Сессия ${session.startTime} ${dateKey}: роли из базы: "${session.availableRoles}"`);
         });
         
         // Сохраняем настройки
@@ -309,12 +306,13 @@ function getUserRolesInSession(sessionKey, userName) {
     const session = schedule[day].find(s => s.time === time);
     const sessionAssignments = assignments[sessionKey];
     
-    let sessionRoles = allRoles;
-    if (session.roles) {
-        sessionRoles = session.roles;
+   let sessionRoles = [];
+    if (session.availableRoles && session.availableRoles.trim()) {
+        sessionRoles = session.availableRoles.split(',').map(r => r.trim()).filter(r => r);
+    } else {
+        // Если нет ролей в базе - возвращаем пустой массив
+        return [];
     }
-    
-    return sessionRoles.filter(role => sessionAssignments[role] === userName);
 }
 
 async function reloadData() {
