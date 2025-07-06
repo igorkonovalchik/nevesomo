@@ -41,6 +41,11 @@ function setMode(mode) {
 }
 
 function setCurrentUser(userName) {
+    // Избегаем рекурсии - проверяем, нужно ли обновление
+    if (currentUser === userName) {
+        return; // Ничего не делаем, если значение не изменилось
+    }
+    
     currentUser = userName;
     
     // Обновляем селектор
@@ -52,14 +57,21 @@ function setCurrentUser(userName) {
     // Сохраняем в глобальной области
     window.currentUser = currentUser;
     
-    updateView();
+    // Вызываем рендеринг НАПРЯМУЮ, а не через updateView
+    renderSchedule();
+    updateProgress();
 }
 
 /* === ОБНОВЛЕНИЕ ИНТЕРФЕЙСА === */
 function updateView() {
     if (currentMode === 'user') {
-        currentUser = document.getElementById('currentUser')?.value || currentUser;
-        setCurrentUser(currentUser);
+        const userSelectValue = document.getElementById('currentUser')?.value || '';
+        
+        // Избегаем рекурсии - обновляем currentUser напрямую, без вызова setCurrentUser
+        if (userSelectValue !== currentUser) {
+            currentUser = userSelectValue;
+            window.currentUser = currentUser;
+        }
     }
     
     // Отрисовываем расписание с новыми параметрами
