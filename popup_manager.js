@@ -796,11 +796,17 @@ function confirmBookShift() {
 
 /* === ПОПАП РЕДАКТИРОВАНИЯ ШИФТА === */
 function openEditShiftPopup(sessionKey, role) {
-    currentPopupSession = sessionKey;
-    currentPopupRole = role;
+    console.log('✏️ openEditShiftPopup вызван:', { sessionKey, role });
+    
+    // Устанавливаем глобальные переменные
+    window.currentPopupSession = sessionKey;
+    window.currentPopupRole = role;
     
     // Получаем текущий комментарий
-    const currentComment = getAssignmentData(sessionKey, role)?.comment || '';
+    const assignmentData = getAssignmentData(sessionKey, role);
+    const currentComment = assignmentData ? assignmentData.comment || '' : '';
+    
+    console.log('💬 Текущий комментарий:', currentComment);
     
     document.getElementById('editTitle').textContent = 'Данные шифта';
     document.getElementById('editRoleInfo').textContent = role;
@@ -810,60 +816,99 @@ function openEditShiftPopup(sessionKey, role) {
     updateEditButtons(false); // Изначально кнопка "Освободить шифт"
     
     document.getElementById('editShiftPopup').classList.add('show');
+    console.log('👁️ Попап редактирования показан');
 }
 
 function closeEditShiftPopup() {
+    console.log('❌ Закрываем попап редактирования');
     document.getElementById('editShiftPopup').classList.remove('show');
-    currentPopupSession = null;
-    currentPopupRole = null;
+    window.currentPopupSession = null;
+    window.currentPopupRole = null;
 }
 
+
 function onEditCommentChange() {
+    console.log('📝 onEditCommentChange вызван');
+    
     const currentComment = document.getElementById('editComment').value.trim();
     const originalComment = document.getElementById('editOriginalComment').value.trim();
     const changed = currentComment !== originalComment;
+    
+    console.log('💬 Изменение комментария:', { currentComment, originalComment, changed });
+    
     updateEditButtons(changed);
 }
 
 function updateEditButtons(commentChanged) {
-    const actionBtn = document.getElementById('editActionBtn');
-    if (commentChanged) {
-        actionBtn.textContent = 'Сохранить';
-        actionBtn.onclick = saveShiftComment;
-    } else {
-        actionBtn.textContent = 'Освободить шифт';
-        actionBtn.onclick = releaseShift;
-    }
-}
-
-async function saveShiftComment() {
-    const comment = document.getElementById('editComment').value.trim();
-    closeEditShiftPopup();
+    console.log('🔄 updateEditButtons вызван, изменен:', commentChanged);
     
-    if (currentPopupSession && currentPopupRole) {
-        const [day, time] = currentPopupSession.split('_');
-        
-        try {
-            // Обновляем комментарий в базе
-            await updateAssignmentComment(currentPopupSession, currentPopupRole, comment);
-            showNotification('Комментарий сохранен!');
-        } catch (error) {
-            console.error('Ошибка сохранения комментария:', error);
-            showNotification('Ошибка сохранения комментария');
+    const actionBtn = document.getElementById('editActionBtn');
+    if (actionBtn) {
+        if (commentChanged) {
+            actionBtn.textContent = 'Сохранить';
+            actionBtn.onclick = saveShiftComment;
+            actionBtn.style.background = 'var(--accent-primary)';
+        } else {
+            actionBtn.textContent = 'Освободить шифт';
+            actionBtn.onclick = releaseShift;
+            actionBtn.style.background = 'var(--error-color)';
         }
     }
 }
 
+async function saveShiftComment() {
+    console.log('💾 saveShiftComment вызван');
+    
+    const comment = document.getElementById('editComment').value.trim();
+    
+    if (!window.currentPopupSession || !window.currentPopupRole) {
+        console.error('❌ Данные попапа не установлены');
+        showNotification('Ошибка: данные шифта не найдены');
+        return;
+    }
+    
+    console.log('💬 Сохраняем комментарий:', comment);
+    
+    closeEditShiftPopup();
+    
+    try {
+        showLoader('Сохранение комментария...');
+        
+        // Обновляем комментарий
+        await updateAssignmentComment(window.currentPopupSession, window.currentPopupRole, comment);
+        
+        showNotification('Комментарий сохранен!');
+        console.log('✅ Комментарий успешно сохранен');
+        
+    } catch (error) {
+        console.error('❌ Ошибка сохранения комментария:', error);
+        showNotification('Ошибка сохранения комментария');
+    } finally {
+        hideLoader();
+    }
+}
+
 async function releaseShift() {
+    console.log('🗑️ releaseShift вызван');
+    
     if (!confirm('Вы уверены, что хотите освободить этот шифт?')) {
         return;
     }
     
+    if (!window.currentPopupSession || !window.currentPopupRole) {
+        console.error('❌ Данные попапа не установлены');
+        showNotification('Ошибка: данные шифта не найдены');
+        return;
+    }
+    
+    console.log('🗑️ Освобождаем шифт:', {
+        session: window.currentPopupSession,
+        role: window.currentPopupRole
+    });
+    
     closeEditShiftPopup();
     
-    if (currentPopupSession && currentPopupRole) {
-        await removeUserAssignment(currentPopupSession, currentPopupRole);
-    }
+    await removeUserAssignment(window.currentPopupSession, window.currentPopupRole);
 }
 
 /* === ЭКСПОРТ ГЛОБАЛЬНЫХ ФУНКЦИЙ === */
