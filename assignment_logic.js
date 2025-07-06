@@ -202,7 +202,7 @@ async function completeAssignment(comment = '') {
 }
 
 // ЭКСПОРТИРУЕМ функцию глобально СРАЗУ
-window.completeAssignment = completeAssignment;
+// window.completeAssignment = completeAssignment;
 
 async function removeUserAssignment(sessionKey, role) {
     const [day, time] = sessionKey.split('_');
