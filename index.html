@@ -239,5 +239,70 @@
         </div>
     </div>
 </div>
+
+    <!-- Попап бронирования шифта -->
+<div class="popup-overlay" id="bookShiftPopup">
+    <div class="popup-bottom" onclick="event.stopPropagation()">
+        <div class="popup-header">
+            <div class="popup-title" id="bookTitle">Занять шифт?</div>
+            <button class="popup-close" onclick="closeBookShiftPopup()">×</button>
+        </div>
+        <div class="popup-body">
+            <div id="bookRoleInfo" style="font-weight: 500; margin-bottom: 16px; color: var(--accent-primary);"></div>
+            <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.9em;">
+                Добавить комментарий
+            </p>
+            <textarea 
+                id="bookComment" 
+                placeholder="Например: МК Йога"
+                maxlength="50"
+                style="width: 100%; min-height: 80px; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); resize: none; font-family: inherit; font-size: 1rem;"
+            ></textarea>
+            <p style="color: var(--text-secondary); font-size: 0.8em; margin-top: 8px;">
+                Максимум 50 символов. Можно оставить пустым.
+            </p>
+            <div style="margin-top: 20px;">
+                <button onclick="confirmBookShift()" style="width: 100%; padding: 16px; background: var(--accent-primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1.1em;">
+                    Занять!
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Попап редактирования шифта -->
+<div class="popup-overlay" id="editShiftPopup">
+    <div class="popup-bottom" onclick="event.stopPropagation()">
+        <div class="popup-header">
+            <div class="popup-title" id="editTitle">Данные шифта</div>
+            <button class="popup-close" onclick="closeEditShiftPopup()">×</button>
+        </div>
+        <div class="popup-body">
+            <div id="editRoleInfo" style="font-weight: 500; margin-bottom: 16px; color: var(--accent-primary);"></div>
+            <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.9em;">
+                Изменить комментарий
+            </p>
+            <textarea 
+                id="editComment" 
+                placeholder="Например: МК Йога"
+                maxlength="50"
+                oninput="onEditCommentChange()"
+                style="width: 100%; min-height: 80px; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); resize: none; font-family: inherit; font-size: 1rem;"
+            ></textarea>
+            <input type="hidden" id="editOriginalComment">
+            <p style="color: var(--text-secondary); font-size: 0.8em; margin-top: 8px;">
+                Максимум 50 символов.
+            </p>
+            <div style="display: flex; gap: 12px; margin-top: 20px;">
+                <button onclick="closeEditShiftPopup()" style="flex: 1; padding: 12px; background: var(--bg-tertiary); border: none; border-radius: 8px; cursor: pointer;">
+                    Отмена
+                </button>
+                <button id="editActionBtn" style="flex: 1; padding: 12px; background: var(--error-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                    Освободить шифт
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>
