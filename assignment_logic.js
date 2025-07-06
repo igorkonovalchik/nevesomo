@@ -8,27 +8,20 @@ let currentPopupRole = null;
 
 /* === ОСНОВНЫЕ ФУНКЦИИ НАЗНАЧЕНИЙ === */
 function handleRoleSlotClick(sessionKey, role) {
-    console.log('🔍 Клик по роли:', { sessionKey, role, currentMode, currentUser });
-    console.log('🔍 Assignments для сессии:', assignments[sessionKey]);
-    console.log('🔍 Роль доступна:', assignments[sessionKey]?.[role] !== undefined);
-    
     if (currentMode === 'admin') {
         openParticipantPopup(sessionKey, role);
     } else {
-        // Проверяем, что роль существует в assignments
-        if (!assignments[sessionKey] || assignments[sessionKey][role] === undefined) {
-            console.error(`❌ Роль "${role}" не найдена в сессии ${sessionKey}`);
-            showNotification(`Ошибка: роль "${role}" недоступна в этой сессии. Обратитесь к администратору.`);
-            return;
-        }
+        const assignedUser = assignments[sessionKey][role];
         
-        // Проверяем правило мастер-класса
-        if (role === 'Любовь+Забота+Мастер класс' && !hasLoungeRole(currentUser)) {
-            showNotification('Мастер-класс может быть выбран только участниками, которые уже записались в категорию "Лаунж". Сначала выберите себе шифт в лаунже!');
-            return;
+        if (assignedUser === currentUser) {
+            // Пользователь кликнул на свой слот - открываем попап редактирования
+            openEditShiftPopup(sessionKey, role);
+        } else if (assignedUser === null) {
+            // Свободный слот - открываем попап бронирования
+            openBookShiftPopup(sessionKey, role);
+        } else {
+            showNotification('Этот слот уже занят другим участником');
         }
-        
-        toggleUserAssignment(sessionKey, role);
     }
 }
 
