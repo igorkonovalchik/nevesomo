@@ -390,15 +390,33 @@ function isSlotBlocked(sessionKey, role) {
     return false;
 }
 
-// УДАЛИ первую версию renderSession и оставь только эту исправленную версию:
-
 function renderSession(day, session) {
     const sessionKey = `${day}_${session.time}`;
     const sessionAssignments = assignments[sessionKey];
     
-    let sessionRoles = allRoles;
-    if (session.roles) {
-        sessionRoles = session.roles;
+    let sessionRoles = [];
+    if (session.availableRoles && session.availableRoles.trim()) {
+        sessionRoles = session.availableRoles.split(',').map(r => r.trim()).filter(r => r);
+    } else {
+        // Если нет ролей в базе - возвращаем пустой массив
+        sessionRoles = [];
+    }
+    
+    // Если нет ролей - показываем сессию без возможности взаимодействия
+    if (sessionRoles.length === 0) {
+        return `
+            <div class="session" data-session="${sessionKey}">
+                <div class="session-compact">
+                    <div class="session-info">
+                        <div class="session-basic-info">
+                            <div class="session-time">${session.time} - ${session.endTime}</div>
+                            <div class="session-details">${session.type}</div>
+                        </div>
+                        <div style="color: var(--text-secondary); font-size: 0.9em;">Нет доступных ролей</div>
+                    </div>
+                </div>
+            </div>
+        `;
     }
     
     const filledRoles = sessionRoles.filter(role => sessionAssignments[role] !== null && sessionAssignments[role] !== undefined).length;
@@ -408,7 +426,7 @@ function renderSession(day, session) {
     
     const userRoles = currentMode === 'user' && currentUser ? 
         getUserRolesInSession(sessionKey, currentUser) : [];
-    const hasUserAssignment = userRoles.length > 0;
+    const hasUserAssignment = userRoles && userRoles.length > 0;
     
     let progressClass = 'empty';
     if (percentage === 100) {
