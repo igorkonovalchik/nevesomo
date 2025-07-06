@@ -1223,6 +1223,15 @@ body {
     }
 }
 
+/* Добавить в конец файла: */
+.schedule-day-content {
+    display: none;
+}
+
+.schedule-day-content.active {
+    display: block;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-secondary); border-radius: 3px; }
