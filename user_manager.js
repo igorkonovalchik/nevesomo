@@ -214,15 +214,7 @@ function determineUserMode(participant) {
 }
 
 /* === ОБРАБОТЧИКИ СОБЫТИЙ === */
-function initUserHandlers() {
-    // Обработчик изменения селектора участника
-    const userSelect = document.getElementById('currentUser');
-    if (userSelect) {
-        userSelect.addEventListener('change', (event) => {
-            setCurrentUser(event.target.value);
-        });
-    }
-    
+function initUserHandlers() {    
     // Обработчик события загрузки данных
     window.addEventListener('dataLoaded', () => {
         initializeParticipantsSelector();
