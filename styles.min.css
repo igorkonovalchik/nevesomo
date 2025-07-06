@@ -870,6 +870,21 @@ body {
     font-size: 1.1em;
 }
 
+/* Sticky заголовки дат */
+.schedule-date-sticky {
+    position: sticky;
+    top: 0;
+    background: var(--bg-primary);
+    z-index: 10;
+    border-bottom: 1px solid var(--border-color);
+    margin: 16px -20px 0 -20px;
+    padding: 0 20px;
+}
+
+[data-theme="dark"] .schedule-date-sticky {
+    background: var(--bg-primary);
+}
+
 /* Loading Screen */
 .loading-screen {
     position: fixed;
