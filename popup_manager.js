@@ -844,7 +844,8 @@ async function releaseShift() {
     }
 }
 
-// Обновляем глобальные функции
+/* === ЭКСПОРТ ГЛОБАЛЬНЫХ ФУНКЦИЙ === */
+// Экспортируем все функции попапов в глобальную область
 window.openBookShiftPopup = openBookShiftPopup;
 window.closeBookShiftPopup = closeBookShiftPopup;
 window.confirmBookShift = confirmBookShift;
@@ -855,5 +856,12 @@ window.saveShiftComment = saveShiftComment;
 window.releaseShift = releaseShift;
 window.openParticipantPopup = openParticipantPopup;
 window.renderParticipantsList = renderParticipantsList;
+window.openCommentPopup = openCommentPopup;
+window.closeCommentPopup = closeCommentPopup;
+window.skipComment = skipComment;
+window.saveComment = saveComment;
+window.showConfirmation = showConfirmation;
+window.closeConfirmPopup = closeConfirmPopup;
+window.showNotification = showNotification;
 
 console.log('🪟 Popup Manager загружен');
