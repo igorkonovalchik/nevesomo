@@ -14,6 +14,23 @@ async function init() {
         // Загружаем данные из Airtable
         await loadAirtableData();
         
+        // ИСПРАВЛЕНИЕ: Инициализируем глобальные переменные состояния
+        if (typeof window.currentUser === 'undefined') {
+            window.currentUser = '';
+        }
+        if (typeof window.currentMode === 'undefined') {
+            window.currentMode = 'user';
+        }
+        
+        // Устанавливаем локальные переменные
+        currentUser = window.currentUser;
+        currentMode = window.currentMode;
+        
+        console.log('🔧 Инициализированы переменные состояния:', {
+            currentUser,
+            currentMode
+        });
+        
         // Инициализируем селектор участников
         initializeParticipantsSelector();
         
