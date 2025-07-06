@@ -25,47 +25,25 @@ function handleRoleSlotClick(sessionKey, role) {
     }
 }
 
-// ИСПРАВЛЕНО: Улучшенная функция проверки блокировки
 function isSlotBlocked(sessionKey, roleToCheck) {
     if (currentMode !== 'user' || !currentUser) return false;
     
     const sessionTime = sessionKey.split('_')[1];
-    const userRolesInTime = [];
     
-    // Собираем все роли пользователя в это время
+    // Проверяем все сессии в это же время
     for (const [checkSessionKey, sessionRoles] of Object.entries(assignments)) {
         const checkTime = checkSessionKey.split('_')[1];
-        if (checkTime === sessionTime) {
+        if (checkTime === sessionTime && checkSessionKey !== sessionKey) {
+            // Проверяем есть ли у пользователя роли в других сессиях в это время
             for (const [role, assignedUser] of Object.entries(sessionRoles)) {
                 if (assignedUser === currentUser) {
-                    userRolesInTime.push(role);
+                    return true; // Блокируем - пользователь уже занят в это время
                 }
             }
         }
     }
     
-    // Если у пользователя нет ролей в это время - не блокируем
-    if (userRolesInTime.length === 0) {
-        return false;
-    }
-    
-    // Проверяем правила совместимости
-    const isLoungeRole = role => roleGroups.lounge?.roles.includes(role);
-    const isMasterClass = role => role === 'Любовь+Забота+Мастер класс';
-    
-    const wantsLounge = isLoungeRole(roleToCheck);
-    const wantsMaster = isMasterClass(roleToCheck);
-    
-    const hasLounge = userRolesInTime.some(isLoungeRole);
-    const hasMaster = userRolesInTime.some(isMasterClass);
-    
-    // Разрешаем комбинацию Лаунж + Мастер класс
-    if ((wantsLounge && hasMaster) || (wantsMaster && hasLounge)) {
-        return false;
-    }
-    
-    // Во всех остальных случаях блокируем если уже есть роль в это время
-    return userRolesInTime.length > 0;
+    return false;
 }
 
 // ИСПРАВЛЕНО: Улучшенная проверка лаунж-ролей
