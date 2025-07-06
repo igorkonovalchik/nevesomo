@@ -39,28 +39,42 @@ function setMode(mode) {
     // Сохраняем режим в глобальной области
     window.currentMode = currentMode;
 }
-
 function setCurrentUser(userName) {
+    console.log('🔧 setCurrentUser вызван с:', userName);
+    
     // Избегаем рекурсии - проверяем, нужно ли обновление
     if (currentUser === userName) {
+        console.log('👤 Пользователь уже установлен:', userName);
         return; // Ничего не делаем, если значение не изменилось
     }
     
     currentUser = userName;
+    console.log('✅ Установлен currentUser:', currentUser);
     
     // Обновляем селектор
     const userSelect = document.getElementById('currentUser');
     if (userSelect && userSelect.value !== userName) {
         userSelect.value = userName;
+        console.log('📝 Обновлен селектор пользователя');
     }
     
     // Сохраняем в глобальной области
     window.currentUser = currentUser;
     
     // Вызываем рендеринг НАПРЯМУЮ, а не через updateView
-    renderSchedule();
-    updateProgress();
+    if (typeof renderSchedule === 'function') {
+        renderSchedule();
+        console.log('🎨 Расписание перерисовано');
+    }
+    
+    if (typeof updateProgress === 'function') {
+        updateProgress();
+        console.log('📊 Прогресс обновлен');
+    }
 }
+
+// Экспортируем setCurrentUser глобально
+window.setCurrentUser = setCurrentUser;
 
 /* === ОБНОВЛЕНИЕ ИНТЕРФЕЙСА === */
 function updateView() {
