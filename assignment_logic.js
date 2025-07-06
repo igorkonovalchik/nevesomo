@@ -445,4 +445,121 @@ function hideLoader() {
     }
 }
 
+// Функция получения данных о назначении (включая комментарий)
+function getAssignmentData(sessionKey, role) {
+    console.log('📖 getAssignmentData вызван:', { sessionKey, role });
+    
+    // Проверяем есть ли комментарий в локальном хранилище
+    if (window.assignmentComments && 
+        window.assignmentComments[sessionKey] && 
+        window.assignmentComments[sessionKey][role]) {
+        
+        const data = window.assignmentComments[sessionKey][role];
+        console.log('💬 Найден комментарий:', data);
+        return data;
+    }
+    
+    console.log('📝 Комментарий не найден, возвращаем пустой');
+    return { comment: '' };
+}
+
+// Функция удаления назначения пользователя
+async function removeUserAssignment(sessionKey, role) {
+    console.log('🗑️ removeUserAssignment вызван:', { sessionKey, role });
+    
+    const [day, time] = sessionKey.split('_');
+    const expandedSession = document.querySelector('.session.expanded')?.getAttribute('data-session');
+    const currentUserToRemove = window.currentUser || currentUser;
+    
+    console.log('👤 Удаляем назначение для пользователя:', currentUserToRemove);
+    
+    showLoader('Удаление шифта...');
+    
+    try {
+        // Удаляем из Airtable
+        console.log('💾 Удаляем из Airtable...');
+        await removeAssignmentFromAirtable(currentUserToRemove, role, day, time);
+        
+        // Удаляем из локальных assignments
+        assignments[sessionKey][role] = null;
+        console.log('✅ Локальное назначение удалено');
+        
+        // Удаляем комментарий
+        if (window.assignmentComments?.[sessionKey]?.[role]) {
+            delete window.assignmentComments[sessionKey][role];
+            console.log('💬 Комментарий удален');
+        }
+        
+        // Перерисовываем интерфейс
+        renderSchedule();
+        updateProgress();
+        
+        // Восстанавливаем раскрытую сессию
+        setTimeout(() => {
+            if (expandedSession) {
+                const element = document.querySelector(`[data-session="${expandedSession}"]`);
+                if (element) {
+                    element.classList.add('expanded');
+                }
+            }
+        }, 50);
+        
+        showNotification('Шифт успешно удален!');
+        console.log('✅ Шифт успешно удален');
+        
+    } catch (error) {
+        console.error('❌ Ошибка удаления:', error);
+        showNotification('Ошибка при удалении. Попробуйте еще раз.');
+    } finally {
+        hideLoader();
+    }
+}
+
+// Функция обновления комментария
+async function updateAssignmentComment(sessionKey, role, comment) {
+    console.log('💬 updateAssignmentComment вызван:', { sessionKey, role, comment });
+    
+    const [day, time] = sessionKey.split('_');
+    const currentUserForComment = window.currentUser || currentUser;
+    
+    try {
+        console.log('💾 Обновляем комментарий в Airtable...');
+        
+        // Находим существующее назначение и обновляем его
+        const assignments = await window.airtableService.getAssignments();
+        const assignment = assignments.find(a => 
+            a.participantName === currentUserForComment && 
+            a.roleName === role && 
+            a.slotDate === day && 
+            a.slotTime === time
+        );
+        
+        if (assignment) {
+            await window.airtableService.updateAssignment(assignment.id, { Comment: comment });
+            console.log('✅ Комментарий обновлен в Airtable');
+        } else {
+            console.warn('⚠️ Назначение не найдено в Airtable');
+        }
+        
+        // Обновляем локально
+        if (!window.assignmentComments) window.assignmentComments = {};
+        if (!window.assignmentComments[sessionKey]) window.assignmentComments[sessionKey] = {};
+        window.assignmentComments[sessionKey][role] = { comment };
+        
+        console.log('💾 Комментарий сохранен локально');
+        
+        // Перерисовываем интерфейс для обновления отображения
+        renderSchedule();
+        
+    } catch (error) {
+        console.error('❌ Ошибка обновления комментария:', error);
+        throw error;
+    }
+}
+
+// Экспортируем функции глобально
+window.getAssignmentData = getAssignmentData;
+window.removeUserAssignment = removeUserAssignment;
+window.updateAssignmentComment = updateAssignmentComment;
+
 console.log('⚙️ Assignment Logic загружен');
