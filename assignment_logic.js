@@ -157,40 +157,32 @@ async function completeAssignment(comment = '') {
     
     const { sessionKey, role, day, time } = pendingAssignment;
     
-    // Добавить отладку
     console.log('Завершаем назначение:', { sessionKey, role, day, time, currentUser, comment });
     
     if (!currentUser) {
         showNotification('Не выбран пользователь');
+        pendingAssignment = null;
         return;
     }
-    
-    const expandedSession = document.querySelector('.session.expanded')?.getAttribute('data-session');
     
     showLoader('Сохранение шифта...');
     
     try {
+        // Сохраняем в Airtable с комментарием
         await saveAssignmentToAirtable(currentUser, role, day, time, comment);
         
-        // Сохраняем комментарий локально
-        if (!window.assignmentComments) window.assignmentComments = {};
-        if (!window.assignmentComments[sessionKey]) window.assignmentComments[sessionKey] = {};
-        window.assignmentComments[sessionKey][role] = { comment };
-        
+        // Обновляем локальные assignments
         assignments[sessionKey][role] = currentUser;
+        
+        // Сохраняем комментарий локально если есть
+        if (comment) {
+            if (!window.assignmentComments) window.assignmentComments = {};
+            if (!window.assignmentComments[sessionKey]) window.assignmentComments[sessionKey] = {};
+            window.assignmentComments[sessionKey][role] = { comment };
+        }
         
         renderSchedule();
         updateProgress();
-        
-        // Восстанавливаем раскрытую сессию
-        setTimeout(() => {
-            if (expandedSession) {
-                const element = document.querySelector(`[data-session="${expandedSession}"]`);
-                if (element) {
-                    element.classList.add('expanded');
-                }
-            }
-        }, 50);
         
         showNotification('Шифт успешно добавлен!');
         
