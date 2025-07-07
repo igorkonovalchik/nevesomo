@@ -1,66 +1,31 @@
-/**
- * NEVESOMO Шифты 2025 - Менеджер попапов
- * @author Igor Konovalchik
- * @version 2.0
- */
+// popup-manager.js - Управление попапами (без ES6 модулей)
 
-// ============================================================================
-// ПЕРЕМЕННЫЕ СОСТОЯНИЯ ПОПАПОВ
-// ============================================================================
-
-/** @type {string|null} Предыдущий открытый попап */
+/* === ПЕРЕМЕННЫЕ СОСТОЯНИЯ ПОПАПОВ === */
 let previousPopup = null;
 
-/** @type {string|null} Текущая сессия в попапе */
-let currentPopupSession = null;
-
-/** @type {string|null} Текущая роль в попапе */
-let currentPopupRole = null;
-
-/** @type {Object|null} Ожидающее назначение */
-let pendingAssignment = null;
-
-// ============================================================================
-// КОНСТАНТЫ И КОНФИГУРАЦИЯ
-// ============================================================================
-
-const POPUP_CONFIG = {
-    ANIMATION_DURATION: 300,
-    NOTIFICATION_TIMEOUT: 3000,
-    SEARCH_DELAY: 300
-};
-
-// ============================================================================
-// ПОПАП СТАТИСТИКИ
-// ============================================================================
-
-/**
- * Открывает попап статистики
- */
+/* === ПОПАП СТАТИСТИКИ === */
 function openStatsPopup() {
     const statsList = document.getElementById('statsList');
-    const userStats = calculateUserStats();
-    const html = renderUserStats(userStats);
     
-    statsList.innerHTML = html;
-    document.getElementById('statsPopup').classList.add('show');
-}
-
-/**
- * Закрывает попап статистики
- */
-function closeStatsPopup() {
-    document.getElementById('statsPopup').classList.remove('show');
-}
-
-/**
- * Вычисляет статистику пользователей
- * @returns {Array<Object>} Статистика пользователей
- */
-function calculateUserStats() {
-    return participants.map(participant => {
-        const shiftsCount = countUserShifts(participant.name);
+    const userStats = participants.map(participant => {
+        let shiftsCount = 0;
         const categoryStats = getUserCategoryStats(participant.name);
+        
+        Object.keys(assignments).forEach(sessionKey => {
+            const [day, time] = sessionKey.split('_');
+            const session = schedule[day].find(s => s.time === time);
+            
+            let sessionRoles = allRoles;
+            if (session.roles) {
+                sessionRoles = session.roles;
+            }
+            
+            sessionRoles.forEach(role => {
+                if (assignments[sessionKey][role] === participant.name) {
+                    shiftsCount++;
+                }
+            });
+        });
         
         return {
             name: participant.name,
@@ -70,163 +35,434 @@ function calculateUserStats() {
             categories: categoryStats
         };
     });
+    
+    const html = renderUserStats(userStats);
+    statsList.innerHTML = html;
+    document.getElementById('statsPopup').classList.add('show');
 }
 
-/**
- * Подсчитывает количество шифтов пользователя
- * @param {string} userName - Имя пользователя
- * @returns {number} Количество шифтов
- */
-function countUserShifts(userName) {
-    let shiftsCount = 0;
-    
-    Object.keys(assignments).forEach(sessionKey => {
-        const sessionAssignments = assignments[sessionKey];
-        Object.values(sessionAssignments).forEach(assignedUser => {
-            if (assignedUser === userName) {
-                shiftsCount++;
-            }
-        });
-    });
-    
-    return shiftsCount;
+function closeStatsPopup() {
+    document.getElementById('statsPopup').classList.remove('show');
 }
 
-/**
- * Получает статистику по категориям для пользователя
- * @param {string} userName - Имя пользователя
- * @returns {Object} Статистика по категориям
- */
-function getUserCategoryStats(userName) {
-    const categoryStats = {};
-    
-    Object.keys(assignments).forEach(sessionKey => {
-        const sessionAssignments = assignments[sessionKey];
-        
-        Object.entries(sessionAssignments).forEach(([role, assignedUser]) => {
-            if (assignedUser === userName) {
-                const roleInfo = rolesInfo[role];
-                const category = roleInfo?.category || 'other';
-                categoryStats[category] = (categoryStats[category] || 0) + 1;
-            }
-        });
-    });
-    
-    return categoryStats;
-}
-
-// ============================================================================
-// ПОПАП РАСПИСАНИЯ
-// ============================================================================
-
-/**
- * Открывает мое расписание
- */
+/* === ПОПАП РАСПИСАНИЯ === */
 function openMySchedule() {
     previousPopup = null;
     openSchedulePopup();
 }
 
-/**
- * Открывает попап расписания
- */
 function openSchedulePopup() {
     const scheduleBody = document.getElementById('scheduleBody');
     let html = '';
     
     if (currentMode === 'user' && currentUser) {
-        html = renderUserScheduleContent();
+        // Получаем информацию об участнике
+        const participant = participants.find(p => p.name === currentUser);
+        let shiftsCount = 0;
+        const categoryStats = getUserCategoryStats(currentUser);
+        
+        // Подсчитываем шифты пользователя
+        Object.keys(assignments).forEach(sessionKey => {
+            const [day, time] = sessionKey.split('_');
+            const session = schedule[day].find(s => s.time === time);
+            
+            let sessionRoles = allRoles;
+            if (session.roles) {
+                sessionRoles = session.roles;
+            }
+            
+            sessionRoles.forEach(role => {
+                if (assignments[sessionKey][role] === currentUser) {
+                    shiftsCount++;
+                }
+            });
+        });
+        
+        // Собираем шифты пользователя по дням
+        const userShiftsByDay = {};
+        
+        Object.keys(assignments).forEach(sessionKey => {
+            const [day, time] = sessionKey.split('_');
+            const session = schedule[day].find(s => s.time === time);
+            
+            let sessionRoles = allRoles;
+            if (session.roles) {
+                sessionRoles = session.roles;
+            }
+            
+            sessionRoles.forEach(role => {
+                if (assignments[sessionKey][role] === currentUser) {
+                    if (!userShiftsByDay[day]) {
+                        userShiftsByDay[day] = [];
+                    }
+                    userShiftsByDay[day].push({
+                        time,
+                        endTime: session.endTime,
+                        sessionNum: session.sessionNumber,
+                        type: session.type,
+                        role
+                    });
+                }
+            });
+        });
+        
+        html = renderUserSchedule(currentUser, userShiftsByDay, participant, shiftsCount, categoryStats);
+        
     } else {
-        html = renderAdminScheduleContent();
+        // Для админа показываем полное расписание
+        Object.keys(schedule).forEach(day => {
+            hhtml += `
+                <div class="schedule-date-sticky">
+                    <h2 style="margin: 0; color: var(--accent-primary); font-size: 1.4em; padding: 16px 0;">${formatDate(day)}</h2>
+                </div>
+            `;
+            
+            schedule[day].forEach(session => {
+                const sessionKey = `${day}_${session.time}`;
+                html += `
+                    <div class="schedule-item">
+                        <div class="schedule-item-header">
+                            <div class="schedule-time">${session.time} - ${session.endTime}</div>
+                            <div>${session.sessionNum ? `Баня #${session.sessionNum}` : 'Кухня'}</div>
+                        </div>
+                        <div class="schedule-info" style="margin-bottom: 12px;">${session.type}</div>
+                `;
+                
+                // Определяем роли для сессии
+                let sessionRoles = allRoles;
+                if (session.roles) {
+                    sessionRoles = session.roles;
+                }
+                
+                sessionRoles.forEach(role => {
+                    const assignedUser = assignments[sessionKey][role];
+                    html += `
+                        <div style="display: flex; justify-content: space-between; margin: 4px 0; padding: 4px 0;">
+                            <span style="color: var(--text-secondary); font-size: 0.9em;">${role}:</span>
+                            <span style="font-weight: 500;">${assignedUser || 'Не назначено'}</span>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+            });
+        });
     }
     
     scheduleBody.innerHTML = html;
     document.getElementById('schedulePopup').classList.add('show');
 }
 
-/**
- * Рендерит содержимое расписания пользователя
- * @returns {string} HTML содержимого
- */
-function renderUserScheduleContent() {
-    const participant = participants.find(p => p.name === currentUser);
-    const shiftsCount = countUserShifts(currentUser);
-    const categoryStats = getUserCategoryStats(currentUser);
-    const userShiftsByDay = getUserShiftsByDay(currentUser);
-    
-    return renderUserSchedule(currentUser, userShiftsByDay, participant, shiftsCount, categoryStats);
+function closeSchedulePopup() {
+    document.getElementById('schedulePopup').classList.remove('show');
 }
 
-/**
- * Рендерит содержимое расписания администратора
- * @returns {string} HTML содержимого
- */
-function renderAdminScheduleContent() {
+function shareSchedule() {
+    if (navigator.share) {
+        navigator.share({
+            title: 'Мое расписание шифтов NEVESOMO',
+            text: 'Расписание банных шифтов',
+            url: window.location.href
+        });
+    } else {
+        navigator.clipboard.writeText(window.location.href);
+        showNotification('Ссылка скопирована в буфер обмена');
+    }
+}
+
+/* === ПОПАП ИНФОРМАЦИИ О РОЛЯХ === */
+function openRolesInfoPopup() {
+    previousPopup = null;
+    const rolesInfoBody = document.getElementById('rolesInfoBody');
+    
+    const html = renderRolesList();
+    rolesInfoBody.innerHTML = html;
+    document.getElementById('rolesInfoPopup').classList.add('show');
+}
+
+function closeRolesInfoPopup() {
+    document.getElementById('rolesInfoPopup').classList.remove('show');
+}
+
+/* === ПОПАП ДЕТАЛЬНОГО ОПИСАНИЯ РОЛИ === */
+function showRoleDetail(role, sourcePopup = null) {
+    previousPopup = sourcePopup;
+    const roleInfo = rolesInfo[role];
+    
+    if (!roleInfo) {
+        console.error(`Информация о роли "${role}" не найдена`);
+        return;
+    }
+    
+    document.getElementById('roleDetailTitle').textContent = role;
+    document.getElementById('roleDetailImage').textContent = roleInfo.icon;
+    document.getElementById('roleDetailDescription').textContent = roleInfo.description;
+    document.getElementById('roleDetailLink').href = roleInfo.instructionUrl;
+    
+    // Закрываем предыдущие попапы
+    document.getElementById('rolesInfoPopup').classList.remove('show');
+    document.getElementById('schedulePopup').classList.remove('show');
+    
+    document.getElementById('roleDetailPopup').classList.add('show');
+}
+
+function closeRoleDetailPopup() {
+    document.getElementById('roleDetailPopup').classList.remove('show');
+    
+    // Возвращаемся на предыдущий попап если он был
+    if (previousPopup === 'roles') {
+        document.getElementById('rolesInfoPopup').classList.add('show');
+    } else if (previousPopup === 'schedule') {
+        document.getElementById('schedulePopup').classList.add('show');
+    }
+    previousPopup = null;
+}
+
+/* === ПОПАП АДМИН ПАНЕЛИ === */
+function openDataEditPopup() {
+    showNotification('Админ панель редактирования данных будет реализована в следующей версии.\n\nЗдесь будет возможность:\n- Редактировать роли и их описания\n- Изменять информацию о бане\n- Настраивать расписание');
+}
+
+/* === ОБЩИЕ ФУНКЦИИ === */
+function closeAllPopups() {
+    const popups = [
+        'statsPopup',
+        'schedulePopup', 
+        'rolesInfoPopup',
+        'roleDetailPopup',
+        'participantPopup'
+    ];
+    
+    popups.forEach(popupId => {
+        const popup = document.getElementById(popupId);
+        if (popup) {
+            popup.classList.remove('show');
+        }
+    });
+    
+    previousPopup = null;
+}
+
+function isAnyPopupOpen() {
+    const popups = document.querySelectorAll('.popup-overlay.show');
+    return popups.length > 0;
+}
+
+/* === ИНИЦИАЛИЗАЦИЯ ОБРАБОТЧИКОВ === */
+function initPopupHandlers() {
+    // Обработчик для закрытия попапов по клику на оверлей
+    document.addEventListener('click', (event) => {
+        if (event.target.classList.contains('popup-overlay')) {
+            const popupId = event.target.id;
+            switch(popupId) {
+                case 'statsPopup':
+                    closeStatsPopup();
+                    break;
+                case 'schedulePopup':
+                    closeSchedulePopup();
+                    break;
+                case 'rolesInfoPopup':
+                    closeRolesInfoPopup();
+                    break;
+                case 'roleDetailPopup':
+                    closeRoleDetailPopup();
+                    break;
+            }
+        }
+    });
+    
+    // Обработчик для закрытия попапов по Escape
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && isAnyPopupOpen()) {
+            closeAllPopups();
+        }
+    });
+}
+
+/* новое */ 
+
+// Обновленная функция openParticipantPopup
+function openParticipantPopup(sessionKey, role) {
+    currentPopupSession = sessionKey;
+    currentPopupRole = role;
+    
+    const participantsList = document.getElementById('participantsList');
+    const currentAssignment = assignments[sessionKey][role];
+    
+    const html = renderParticipantsList(currentAssignment);
+    participantsList.innerHTML = html;
+    
+    document.getElementById('participantPopup').classList.add('show');
+}
+
+// Альтернативный вариант с иконками и статусами
+function renderParticipantsListEnhanced(currentAssignment) {
     let html = '';
     
-    Object.keys(schedule).forEach(day => {
+    // Специальные действия
+    html += `
+        <div class="participant-item special" onclick="selectParticipant(null)">
+            <div class="participant-name">
+                <span style="font-size: 1.2em; margin-right: 8px;">🗑️</span>
+                Очистить слот
+            </div>
+            <div class="participant-telegram">Убрать текущее назначение</div>
+        </div>
+        
+        <div class="participant-item special" onclick="selectParticipant('Участник другого кемпа')" style="margin-bottom: 20px;">
+            <div class="participant-name">
+                <span style="font-size: 1.2em; margin-right: 8px;">👤</span>
+                Участник другого кемпа
+            </div>
+            <div class="participant-telegram">Гость из другого кемпа</div>
+        </div>
+    `;
+    
+    // Группируем участников
+    const sortedParticipants = participants.sort((a, b) => a.name.localeCompare(b.name));
+    
+    sortedParticipants.forEach(participant => {
+        const isSelected = participant.name === currentAssignment;
+        const selectedClass = isSelected ? ' selected' : '';
+        
+        // Определяем статус участника
+        let statusIcon = '';
+        if (participant.bathExperience) {
+            statusIcon = '<span style="color: #34a853; margin-left: 4px;" title="Опытный банщик">⭐</span>';
+        }
+        if (participant.isAdmin) {
+            statusIcon += '<span style="color: #1a73e8; margin-left: 4px;" title="Администратор">👑</span>';
+        }
+        
         html += `
-            <div class="schedule-date-sticky">
-                <h2 style="margin: 0; color: var(--accent-primary); font-size: 1.4em; padding: 16px 0;">${formatDate(day)}</h2>
+            <div class="participant-item${selectedClass}" onclick="selectParticipant('${participant.name.replace(/'/g, "\\'")}')">
+                <div class="participant-name">
+                    ${participant.name}
+                    ${statusIcon}
+                    ${isSelected ? ' <span style="color: var(--success-color); margin-left: 8px;">✓</span>' : ''}
+                </div>
+                <div class="participant-telegram">
+                    <a href="https://t.me/${participant.telegram.replace('@', '')}" target="_blank" onclick="event.stopPropagation();">
+                        ${participant.telegram}
+                    </a>
+                </div>
             </div>
         `;
+    });
+    
+    return html;
+}
+
+// Функция для поиска участников
+function addParticipantSearch() {
+    const searchHtml = `
+        <div style="margin-bottom: 16px; position: sticky; top: 0; background: var(--bg-primary); padding: 8px 0; z-index: 10;">
+            <input 
+                type="text" 
+                id="participantSearch" 
+                placeholder="Поиск участника..." 
+                style="
+                    width: 100%; 
+                    padding: 12px; 
+                    border: 1px solid var(--border-color); 
+                    border-radius: 8px; 
+                    background: var(--bg-secondary); 
+                    color: var(--text-primary);
+                    font-size: 1rem;
+                "
+                oninput="filterParticipants(this.value)"
+            >
+        </div>
+    `;
+    
+    return searchHtml;
+}
+
+// Функция фильтрации участников
+window.filterParticipants = function(searchTerm) {
+    const items = document.querySelectorAll('.participant-item:not(.special)');
+    const term = searchTerm.toLowerCase();
+    
+    items.forEach(item => {
+        const name = item.querySelector('.participant-name').textContent.toLowerCase();
+        const telegram = item.querySelector('.participant-telegram').textContent.toLowerCase();
         
-        schedule[day].forEach(session => {
-            html += renderAdminSessionItem(day, session);
+        if (name.includes(term) || telegram.includes(term)) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+};
+
+// Обновленная функция с поиском
+function openParticipantPopupWithSearch(sessionKey, role) {
+    currentPopupSession = sessionKey;
+    currentPopupRole = role;
+    
+    const participantsList = document.getElementById('participantsList');
+    const currentAssignment = assignments[sessionKey][role];
+    
+    let html = '';
+    
+    // Добавляем поиск если участников много
+    if (participants.length > 10) {
+        html += addParticipantSearch();
+    }
+    
+    html += renderParticipantsListEnhanced(currentAssignment);
+    
+    participantsList.innerHTML = html;
+    document.getElementById('participantPopup').classList.add('show');
+    
+    // Фокус на поиск если есть
+    setTimeout(() => {
+        const searchInput = document.getElementById('participantSearch');
+        if (searchInput) {
+            searchInput.focus();
+        }
+    }, 300);
+}
+
+function openUserScheduleFromStats(userName) {
+    // Получаем информацию об участнике
+    const participant = participants.find(p => p.name === userName);
+    if (!participant) {
+        showNotification('Участник не найден');
+        return;
+    }
+    
+    let shiftsCount = 0;
+    const categoryStats = getUserCategoryStats(userName);
+    
+    // Подсчитываем шифты пользователя
+    Object.keys(assignments).forEach(sessionKey => {
+        const [day, time] = sessionKey.split('_');
+        const session = schedule[day].find(s => s.time === time);
+        
+        let sessionRoles = allRoles;
+        if (session.roles) {
+            sessionRoles = session.roles;
+        }
+        
+        sessionRoles.forEach(role => {
+            if (assignments[sessionKey][role] === userName) {
+                shiftsCount++;
+            }
         });
     });
     
-    return html;
-}
-
-/**
- * Рендерит элемент сессии для администратора
- * @param {string} day - День
- * @param {Object} session - Данные сессии
- * @returns {string} HTML элемента сессии
- */
-function renderAdminSessionItem(day, session) {
-    const sessionKey = `${day}_${session.time}`;
-    const sessionRoles = getSessionRoles(session);
-    
-    let html = `
-        <div class="schedule-item">
-            <div class="schedule-item-header">
-                <div class="schedule-time">${session.time} - ${session.endTime}</div>
-                <div>${session.sessionNum ? `Баня #${session.sessionNum}` : 'Кухня'}</div>
-            </div>
-            <div class="schedule-info" style="margin-bottom: 12px;">${session.type}</div>
-    `;
-    
-    sessionRoles.forEach(role => {
-        const assignedUser = assignments[sessionKey]?.[role];
-        html += `
-            <div style="display: flex; justify-content: space-between; margin: 4px 0; padding: 4px 0;">
-                <span style="color: var(--text-secondary); font-size: 0.9em;">${role}:</span>
-                <span style="font-weight: 500;">${assignedUser || 'Не назначено'}</span>
-            </div>
-        `;
-    });
-    
-    html += '</div>';
-    return html;
-}
-
-/**
- * Получает шифты пользователя по дням
- * @param {string} userName - Имя пользователя
- * @returns {Object} Шифты по дням
- */
-function getUserShiftsByDay(userName) {
+    // Собираем шифты пользователя по дням
     const userShiftsByDay = {};
     
     Object.keys(assignments).forEach(sessionKey => {
         const [day, time] = sessionKey.split('_');
-        const session = schedule[day]?.find(s => s.time === time);
+        const session = schedule[day].find(s => s.time === time);
         
-        if (!session) return;
-        
-        const sessionRoles = getSessionRoles(session);
+        let sessionRoles = allRoles;
+        if (session.roles) {
+            sessionRoles = session.roles;
+        }
         
         sessionRoles.forEach(role => {
             if (assignments[sessionKey][role] === userName) {
@@ -244,372 +480,66 @@ function getUserShiftsByDay(userName) {
         });
     });
     
-    return userShiftsByDay;
-}
-
-/**
- * Получает роли для сессии
- * @param {Object} session - Данные сессии
- * @returns {Array<string>} Массив ролей
- */
-function getSessionRoles(session) {
-    if (session.availableRoles && session.availableRoles.trim()) {
-        return session.availableRoles.split(',').map(r => r.trim()).filter(r => r);
-    }
-    return allRoles;
-}
-
-/**
- * Закрывает попап расписания
- */
-function closeSchedulePopup() {
-    document.getElementById('schedulePopup').classList.remove('show');
-}
-
-/**
- * Делится расписанием
- */
-function shareSchedule() {
-    if (navigator.share) {
-        navigator.share({
-            title: 'Мое расписание шифтов NEVESOMO',
-            text: 'Расписание банных шифтов',
-            url: window.location.href
-        });
-    } else {
-        navigator.clipboard.writeText(window.location.href);
-        showNotification('Ссылка скопирована в буфер обмена');
-    }
-}
-
-// ============================================================================
-// ПОПАП ИНФОРМАЦИИ О РОЛЯХ
-// ============================================================================
-
-/**
- * Открывает попап информации о ролях
- */
-function openRolesInfoPopup() {
-    previousPopup = null;
-    const rolesInfoBody = document.getElementById('rolesInfoBody');
+    // Отрисовываем расписание
+    const scheduleBody = document.getElementById('scheduleBody');
+    const html = renderUserSchedule(userName, userShiftsByDay, participant, shiftsCount, categoryStats);
+    scheduleBody.innerHTML = html;
     
-    const html = renderRolesList();
-    rolesInfoBody.innerHTML = html;
-    document.getElementById('rolesInfoPopup').classList.add('show');
-}
-
-/**
- * Закрывает попап информации о ролях
- */
-function closeRolesInfoPopup() {
-    document.getElementById('rolesInfoPopup').classList.remove('show');
-}
-
-// ============================================================================
-// ПОПАП ДЕТАЛЬНОГО ОПИСАНИЯ РОЛИ
-// ============================================================================
-
-/**
- * Показывает детальное описание роли
- * @param {string} role - Название роли
- * @param {string} sourcePopup - Источник попапа
- */
-function showRoleDetail(role, sourcePopup = null) {
-    previousPopup = sourcePopup;
-    const roleInfo = rolesInfo[role];
-    
-    if (!roleInfo) {
-        console.error(`Информация о роли "${role}" не найдена`);
-        return;
+    // Обновляем заголовок
+    const scheduleTitle = document.querySelector('#schedulePopup .popup-title');
+    if (scheduleTitle) {
+        scheduleTitle.textContent = `Расписание: ${userName}`;
     }
     
-    document.getElementById('roleDetailTitle').textContent = role;
-    document.getElementById('roleDetailImage').textContent = roleInfo.icon;
-    document.getElementById('roleDetailDescription').textContent = roleInfo.description;
-    document.getElementById('roleDetailLink').href = roleInfo.instructionUrl;
+    // Закрываем статистику и открываем расписание
+    closeStatsPopup();
+    document.getElementById('schedulePopup').classList.add('show');
     
-    document.getElementById('roleDetailPopup').classList.add('show');
-}
-
-/**
- * Закрывает попап детального описания роли
- */
-function closeRoleDetailPopup() {
-    document.getElementById('roleDetailPopup').classList.remove('show');
-    
-    if (previousPopup) {
-        document.getElementById(previousPopup).classList.add('show');
-        previousPopup = null;
-    }
-}
-
-// ============================================================================
-// ПОПАП РЕДАКТИРОВАНИЯ ДАННЫХ
-// ============================================================================
-
-/**
- * Открывает попап редактирования данных
- */
-function openDataEditPopup() {
-    // Реализация попапа редактирования данных
-    console.log('Открытие попапа редактирования данных');
-}
-
-// ============================================================================
-// УПРАВЛЕНИЕ ПОПАПАМИ
-// ============================================================================
-
-/**
- * Закрывает все попапы
- */
-function closeAllPopups() {
-    const popups = [
-        'statsPopup',
-        'schedulePopup',
-        'rolesInfoPopup',
-        'roleDetailPopup',
-        'participantPopup',
-        'commentPopup',
-        'confirmPopup',
-        'bookShiftPopup',
-        'editShiftPopup'
-    ];
-    
-    popups.forEach(popupId => {
-        const popup = document.getElementById(popupId);
-        if (popup) {
-            popup.classList.remove('show');
-        }
-    });
-    
-    previousPopup = null;
-    currentPopupSession = null;
-    currentPopupRole = null;
-    pendingAssignment = null;
-}
-
-/**
- * Проверяет, открыт ли какой-либо попап
- * @returns {boolean} True если попап открыт
- */
-function isAnyPopupOpen() {
-    return document.querySelector('.popup-overlay.show') !== null;
-}
-
-// ============================================================================
-// ИНИЦИАЛИЗАЦИЯ ОБРАБОТЧИКОВ ПОПАПОВ
-// ============================================================================
-
-/**
- * Инициализирует обработчики попапов
- */
-function initPopupHandlers() {
-    // Обработчики закрытия по клику вне попапа
-    document.querySelectorAll('.popup-overlay').forEach(overlay => {
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) {
-                overlay.classList.remove('show');
-            }
-        });
-    });
-    
-    // Обработчики клавиши Escape
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && isAnyPopupOpen()) {
-            closeAllPopups();
-        }
-    });
-}
-
-// ============================================================================
-// ПОПАП ВЫБОРА УЧАСТНИКА
-// ============================================================================
-
-/**
- * Открывает попап выбора участника
- * @param {string} sessionKey - Ключ сессии
- * @param {string} role - Название роли
- */
-function openParticipantPopup(sessionKey, role) {
-    currentPopupSession = sessionKey;
-    currentPopupRole = role;
-    
-    const currentAssignment = assignments[sessionKey]?.[role] || null;
-    const participantsList = document.getElementById('participantsList');
-    
-    participantsList.innerHTML = renderParticipantsListEnhanced(currentAssignment);
-    document.getElementById('participantPopup').classList.add('show');
-}
-
-/**
- * Рендерит улучшенный список участников
- * @param {string|null} currentAssignment - Текущее назначение
- * @returns {string} HTML списка участников
- */
-function renderParticipantsListEnhanced(currentAssignment) {
-    let html = '';
-    
-    // Кнопка очистки слота
-    html += `
-        <div class="participant-item special" onclick="selectParticipant(null)" style="margin-bottom: 12px;">
-            <div class="participant-name">🗑️ Очистить слот</div>
-            <div class="participant-telegram">Убрать назначение</div>
-        </div>
-    `;
-    
-    // Кнопка для внешнего участника
-    html += `
-        <div class="participant-item special" onclick="selectParticipant('Участник другого кемпа')" style="margin-bottom: 16px;">
-            <div class="participant-name">👤 Участник другого кемпа</div>
-            <div class="participant-telegram">Внешний участник</div>
-        </div>
-    `;
-    
-    // Список участников
-    const sortedParticipants = participants.sort((a, b) => a.name.localeCompare(b.name));
-    
-    sortedParticipants.forEach(participant => {
-        const isSelected = participant.name === currentAssignment;
-        const isBusy = isUserBusyInSession(currentPopupSession, participant.name);
-        
-        let className = 'participant-item';
-        if (isSelected) className += ' selected';
-        if (isBusy) className += ' busy';
-        
-        html += `
-            <div class="${className}" onclick="selectParticipant('${participant.name.replace(/'/g, "\\'")}')">
-                <div class="participant-name">
-                    ${participant.name}
-                    ${isSelected ? ' ✓' : ''}
-                </div>
-                <div class="participant-telegram">${participant.telegram}</div>
-                ${isBusy ? '<div class="participant-busy">Занят в это время</div>' : ''}
-            </div>
-        `;
-    });
-    
-    return html;
-}
-
-/**
- * Добавляет поиск участников
- */
-function addParticipantSearch() {
-    const participantsList = document.getElementById('participantsList');
-    const searchInput = document.createElement('input');
-    
-    searchInput.type = 'text';
-    searchInput.placeholder = 'Поиск участников...';
-    searchInput.className = 'participant-search';
-    searchInput.style.cssText = `
-        width: 100%;
-        padding: 12px;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        margin-bottom: 16px;
-        font-size: 16px;
-        background: var(--bg-primary);
-        color: var(--text-primary);
-    `;
-    
-    let searchTimeout;
-    searchInput.addEventListener('input', (e) => {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            const searchTerm = e.target.value.toLowerCase();
-            const participantItems = participantsList.querySelectorAll('.participant-item:not(.special)');
-            
-            participantItems.forEach(item => {
-                const name = item.querySelector('.participant-name').textContent.toLowerCase();
-                const telegram = item.querySelector('.participant-telegram')?.textContent.toLowerCase() || '';
-                
-                if (name.includes(searchTerm) || telegram.includes(searchTerm)) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-        }, POPUP_CONFIG.SEARCH_DELAY);
-    });
-    
-    participantsList.insertBefore(searchInput, participantsList.firstChild);
-}
-
-/**
- * Открывает попап выбора участника с поиском
- * @param {string} sessionKey - Ключ сессии
- * @param {string} role - Название роли
- */
-function openParticipantPopupWithSearch(sessionKey, role) {
-    openParticipantPopup(sessionKey, role);
-    
-    setTimeout(() => {
-        addParticipantSearch();
-    }, 100);
-}
-
-/**
- * Закрывает попап выбора участника
- */
-function closeParticipantPopup() {
-    document.getElementById('participantPopup').classList.remove('show');
-    currentPopupSession = null;
-    currentPopupRole = null;
-}
-
-// ============================================================================
-// ПОПАП РАСПИСАНИЯ ИЗ СТАТИСТИКИ
-// ============================================================================
-
-/**
- * Открывает расписание пользователя из статистики
- * @param {string} userName - Имя пользователя
- */
-function openUserScheduleFromStats(userName) {
-    // Временно закрываем попап статистики
-    const statsPopup = document.getElementById('statsPopup');
+    // Добавляем обработчик для возврата к статистике при закрытии
     const originalCloseHandler = () => {
-        statsPopup.classList.remove('show');
-        statsPopup.removeEventListener('transitionend', originalCloseHandler);
+        // Возвращаем заголовок обратно
+        if (scheduleTitle) {
+            scheduleTitle.textContent = 'Мое расписание';
+        }
+        // Открываем обратно статистику
+        setTimeout(() => {
+            openStatsPopup();
+        }, 100);
     };
     
-    statsPopup.addEventListener('transitionend', originalCloseHandler);
-    statsPopup.classList.remove('show');
+    // Заменяем обработчики закрытия временно
+    const backBtn = schedulePopup.querySelector('.popup-back');
+    const closeBtn = schedulePopup.querySelector('.popup-close');
     
-    // Открываем расписание пользователя
-    setTimeout(() => {
-        const participant = participants.find(p => p.name === userName);
-        const shiftsCount = countUserShifts(userName);
-        const categoryStats = getUserCategoryStats(userName);
-        const userShiftsByDay = getUserShiftsByDay(userName);
-        
-        const scheduleBody = document.getElementById('scheduleBody');
-        const html = renderUserSchedule(userName, userShiftsByDay, participant, shiftsCount, categoryStats);
-        
-        scheduleBody.innerHTML = html;
-        document.getElementById('schedulePopup').classList.add('show');
-    }, POPUP_CONFIG.ANIMATION_DURATION);
+    if (backBtn) {
+        backBtn.onclick = () => {
+            closeSchedulePopup();
+            originalCloseHandler();
+        };
+    }
+    
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            closeSchedulePopup();
+            originalCloseHandler();
+        };
+    }
 }
 
-// ============================================================================
-// ПОПАП ПОЛНОГО РАСПИСАНИЯ
-// ============================================================================
-
-/**
- * Открывает попап полного расписания
- */
 function openFullSchedulePopup() {
     const scheduleBody = document.getElementById('scheduleBody');
-    const html = renderFullScheduleWithTabs();
-    
+    let html = renderFullScheduleWithTabs();
     scheduleBody.innerHTML = html;
+    
+    // Обновляем заголовок
+    const scheduleTitle = document.querySelector('#schedulePopup .popup-title');
+    if (scheduleTitle) {
+        scheduleTitle.textContent = 'Общее расписание';
+    }
+    
     document.getElementById('schedulePopup').classList.add('show');
 }
 
-/**
- * Рендерит полное расписание с табами
- * @returns {string} HTML полного расписания
- */
 function renderFullScheduleWithTabs() {
     const sortedDays = Object.keys(schedule).sort((a, b) => {
         const dateA = new Date(a + 'T00:00:00');
@@ -618,472 +548,389 @@ function renderFullScheduleWithTabs() {
     });
     
     let html = `
-        <div class="full-schedule-tabs">
-            ${sortedDays.map(day => `
-                <div class="schedule-day-tab" onclick="switchScheduleDay('${day}')">
-                    ${formatDate(day)}
-                </div>
-            `).join('')}
+        <div class="schedule-tabs-container">
+            <div class="schedule-date-tabs">
+                ${sortedDays.map((day, index) => `
+                    <div class="schedule-date-tab ${index === 0 ? 'active' : ''}" 
+                         data-day="${day}" onclick="switchScheduleDay('${day}')">
+                        <div class="tab-day">${new Date(day + 'T00:00:00').getDate()}</div>
+                        <div class="tab-month">${formatDate(day).split(' ')[1].substring(0, 3)}</div>
+                    </div>
+                `).join('')}
+            </div>
         </div>
-        <div class="full-schedule-content">
-            ${sortedDays.map(day => `
-                <div class="schedule-day-content" id="day-${day}">
-                    ${schedule[day].map(session => renderCompactSessionForFullSchedule(day, session)).join('')}
-                </div>
-            `).join('')}
-        </div>
+        <div class="schedule-days-container">
     `;
     
+    sortedDays.forEach((day, index) => {
+        const sortedSessions = schedule[day].sort((a, b) => a.time.localeCompare(b.time));
+        
+        html += `
+            <div class="schedule-day-content ${index === 0 ? 'active' : ''}" data-day="${day}">
+                ${sortedSessions.map(session => renderCompactSessionForFullSchedule(day, session)).join('')}
+            </div>
+        `;
+    });
+    
+    html += '</div>';
     return html;
 }
 
-/**
- * Рендерит компактную сессию для полного расписания
- * @param {string} day - День
- * @param {Object} session - Данные сессии
- * @returns {string} HTML сессии
- */
 function renderCompactSessionForFullSchedule(day, session) {
     const sessionKey = `${day}_${session.time}`;
-    const sessionRoles = getSessionRoles(session);
+    const sessionAssignments = assignments[sessionKey];
     
-    return `
-        <div class="compact-session">
-            <div class="compact-session-header">
-                <div class="compact-time">${session.time} - ${session.endTime}</div>
-                <div class="compact-type">${session.type}</div>
-            </div>
-            <div class="compact-roles">
-                ${sessionRoles.map(role => {
-                    const assignedUser = assignments[sessionKey]?.[role];
-                    return `
-                        <div class="compact-role">
-                            <span class="role-name">${role}:</span>
-                            <span class="assigned-user">${assignedUser || 'Не назначено'}</span>
-                        </div>
-                    `;
-                }).join('')}
-            </div>
-        </div>
-    `;
-}
-
-/**
- * Переключает день в расписании
- * @param {string} day - День для переключения
- */
-function switchScheduleDay(day) {
-    // Скрываем все дни
-    document.querySelectorAll('.schedule-day-content').forEach(content => {
-        content.style.display = 'none';
-    });
-    
-    // Показываем выбранный день
-    const selectedDay = document.getElementById(`day-${day}`);
-    if (selectedDay) {
-        selectedDay.style.display = 'block';
+    let sessionRoles = allRoles;
+    if (session.roles) {
+        sessionRoles = session.roles;
     }
     
-    // Обновляем активную вкладку
-    document.querySelectorAll('.schedule-day-tab').forEach(tab => {
+    const filledRoles = sessionRoles.filter(role => sessionAssignments[role] !== null && sessionAssignments[role] !== undefined).length;
+    const totalRoles = sessionRoles.length;
+    const percentage = totalRoles > 0 ? Math.round((filledRoles / totalRoles) * 100) : 0;
+    const emptyRoles = totalRoles - filledRoles;
+    
+    const userRoles = currentMode === 'user' && currentUser ? 
+        getUserRolesInSession(sessionKey, currentUser) : [];
+    const hasUserAssignment = userRoles.length > 0;
+    
+    let progressClass = 'empty';
+    if (percentage === 100) {
+        progressClass = 'complete';
+    } else if (percentage > 0) {
+        progressClass = 'partial';
+    }
+    
+    let html = `
+        <div class="compact-session-card">
+            <div class="compact-session-header">
+                <div class="compact-session-time">${session.time} - ${session.endTime}</div>
+                <div class="compact-session-type">${session.type}</div>
+                <div class="progress-circle ${progressClass}" style="width: 32px; height: 32px; font-size: 0.7rem;">
+                    <span class="progress-text">${emptyRoles}</span>
+                </div>
+            </div>
+            <div class="compact-roles-grid">
+    `;
+    
+    // Сортируем роли: роли текущего пользователя наверх
+    const sortedRoles = sessionRoles.sort((a, b) => {
+        const aIsUser = sessionAssignments[a] === currentUser;
+        const bIsUser = sessionAssignments[b] === currentUser;
+        if (aIsUser && !bIsUser) return -1;
+        if (!aIsUser && bIsUser) return 1;
+        return 0;
+    });
+    
+    sortedRoles.forEach(role => {
+        const assignedUser = sessionAssignments[role];
+        const isCurrentUser = assignedUser === currentUser;
+        
+        html += `
+            <div class="compact-role-slot ${isCurrentUser ? 'current-user' : ''}">
+                <div class="compact-role-name">${role}</div>
+                <div class="compact-role-user">${assignedUser || 'Свободно'}</div>
+            </div>
+        `;
+    });
+    
+    html += '</div></div>';
+    return html;
+}
+
+// ЗАМЕНИТЬ функцию switchScheduleDay:
+function switchScheduleDay(day) {
+    // Переключаем активный таб
+    document.querySelectorAll('.schedule-date-tab').forEach(tab => {
         tab.classList.remove('active');
     });
+    document.querySelector(`[data-day="${day}"]`).classList.add('active');
     
-    const activeTab = document.querySelector(`[onclick="switchScheduleDay('${day}')"]`);
-    if (activeTab) {
-        activeTab.classList.add('active');
-    }
+    // Переключаем содержимое
+    document.querySelectorAll('.schedule-day-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    document.querySelector(`.schedule-day-content[data-day="${day}"]`).classList.add('active');
 }
 
-// ============================================================================
-// ПОПАП КОММЕНТАРИЕВ
-// ============================================================================
-
-/**
- * Открывает попап комментариев
- */
+/* === ПОПАП КОММЕНТАРИЯ === */
 function openCommentPopup() {
+    document.getElementById('shiftComment').value = '';
     document.getElementById('commentPopup').classList.add('show');
 }
 
-/**
- * Закрывает попап комментариев
- */
 function closeCommentPopup() {
     document.getElementById('commentPopup').classList.remove('show');
+    pendingAssignment = null;
 }
 
-/**
- * Пропускает комментарий
- */
 function skipComment() {
     closeCommentPopup();
-    completeAssignment();
-}
-
-/**
- * Сохраняет комментарий
- */
-function saveComment() {
-    const commentInput = document.getElementById('commentInput');
-    const comment = commentInput.value.trim();
-    
     if (pendingAssignment) {
-        pendingAssignment.comment = comment;
+        completeAssignment('');
     }
-    
+}
+
+function saveComment() {
+    const comment = document.getElementById('shiftComment').value.trim();
     closeCommentPopup();
-    completeAssignment();
+    if (pendingAssignment) {
+        completeAssignment(comment);
+    }
 }
 
-// ============================================================================
-// ПОПАП ПОДТВЕРЖДЕНИЯ
-// ============================================================================
+/* === ПОПАП ПОДТВЕРЖДЕНИЯ === */
+let confirmCallback = null;
 
-/**
- * Показывает попап подтверждения
- * @param {string} title - Заголовок
- * @param {string} message - Сообщение
- * @param {Function} onConfirm - Функция подтверждения
- */
 function showConfirmation(title, message, onConfirm) {
-    const confirmPopup = document.getElementById('confirmPopup');
-    const confirmTitle = document.getElementById('confirmTitle');
-    const confirmMessage = document.getElementById('confirmMessage');
-    const confirmButton = document.getElementById('confirmButton');
-    
-    confirmTitle.textContent = title;
-    confirmMessage.textContent = message;
-    
-    confirmButton.onclick = () => {
-        closeConfirmPopup();
-        onConfirm();
-    };
-    
-    confirmPopup.classList.add('show');
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmMessage').textContent = message;
+    confirmCallback = onConfirm;
+    document.getElementById('confirmPopup').classList.add('show');
 }
 
-/**
- * Закрывает попап подтверждения
- */
 function closeConfirmPopup() {
     document.getElementById('confirmPopup').classList.remove('show');
+    confirmCallback = null;
 }
 
-// ============================================================================
-// УВЕДОМЛЕНИЯ
-// ============================================================================
+// Обработчик кнопки подтверждения
+document.addEventListener('DOMContentLoaded', () => {
+    const confirmBtn = document.getElementById('confirmAction');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', () => {
+            if (confirmCallback) {
+                confirmCallback();
+            }
+            closeConfirmPopup();
+        });
+    }
+});
 
-/**
- * Показывает уведомление
- * @param {string} message - Сообщение
- */
+/* === УВЕДОМЛЕНИЯ === */
 function showNotification(message) {
-    // Удаляем существующие уведомления
-    const existingNotifications = document.querySelectorAll('.notification');
-    existingNotifications.forEach(notification => notification.remove());
-    
-    // Создаем новое уведомление
+    // Создаем временный попап для уведомления
     const notification = document.createElement('div');
-    notification.className = 'notification';
+    notification.className = 'notification-toast';
     notification.textContent = message;
-    
     notification.style.cssText = `
         position: fixed;
-        top: 20px;
-        right: 20px;
-        background: var(--accent-primary);
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
         color: white;
-        padding: 12px 20px;
+        padding: 16px 24px;
         border-radius: 8px;
-        z-index: 10000;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        animation: slideIn 0.3s ease;
+        z-index: 9999;
+        animation: slideUp 0.3s ease;
     `;
     
     document.body.appendChild(notification);
     
-    // Удаляем через заданное время
     setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease';
+        notification.style.animation = 'slideDown 0.3s ease';
         setTimeout(() => {
-            if (notification.parentNode) {
-                notification.remove();
-            }
+            notification.remove();
         }, 300);
-    }, POPUP_CONFIG.NOTIFICATION_TIMEOUT);
+    }, 3000);
 }
 
-// ============================================================================
-// ПОПАП БРОНИРОВАНИЯ ШИФТА
-// ============================================================================
+// Добавить в конец файла:
 
-/**
- * Открывает попап бронирования шифта
- * @param {string} sessionKey - Ключ сессии
- * @param {string} role - Название роли
- */
+/* === ПОПАП БРОНИРОВАНИЯ ШИФТА === */
 function openBookShiftPopup(sessionKey, role) {
-    currentPopupSession = sessionKey;
-    currentPopupRole = role;
+    console.log('📝 openBookShiftPopup вызван:', { sessionKey, role });
     
-    const [day, time] = sessionKey.split('_');
-    const session = schedule[day]?.find(s => s.time === time);
+    // Устанавливаем глобальные переменные
+    window.currentPopupSession = sessionKey;
+    window.currentPopupRole = role;
     
-    if (!session) return;
-    
-    document.getElementById('bookShiftTitle').textContent = `Забронировать шифт`;
-    document.getElementById('bookShiftInfo').textContent = `${formatDate(day)} • ${time} • ${role}`;
+    document.getElementById('bookTitle').textContent = 'Занять шифт?';
+    document.getElementById('bookRoleInfo').textContent = role;
+    document.getElementById('bookComment').value = '';
     
     document.getElementById('bookShiftPopup').classList.add('show');
+    console.log('👁️ Попап бронирования показан');
 }
 
-/**
- * Закрывает попап бронирования шифта
- */
 function closeBookShiftPopup() {
+    console.log('❌ Закрываем попап бронирования');
     document.getElementById('bookShiftPopup').classList.remove('show');
-    currentPopupSession = null;
-    currentPopupRole = null;
 }
 
-/**
- * Подтверждает бронирование шифта
- */
 function confirmBookShift() {
-    if (!currentPopupSession || !currentPopupRole || !currentUser) {
-        showNotification('Ошибка: не удалось забронировать шифт');
-        return;
-    }
+    console.log('🎯 confirmBookShift вызван');
     
-    const [day, time] = currentPopupSession.split('_');
-    
-    pendingAssignment = {
-        participantName: currentUser,
-        roleName: currentPopupRole,
-        slotDate: day,
-        slotTime: time,
-        comment: ''
-    };
+    const comment = document.getElementById('bookComment').value.trim();
+    console.log('💬 Получен комментарий:', comment);
     
     closeBookShiftPopup();
     
-    // Спрашиваем комментарий
-    const wantComment = confirm('Хотите добавить комментарий к шифту?');
-    
-    if (wantComment) {
-        openCommentPopup();
+    if (window.currentPopupSession && window.currentPopupRole) {
+        console.log('✅ Переменные попапа установлены, создаем pendingAssignment');
+        
+        // Создаем pendingAssignment
+        window.pendingAssignment = {
+            sessionKey: window.currentPopupSession,
+            role: window.currentPopupRole,
+            day: window.currentPopupSession.split('_')[0],
+            time: window.currentPopupSession.split('_')[1]
+        };
+        
+        console.log('📦 Создан pendingAssignment:', window.pendingAssignment);
+        
+        // Вызываем completeAssignment
+        if (typeof window.completeAssignment === 'function') {
+            console.log('🚀 Вызываем completeAssignment...');
+            window.completeAssignment(comment);
+        } else {
+            console.error('❌ window.completeAssignment не найден');
+            showNotification('Ошибка: функция завершения назначения недоступна');
+        }
     } else {
-        completeAssignment();
+        console.error('❌ Переменные попапа не установлены');
+        showNotification('Ошибка: данные о шифте не найдены');
     }
 }
 
-// ============================================================================
-// ПОПАП РЕДАКТИРОВАНИЯ ШИФТА
-// ============================================================================
-
-/**
- * Открывает попап редактирования шифта
- * @param {string} sessionKey - Ключ сессии
- * @param {string} role - Название роли
- */
+/* === ПОПАП РЕДАКТИРОВАНИЯ ШИФТА === */
 function openEditShiftPopup(sessionKey, role) {
-    currentPopupSession = sessionKey;
-    currentPopupRole = role;
+    console.log('✏️ openEditShiftPopup вызван:', { sessionKey, role });
     
-    const [day, time] = sessionKey.split('_');
-    const session = schedule[day]?.find(s => s.time === time);
-    const currentComment = getAssignmentData(sessionKey, role)?.comment || '';
+    // Устанавливаем глобальные переменные
+    window.currentPopupSession = sessionKey;
+    window.currentPopupRole = role;
     
-    if (!session) return;
+    // Получаем текущий комментарий
+    const assignmentData = getAssignmentData(sessionKey, role);
+    const currentComment = assignmentData ? assignmentData.comment || '' : '';
     
-    document.getElementById('editShiftTitle').textContent = `Редактировать шифт`;
-    document.getElementById('editShiftInfo').textContent = `${formatDate(day)} • ${time} • ${role}`;
+    console.log('💬 Текущий комментарий:', currentComment);
     
-    const commentInput = document.getElementById('editCommentInput');
-    commentInput.value = currentComment;
+    document.getElementById('editTitle').textContent = 'Данные шифта';
+    document.getElementById('editRoleInfo').textContent = role;
+    document.getElementById('editComment').value = currentComment;
+    document.getElementById('editOriginalComment').value = currentComment; // Сохраняем оригинал
+    
+    updateEditButtons(false); // Изначально кнопка "Освободить шифт"
     
     document.getElementById('editShiftPopup').classList.add('show');
+    console.log('👁️ Попап редактирования показан');
 }
 
-/**
- * Закрывает попап редактирования шифта
- */
 function closeEditShiftPopup() {
+    console.log('❌ Закрываем попап редактирования');
     document.getElementById('editShiftPopup').classList.remove('show');
-    currentPopupSession = null;
-    currentPopupRole = null;
+    window.currentPopupSession = null;
+    window.currentPopupRole = null;
 }
 
-/**
- * Обработчик изменения комментария в попапе редактирования
- */
+
 function onEditCommentChange() {
-    const commentInput = document.getElementById('editCommentInput');
-    const currentComment = getAssignmentData(currentPopupSession, currentPopupRole)?.comment || '';
-    const commentChanged = commentInput.value !== currentComment;
+    console.log('📝 onEditCommentChange вызван');
     
-    updateEditButtons(commentChanged);
+    const currentComment = document.getElementById('editComment').value.trim();
+    const originalComment = document.getElementById('editOriginalComment').value.trim();
+    const changed = currentComment !== originalComment;
+    
+    console.log('💬 Изменение комментария:', { currentComment, originalComment, changed });
+    
+    updateEditButtons(changed);
 }
 
-/**
- * Обновляет кнопки редактирования
- * @param {boolean} commentChanged - Изменен ли комментарий
- */
 function updateEditButtons(commentChanged) {
-    const saveButton = document.getElementById('saveEditButton');
-    const releaseButton = document.getElementById('releaseEditButton');
+    console.log('🔄 updateEditButtons вызван, изменен:', commentChanged);
     
-    if (commentChanged) {
-        saveButton.style.display = 'inline-block';
-        releaseButton.style.display = 'none';
-    } else {
-        saveButton.style.display = 'none';
-        releaseButton.style.display = 'inline-block';
+    const actionBtn = document.getElementById('editActionBtn');
+    if (actionBtn) {
+        if (commentChanged) {
+            actionBtn.textContent = 'Сохранить';
+            actionBtn.onclick = saveShiftComment;
+            actionBtn.style.background = 'var(--accent-primary)';
+        } else {
+            actionBtn.textContent = 'Освободить шифт';
+            actionBtn.onclick = releaseShift;
+            actionBtn.style.background = 'var(--error-color)';
+        }
     }
 }
 
-/**
- * Сохраняет комментарий шифта
- * @async
- * @returns {Promise<void>}
- */
 async function saveShiftComment() {
-    if (!currentPopupSession || !currentPopupRole) {
-        showNotification('Ошибка: не удалось сохранить комментарий');
+    console.log('💾 saveShiftComment вызван');
+    
+    const comment = document.getElementById('editComment').value.trim();
+    console.log('💬 Получен комментарий:', comment);
+    
+    // ИСПРАВЛЕНИЕ: Проверяем переменные ПЕРЕД закрытием попапа
+    console.log('🔍 Проверяем переменные попапа:', {
+        currentPopupSession: window.currentPopupSession,
+        currentPopupRole: window.currentPopupRole
+    });
+    
+    if (!window.currentPopupSession || !window.currentPopupRole) {
+        console.error('❌ Данные попапа не установлены ПЕРЕД сохранением');
+        showNotification('Ошибка: данные шифта не найдены');
         return;
     }
     
-    const commentInput = document.getElementById('editCommentInput');
-    const comment = commentInput.value.trim();
+    // ИСПРАВЛЕНИЕ: Сохраняем переменные В ЛОКАЛЬНЫЕ переменные ПЕРЕД закрытием попапа
+    const sessionToUpdate = window.currentPopupSession;
+    const roleToUpdate = window.currentPopupRole;
     
-    try {
-        await updateAssignmentComment(currentPopupSession, currentPopupRole, comment);
-        showNotification('Комментарий сохранен');
-        closeEditShiftPopup();
-    } catch (error) {
-        console.error('Ошибка сохранения комментария:', error);
-        showNotification('Ошибка сохранения комментария');
+    console.log('💾 Сохранили данные для обновления:', {
+        sessionToUpdate,
+        roleToUpdate,
+        comment
+    });
+    
+    // Закрываем попап
+    closeEditShiftPopup();
+    
+    // ИСПРАВЛЕНИЕ: Используем ЛОКАЛЬНЫЕ переменные, а не глобальные
+    if (sessionToUpdate && roleToUpdate) {
+        console.log('💬 Вызываем updateAssignmentComment с сохраненными данными');
+        
+        try {
+            showLoader('Сохранение комментария...');
+            
+            // Используем локальные переменные
+            await updateAssignmentComment(sessionToUpdate, roleToUpdate, comment);
+            
+            showNotification('Комментарий сохранен!');
+            console.log('✅ Комментарий успешно сохранен');
+            
+        } catch (error) {
+            console.error('❌ Ошибка сохранения комментария:', error);
+            showNotification('Ошибка сохранения комментария');
+        } finally {
+            hideLoader();
+        }
+    } else {
+        console.error('❌ Локальные переменные тоже не установлены:', {
+            sessionToUpdate,
+            roleToUpdate
+        });
+        showNotification('Ошибка: не удалось сохранить данные шифта');
     }
 }
 
-/**
- * Освобождает шифт
- * @async
- * @returns {Promise<void>}
- */
+
 async function releaseShift() {
-    if (!currentPopupSession || !currentPopupRole || !currentUser) {
-        showNotification('Ошибка: не удалось освободить шифт');
-        return;
-    }
+    // 🔧 СОХРАНЯЕМ переменные ПЕРЕД закрытием попапа
+    const sessionToDelete = window.currentPopupSession;
+    const roleToDelete = window.currentPopupRole;
     
-    const [day, time] = currentPopupSession.split('_');
+    if (!confirm('Вы уверены?')) return;
     
-    try {
-        await removeAssignmentFromAirtable(currentUser, currentPopupRole, day, time);
-        
-        // Обновляем локально
-        if (assignments[currentPopupSession]) {
-            assignments[currentPopupSession][currentPopupRole] = null;
-        }
-        
-        // Удаляем комментарий
-        if (window.assignmentComments?.[currentPopupSession]?.[currentPopupRole]) {
-            delete window.assignmentComments[currentPopupSession][currentPopupRole];
-        }
-        
-        showNotification('Шифт освобожден');
-        closeEditShiftPopup();
-        renderSchedule();
-        updateProgress();
-    } catch (error) {
-        console.error('Ошибка освобождения шифта:', error);
-        showNotification('Ошибка освобождения шифта');
-    }
+    closeEditShiftPopup();
+    
+    // 🔧 Используем ЛОКАЛЬНЫЕ переменные
+    await removeUserAssignment(sessionToDelete, roleToDelete);
 }
 
-// ============================================================================
-// ЗАВЕРШЕНИЕ НАЗНАЧЕНИЯ
-// ============================================================================
-
-/**
- * Завершает назначение
- * @async
- * @returns {Promise<void>}
- */
-async function completeAssignment() {
-    if (!pendingAssignment) {
-        showNotification('Ошибка: нет ожидающего назначения');
-        return;
-    }
-    
-    try {
-        await saveAssignmentToAirtable(
-            pendingAssignment.participantName,
-            pendingAssignment.roleName,
-            pendingAssignment.slotDate,
-            pendingAssignment.slotTime,
-            pendingAssignment.comment || ''
-        );
-        
-        // Обновляем локально
-        const sessionKey = `${pendingAssignment.slotDate}_${pendingAssignment.slotTime}`;
-        if (!assignments[sessionKey]) {
-            assignments[sessionKey] = {};
-        }
-        assignments[sessionKey][pendingAssignment.roleName] = pendingAssignment.participantName;
-        
-        // Сохраняем комментарий локально
-        if (pendingAssignment.comment) {
-            if (!window.assignmentComments) window.assignmentComments = {};
-            if (!window.assignmentComments[sessionKey]) window.assignmentComments[sessionKey] = {};
-            window.assignmentComments[sessionKey][pendingAssignment.roleName] = {
-                comment: pendingAssignment.comment
-            };
-        }
-        
-        showNotification('Шифт забронирован!');
-        pendingAssignment = null;
-        
-        renderSchedule();
-        updateProgress();
-    } catch (error) {
-        console.error('Ошибка завершения назначения:', error);
-        showNotification('Ошибка бронирования шифта');
-        pendingAssignment = null;
-    }
-}
-
-// ============================================================================
-// ЭКСПОРТ ФУНКЦИЙ
-// ============================================================================
-
-// Делаем функции доступными глобально
-window.openStatsPopup = openStatsPopup;
-window.closeStatsPopup = closeStatsPopup;
-window.openMySchedule = openMySchedule;
-window.openSchedulePopup = openSchedulePopup;
-window.closeSchedulePopup = closeSchedulePopup;
-window.shareSchedule = shareSchedule;
-window.openRolesInfoPopup = openRolesInfoPopup;
-window.closeRolesInfoPopup = closeRolesInfoPopup;
-window.showRoleDetail = showRoleDetail;
-window.closeRoleDetailPopup = closeRoleDetailPopup;
-window.openDataEditPopup = openDataEditPopup;
-window.openUserScheduleFromStats = openUserScheduleFromStats;
-window.openFullSchedulePopup = openFullSchedulePopup;
-window.switchScheduleDay = switchScheduleDay;
-window.openCommentPopup = openCommentPopup;
-window.closeCommentPopup = closeCommentPopup;
-window.skipComment = skipComment;
-window.saveComment = saveComment;
-window.showConfirmation = showConfirmation;
-window.closeConfirmPopup = closeConfirmPopup;
-window.showNotification = showNotification;
-window.openParticipantPopup = openParticipantPopup;
-window.openParticipantPopupWithSearch = openParticipantPopupWithSearch;
-window.closeParticipantPopup = closeParticipantPopup;
+/* === ЭКСПОРТ ГЛОБАЛЬНЫХ ФУНКЦИЙ === */
+// Экспортируем все функции попапов в глобальную область
 window.openBookShiftPopup = openBookShiftPopup;
 window.closeBookShiftPopup = closeBookShiftPopup;
 window.confirmBookShift = confirmBookShift;
@@ -1092,4 +939,14 @@ window.closeEditShiftPopup = closeEditShiftPopup;
 window.onEditCommentChange = onEditCommentChange;
 window.saveShiftComment = saveShiftComment;
 window.releaseShift = releaseShift;
-window.completeAssignment = completeAssignment;
+window.openParticipantPopup = openParticipantPopup;
+window.renderParticipantsList = renderParticipantsList;
+window.openCommentPopup = openCommentPopup;
+window.closeCommentPopup = closeCommentPopup;
+window.skipComment = skipComment;
+window.saveComment = saveComment;
+window.showConfirmation = showConfirmation;
+window.closeConfirmPopup = closeConfirmPopup;
+window.showNotification = showNotification;
+
+console.log('📤 Функции попапов экспортированы глобально');
