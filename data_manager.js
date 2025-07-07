@@ -1,128 +1,58 @@
-/**
- * NEVESOMO Шифты 2025 - Менеджер данных
- * @author Igor Konovalchik
- * @version 2.0
- */
+// data-manager.js - Управление данными (без ES6 модулей)
 
-// ============================================================================
-// ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДАННЫХ
-// ============================================================================
-
-/** @type {Array<Object>} Список участников */
+/* === ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДАННЫХ === */
 let participants = [];
-
-/** @type {Object.<string, Object>} Информация о ролях */
 let rolesInfo = {};
-
-/** @type {Object.<string, Object>} Группы ролей */
 let roleGroups = {};
-
-/** @type {Object.<string, Array>} Расписание сессий */
 let schedule = {};
-
-/** @type {Array<string>} Все доступные роли */
 let allRoles = [];
-
-/** @type {Object} Настройки приложения */
 let appSettings = {};
-
-/** @type {Object.<string, Object>} Назначения участников на роли */
 let assignments = {};
 
-// ============================================================================
-// СОСТОЯНИЕ ЗАГРУЗКИ
-// ============================================================================
-
-/** @type {boolean} Флаг загрузки данных */
+// Состояние загрузки
 let isDataLoaded = false;
-
-/** @type {boolean} Флаг процесса загрузки */
 let isDataLoading = false;
 
-// ============================================================================
-// КОНСТАНТЫ И КОНФИГУРАЦИЯ
-// ============================================================================
-
-const ROLE_CATEGORIES = {
-    BANKING: 'banking',
-    CARE: 'care',
-    LOUNGE: 'lounge',
-    KITCHEN: 'kitchen',
-    OTHER: 'other'
-};
-
-const CATEGORY_NAMES = {
-    [ROLE_CATEGORIES.BANKING]: 'Банные',
-    [ROLE_CATEGORIES.CARE]: 'Забота',
-    [ROLE_CATEGORIES.LOUNGE]: 'Лаунж',
-    [ROLE_CATEGORIES.KITCHEN]: 'Кухня',
-    [ROLE_CATEGORIES.OTHER]: 'Прочее'
-};
-
-const FALLBACK_ROLES = {
-    [ROLE_CATEGORIES.BANKING]: ['Главный банный мастер', 'Пармастер 2', 'Источник/Водовоз/Тех.гид'],
-    [ROLE_CATEGORIES.CARE]: ['Гриттер 1', 'Гостевая Забота'],
-    [ROLE_CATEGORIES.LOUNGE]: ['Любовь+Забота - 1', 'Любовь+Забота+Мастер класс'],
-    [ROLE_CATEGORIES.KITCHEN]: ['Поваренок'],
-    [ROLE_CATEGORIES.OTHER]: ['Музыка, ритм, голос', 'Страхующий/Уют']
-};
-
-// ============================================================================
-// ФУНКЦИИ СОСТОЯНИЯ ЗАГРУЗКИ
-// ============================================================================
-
-/**
- * Показывает состояние загрузки
- */
+/* === ФУНКЦИИ СОСТОЯНИЯ ЗАГРУЗКИ === */
 function showLoadingState() {
     const container = document.getElementById('schedule');
-    if (!container) return;
-    
-    container.innerHTML = `
-        <div style="text-align: center; padding: 40px;">
-            <div style="font-size: 2em; margin-bottom: 16px;">⏳</div>
-            <div style="font-size: 1.2em; color: var(--text-secondary);">Загружаем данные из Airtable...</div>
-        </div>
-    `;
+    if (container) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px;">
+                <div style="font-size: 2em; margin-bottom: 16px;">⏳</div>
+                <div style="font-size: 1.2em; color: var(--text-secondary);">Загружаем данные из Airtable...</div>
+            </div>
+        `;
+    }
 }
 
-/**
- * Показывает состояние ошибки
- * @param {string} errorMessage - Сообщение об ошибке
- */
 function showErrorState(errorMessage) {
     const container = document.getElementById('schedule');
-    if (!container) return;
-    
-    container.innerHTML = `
-        <div style="text-align: center; padding: 40px;">
-            <div style="font-size: 2em; margin-bottom: 16px;">❌</div>
-            <div style="font-size: 1.2em; color: var(--error-color); margin-bottom: 16px;">
-                Ошибка загрузки данных
+    if (container) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px;">
+                <div style="font-size: 2em; margin-bottom: 16px;">❌</div>
+                <div style="font-size: 1.2em; color: var(--error-color); margin-bottom: 16px;">
+                    Ошибка загрузки данных
+                </div>
+                <div style="color: var(--text-secondary); margin-bottom: 16px;">
+                    ${errorMessage}
+                </div>
+                <button onclick="location.reload()" style="background: var(--accent-primary); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer;">
+                    Перезагрузить
+                </button>
             </div>
-            <div style="color: var(--text-secondary); margin-bottom: 16px;">
-                ${errorMessage}
-            </div>
-            <button onclick="location.reload()" style="background: var(--accent-primary); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer;">
-                Перезагрузить
-            </button>
-        </div>
-    `;
+        `;
+    }
 }
 
-// ============================================================================
-// ЗАГРУЗКА ДАННЫХ ИЗ AIRTABLE
-// ============================================================================
-
-/**
- * Загружает все данные из Airtable
- * @async
- * @returns {Promise<void>}
- */
+/* === ЗАГРУЗКА ДАННЫХ ИЗ AIRTABLE === */
+// ИСПРАВЛЕНО: Обновленная функция загрузки данных с лучшей обработкой ролей
 async function loadAirtableData() {
     if (isDataLoading) return;
     
     isDataLoading = true;
+   // showLoadingState();
     
     try {
         console.log('Загружаем данные из Airtable...');
@@ -133,13 +63,112 @@ async function loadAirtableData() {
         
         const data = await window.airtableService.getAllData();
         
-        // Обрабатываем данные
-        processParticipants(data.participants);
-        processRoles(data.roles);
-        processSchedule(data.schedule);
-        processSettings(data.settings);
+        // Обрабатываем участников
+        participants.length = 0;
+        participants.push(...data.participants.map(p => ({
+            name          : p.name,
+            telegram      : p.telegram,
+            telegramId    : p.telegramId,
+            isAdmin       : p.isAdmin,
+            bathExperience: p.bathExperience
+        })));
         
-        // Загружаем назначения после того, как все роли готовы
+        // ИСПРАВЛЕНО: Обрабатываем роли с улучшенной логикой
+        Object.keys(rolesInfo).forEach(key => delete rolesInfo[key]);
+        const validRoles = [];
+        
+        data.roles.forEach(role => {
+            if (role.isActive && role.name) {
+                rolesInfo[role.name] = {
+                    icon: role.icon || '🔥',
+                    description: role.description || '',
+                    instructionUrl: role.instructionUrl || '',
+                    category: role.category || 'other'
+                };
+                validRoles.push(role.name);
+                console.log(`✅ Загружена роль: "${role.name}" (${role.category})`);
+            }
+        });
+        
+        // ИСПРАВЛЕНО: Группируем роли по категориям с fallback
+        Object.keys(roleGroups).forEach(key => delete roleGroups[key]);
+        const rolesByCategory = {};
+        
+        // Сначала группируем по категориям из данных
+        data.roles.forEach(role => {
+            if (role.isActive && role.name) {
+                const category = role.category || 'other';
+                if (!rolesByCategory[category]) {
+                    rolesByCategory[category] = [];
+                }
+                rolesByCategory[category].push(role.name);
+            }
+        });
+        
+        // Если нет ролей из БД, используем статичный fallback
+        if (Object.keys(rolesByCategory).length === 0) {
+            console.warn('⚠️ Роли не загружены из Airtable, используем fallback');
+            rolesByCategory.banking = ['Главный банный мастер', 'Пармастер 2', 'Источник/Водовоз/Тех.гид'];
+            rolesByCategory.care = ['Гриттер 1', 'Гостевая Забота'];
+            rolesByCategory.lounge = ['Любовь+Забота - 1', 'Любовь+Забота+Мастер класс'];
+            rolesByCategory.kitchen = ['Поваренок'];
+            rolesByCategory.other = ['Музыка, ритм, голос', 'Страхующий/Уют'];
+        }
+        
+        // Создаем roleGroups с красивыми названиями
+        Object.entries(rolesByCategory).forEach(([category, roles]) => {
+            const categoryNames = {
+                'banking': 'Банные',
+                'care': 'Забота',
+                'lounge': 'Лаунж',
+                'kitchen': 'Кухня',
+                'other': 'Прочее'
+            };
+            
+            roleGroups[category] = {
+                name: categoryNames[category] || category,
+                roles: roles
+            };
+            
+            console.log(`📂 Группа "${categoryNames[category] || category}": ${roles.length} ролей`);
+        });
+        
+        // ИСПРАВЛЕНО: allRoles из всех групп
+        allRoles.length = 0;
+        Object.values(roleGroups).forEach(group => {
+            allRoles.push(...group.roles);
+        });
+        
+        console.log(`📋 Всего ролей: ${allRoles.length}`);
+        console.log('🔍 Список всех ролей:', allRoles);
+        
+        // Обрабатываем расписание
+        Object.keys(schedule).forEach(key => delete schedule[key]);
+        data.schedule.forEach(session => {
+            const dateKey = session.date;
+            if (!schedule[dateKey]) {
+                schedule[dateKey] = [];
+            }
+            
+           // НОВЫЙ блок - без fallback и без лишних полей:
+            schedule[dateKey].push({
+                time: session.startTime,
+                endTime: session.endTime,
+                sessionNum: session.sessionNumber,
+                status: session.status,
+                type: session.type,
+                availableRoles: session.availableRoles, // Сохраняем как есть из базы
+                slotLink: session.slotLink || null  
+            });
+            
+            console.log(`📅 Сессия ${session.startTime} ${dateKey}: роли из базы: "${session.availableRoles}"`);
+        });
+        
+        // Сохраняем настройки
+        Object.keys(appSettings).forEach(key => delete appSettings[key]);
+        Object.assign(appSettings, data.settings);
+        
+        // ИСПРАВЛЕНО: Загружаем назначения после того, как все роли готовы
         await loadAssignments(data.assignments);
         
         isDataLoaded = true;
@@ -158,344 +187,150 @@ async function loadAirtableData() {
         
     } catch (error) {
         console.error('❌ Ошибка загрузки данных:', error);
+       // showErrorState(error.message);
         throw error;
     } finally {
         isDataLoading = false;
     }
 }
 
-/**
- * Обрабатывает данные участников
- * @param {Array<Object>} participantsData - Данные участников
- */
-function processParticipants(participantsData) {
-    participants.length = 0;
-    participants.push(...participantsData.map(p => ({
-        name: p.name,
-        telegram: p.telegram,
-        telegramId: p.telegramId,
-        isAdmin: p.isAdmin,
-        bathExperience: p.bathExperience
-    })));
-}
-
-/**
- * Обрабатывает данные ролей
- * @param {Array<Object>} rolesData - Данные ролей
- */
-function processRoles(rolesData) {
-    // Очищаем существующие роли
-    Object.keys(rolesInfo).forEach(key => delete rolesInfo[key]);
-    
-    const validRoles = [];
-    
-    rolesData.forEach(role => {
-        if (role.isActive && role.name) {
-            rolesInfo[role.name] = {
-                icon: role.icon || '🔥',
-                description: role.description || '',
-                instructionUrl: role.instructionUrl || '',
-                category: role.category || ROLE_CATEGORIES.OTHER
-            };
-            validRoles.push(role.name);
-            console.log(`✅ Загружена роль: "${role.name}" (${role.category})`);
-        }
-    });
-    
-    // Группируем роли по категориям
-    createRoleGroups(rolesData);
-    
-    // Обновляем список всех ролей
-    updateAllRoles();
-}
-
-/**
- * Создает группы ролей
- * @param {Array<Object>} rolesData - Данные ролей
- */
-function createRoleGroups(rolesData) {
-    // Очищаем существующие группы
-    Object.keys(roleGroups).forEach(key => delete roleGroups[key]);
-    
-    const rolesByCategory = {};
-    
-    // Сначала группируем по категориям из данных
-    rolesData.forEach(role => {
-        if (role.isActive && role.name) {
-            const category = role.category || ROLE_CATEGORIES.OTHER;
-            if (!rolesByCategory[category]) {
-                rolesByCategory[category] = [];
-            }
-            rolesByCategory[category].push(role.name);
-        }
-    });
-    
-    // Если нет ролей из БД, используем статичный fallback
-    if (Object.keys(rolesByCategory).length === 0) {
-        console.warn('⚠️ Роли не загружены из Airtable, используем fallback');
-        Object.assign(rolesByCategory, FALLBACK_ROLES);
-    }
-    
-    // Создаем roleGroups с красивыми названиями
-    Object.entries(rolesByCategory).forEach(([category, roles]) => {
-        roleGroups[category] = {
-            name: CATEGORY_NAMES[category] || category,
-            roles: roles
-        };
-        
-        console.log(`📂 Группа "${CATEGORY_NAMES[category] || category}": ${roles.length} ролей`);
-    });
-}
-
-/**
- * Обновляет список всех ролей
- */
-function updateAllRoles() {
-    allRoles.length = 0;
-    Object.values(roleGroups).forEach(group => {
-        allRoles.push(...group.roles);
-    });
-    
-    console.log(`📋 Всего ролей: ${allRoles.length}`);
-    console.log('🔍 Список всех ролей:', allRoles);
-}
-
-/**
- * Обрабатывает данные расписания
- * @param {Array<Object>} scheduleData - Данные расписания
- */
-function processSchedule(scheduleData) {
-    // Очищаем существующее расписание
-    Object.keys(schedule).forEach(key => delete schedule[key]);
-    
-    scheduleData.forEach(session => {
-        const dateKey = session.date;
-        if (!schedule[dateKey]) {
-            schedule[dateKey] = [];
-        }
-        
-        schedule[dateKey].push({
-            time: session.startTime,
-            endTime: session.endTime,
-            sessionNum: session.sessionNumber,
-            status: session.status,
-            type: session.type,
-            availableRoles: session.availableRoles,
-            slotLink: session.slotLink || null
-        });
-        
-        console.log(`📅 Сессия ${session.startTime} ${dateKey}: роли из базы: "${session.availableRoles}"`);
-    });
-}
-
-/**
- * Обрабатывает настройки приложения
- * @param {Object} settingsData - Данные настроек
- */
-function processSettings(settingsData) {
-    // Очищаем существующие настройки
-    Object.keys(appSettings).forEach(key => delete appSettings[key]);
-    Object.assign(appSettings, settingsData);
-}
-
-// ============================================================================
-// ЗАГРУЗКА НАЗНАЧЕНИЙ
-// ============================================================================
-
-/**
- * Загружает назначения участников
- * @param {Array<Object>} assignmentsData - Данные назначений
- * @async
- * @returns {Promise<void>}
- */
 async function loadAssignments(assignmentsData) {
     // Очищаем все существующие assignments
     Object.keys(assignments).forEach(key => delete assignments[key]);
     
-    if (!assignmentsData || assignmentsData.length === 0) {
-        console.log('📝 Назначений не найдено, инициализируем пустые слоты');
-        initializeEmptyAssignments();
-        return;
-    }
-    
-    console.log(`📝 Загружаем ${assignmentsData.length} назначений...`);
-    
-    assignmentsData.forEach(assignment => {
-        const sessionKey = `${assignment.slotDate}_${assignment.slotTime}`;
-        
-        if (!assignments[sessionKey]) {
-            assignments[sessionKey] = {};
-        }
-        
-        assignments[sessionKey][assignment.roleName] = assignment.participantName;
-        
-        // Сохраняем комментарии если есть
-        if (assignment.comment) {
-            if (!window.assignmentComments) window.assignmentComments = {};
-            if (!window.assignmentComments[sessionKey]) window.assignmentComments[sessionKey] = {};
-            window.assignmentComments[sessionKey][assignment.roleName] = {
-                comment: assignment.comment
-            };
-        }
-    });
-    
-    console.log(`✅ Загружено ${Object.keys(assignments).length} сессий с назначениями`);
-}
-
-/**
- * Инициализирует пустые назначения для всех сессий
- */
-function initializeEmptyAssignments() {
+    // Создаем assignments только для сессий с ролями в базе данных
     Object.keys(schedule).forEach(day => {
         schedule[day].forEach(session => {
             const sessionKey = `${day}_${session.time}`;
+            
+            // Проверяем есть ли роли в базе данных для этой сессии
+            if (!session.availableRoles || !session.availableRoles.trim()) {
+                console.log(`⚠️ Сессия ${sessionKey} не имеет ролей в базе данных - пропускаем`);
+                return; // Пропускаем сессии без ролей
+            }
+            
+            // Парсим роли из базы данных
+            const sessionRoles = session.availableRoles.split(',').map(r => r.trim()).filter(r => r);
+            
+            if (sessionRoles.length === 0) {
+                console.log(`⚠️ Сессия ${sessionKey} имеет пустой список ролей - пропускаем`);
+                return;
+            }
+            
+            console.log(`📝 Сессия ${sessionKey} роли из базы:`, sessionRoles);
+            
+            // Инициализируем assignments для этой сессии
             assignments[sessionKey] = {};
             
-            // Инициализируем пустые слоты для всех ролей
-            allRoles.forEach(role => {
+            // Инициализируем только роли из базы данных
+            sessionRoles.forEach(role => {
                 assignments[sessionKey][role] = null;
             });
         });
     });
+    
+    console.log('📦 Инициализированы assignments:', Object.keys(assignments).length, 'сессий');
+    
+    // Применяем назначения из Airtable
+    assignmentsData.forEach(assignment => {
+        const sessionKey = `${assignment.slotDate}_${assignment.slotTime}`;
+        
+        if (!assignments[sessionKey]) {
+            console.warn(`⚠️ Сессия ${sessionKey} не найдена в assignments (нет ролей в базе)`);
+            return;
+        }
+        
+        if (assignments[sessionKey][assignment.roleName] === undefined) {
+            console.error(`❌ Роль "${assignment.roleName}" не найдена в сессии ${sessionKey}`);
+            console.log('Доступные роли в сессии:', Object.keys(assignments[sessionKey]));
+            return;
+        }
+        
+        assignments[sessionKey][assignment.roleName] = assignment.participantName;
+        console.log(`✅ Назначение: ${assignment.participantName} → ${assignment.roleName} в ${sessionKey}`);
+    });
+    
+    console.log('📋 Загружены назначения из Airtable:', assignmentsData.length);
 }
 
-// ============================================================================
-// СОХРАНЕНИЕ НАЗНАЧЕНИЙ
-// ============================================================================
-
-/**
- * Сохраняет назначение в Airtable
- * @param {string} participantName - Имя участника
- * @param {string} roleName - Название роли
- * @param {string} slotDate - Дата слота
- * @param {string} slotTime - Время слота
- * @param {string} comment - Комментарий
- * @async
- * @returns {Promise<void>}
- */
+/* === СОХРАНЕНИЕ ДАННЫХ В AIRTABLE === */
 async function saveAssignmentToAirtable(participantName, roleName, slotDate, slotTime, comment = '') {
     try {
-        await window.airtableService.createAssignment({
-            participantName,
-            roleName,
-            slotDate,
-            slotTime,
-            comment
-        });
+        console.log('Сохраняем в Airtable:', { participantName, roleName, slotDate, slotTime, comment });
         
-        console.log(`✅ Назначение сохранено: ${participantName} -> ${roleName} (${slotDate} ${slotTime})`);
+        if (!window.airtableService) {
+            throw new Error('Airtable service не доступен');
+        }
+        
+        await window.airtableService.createAssignment(participantName, roleName, slotDate, slotTime, comment);
+        console.log('Назначение сохранено в Airtable:', { participantName, roleName, slotDate, slotTime, comment });
     } catch (error) {
-        console.error('❌ Ошибка сохранения назначения:', error);
+        console.error('Ошибка сохранения назначения:', error);
         throw error;
     }
 }
 
-/**
- * Удаляет назначение из Airtable
- * @param {string} participantName - Имя участника
- * @param {string} roleName - Название роли
- * @param {string} slotDate - Дата слота
- * @param {string} slotTime - Время слота
- * @async
- * @returns {Promise<void>}
- */
 async function removeAssignmentFromAirtable(participantName, roleName, slotDate, slotTime) {
     try {
         const assignments = await window.airtableService.getAssignments();
-        const assignment = assignments.find(a => 
+        const assignmentToDelete = assignments.find(a => 
             a.participantName === participantName && 
             a.roleName === roleName && 
             a.slotDate === slotDate && 
             a.slotTime === slotTime
         );
         
-        if (assignment) {
-            await window.airtableService.deleteAssignment(assignment.id);
-            console.log(`✅ Назначение удалено: ${participantName} -> ${roleName} (${slotDate} ${slotTime})`);
+        if (assignmentToDelete) {
+            await window.airtableService.deleteAssignment(assignmentToDelete.id);
+            console.log('Назначение удалено из Airtable:', assignmentToDelete);
         }
     } catch (error) {
-        console.error('❌ Ошибка удаления назначения:', error);
+        console.error('Ошибка удаления назначения:', error);
+        showNotification('Ошибка удаления. Попробуйте еще раз.');
         throw error;
     }
 }
 
-// ============================================================================
-// УТИЛИТЫ ДЛЯ РАБОТЫ С НАЗНАЧЕНИЯМИ
-// ============================================================================
-
-/**
- * Проверяет, занят ли пользователь в сессии
- * @param {string} sessionKey - Ключ сессии
- * @param {string} userName - Имя пользователя
- * @returns {boolean} True если пользователь занят
- */
+/* === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ === */
 function isUserBusyInSession(sessionKey, userName) {
-    const sessionAssignments = assignments[sessionKey];
-    if (!sessionAssignments) return false;
+    const sessionTime = sessionKey.split('_')[1];
     
-    return Object.values(sessionAssignments).some(assignedUser => 
-        assignedUser === userName
-    );
+    for (const [checkSessionKey, sessionRoles] of Object.entries(assignments)) {
+        const checkTime = checkSessionKey.split('_')[1];
+        if (checkTime === sessionTime) {
+            for (const assignedUser of Object.values(sessionRoles)) {
+                if (assignedUser === userName) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
-/**
- * Получает роли пользователя в сессии
- * @param {string} sessionKey - Ключ сессии
- * @param {string} userName - Имя пользователя
- * @returns {Array<string>} Массив ролей пользователя
- */
 function getUserRolesInSession(sessionKey, userName) {
+    const [day, time] = sessionKey.split('_');
+    const session = schedule[day]?.find(s => s.time === time);
+    
+    if (!session) return [];
+    
     const sessionAssignments = assignments[sessionKey];
     if (!sessionAssignments) return [];
     
-    return Object.entries(sessionAssignments)
-        .filter(([role, assignedUser]) => assignedUser === userName)
-        .map(([role]) => role);
-}
-
-// ============================================================================
-// ПЕРЕЗАГРУЗКА ДАННЫХ
-// ============================================================================
-
-/**
- * Перезагружает все данные
- * @async
- * @returns {Promise<void>}
- */
-async function reloadData() {
-    console.log('🔄 Перезагружаем данные...');
-    
-    isDataLoaded = false;
-    isDataLoading = false;
-    
-    try {
-        await loadAirtableData();
-        console.log('✅ Данные успешно перезагружены');
-    } catch (error) {
-        console.error('❌ Ошибка перезагрузки данных:', error);
-        throw error;
+    let sessionRoles = [];
+    if (session.availableRoles && session.availableRoles.trim()) {
+        sessionRoles = session.availableRoles.split(',').map(r => r.trim()).filter(r => r);
+    } else {
+        return [];
     }
+    
+    return sessionRoles.filter(role => sessionAssignments[role] === userName);
 }
 
-// ============================================================================
-// ЭКСПОРТ ФУНКЦИЙ
-// ============================================================================
+async function reloadData() {
+    isDataLoaded = false;
+    return await loadAirtableData();
+}
 
-// Делаем функции доступными глобально
-window.loadAirtableData = loadAirtableData;
-window.reloadData = reloadData;
-window.saveAssignmentToAirtable = saveAssignmentToAirtable;
-window.removeAssignmentFromAirtable = removeAssignmentFromAirtable;
-window.isUserBusyInSession = isUserBusyInSession;
-window.getUserRolesInSession = getUserRolesInSession;
-
-// Экспортируем переменные для других модулей
-window.participants = participants;
-window.rolesInfo = rolesInfo;
-window.roleGroups = roleGroups;
-window.schedule = schedule;
-window.allRoles = allRoles;
-window.appSettings = appSettings;
-window.assignments = assignments;
-window.isDataLoaded = isDataLoaded;
+console.log('📦 Data Manager загружен');
 

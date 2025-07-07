@@ -1,67 +1,21 @@
-/**
- * NEVESOMO Шифты 2025 - Рендерер интерфейса
- * @author Igor Konovalchik
- * @version 2.0
- */
+// ui-renderer.js
 
-// ============================================================================
-// КОНСТАНТЫ И КОНФИГУРАЦИЯ
-// ============================================================================
-
-const DISPLAY_CONFIG = {
-    MAX_ROLE_NAME_LENGTH: 25,
-    MAX_USER_NAME_LENGTH: 15,
-    MAX_COMMENT_LENGTH: 50,
-    PROGRESS_RING_SIZE: 60,
-    PROGRESS_STROKE_WIDTH: 4
-};
-
-// ============================================================================
-// ФУНКЦИИ ФОРМАТИРОВАНИЯ
-// ============================================================================
-
-/**
- * Форматирует дату в читаемый вид
- * @param {string} dateStr - Строка даты
- * @returns {string} Отформатированная дата
- */
+/* === ФУНКЦИИ ФОРМАТИРОВАНИЯ === */
 function formatDate(dateStr) {
-    const months = [
-        'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-        'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
-    ];
-    
-    const weekdays = [
-        'воскресенье', 'понедельник', 'вторник', 'среда',
-        'четверг', 'пятница', 'суббота'
-    ];
+    const months = ['января','февраля','марта','апреля','мая','июня',
+                    'июля','августа','сентября','октября','ноября','декабря'];
+    const weekdays = ['воскресенье','понедельник','вторник','среда',
+                      'четверг','пятница','суббота'];
 
-    const date = new Date(dateStr + 'T00:00:00');
-    const day = date.getDate();
-    const month = months[date.getMonth()];
-    const weekday = weekdays[date.getDay()];
+    const d = new Date(dateStr+'T00:00:00');
+    const day   = d.getDate();
+    const month = months[d.getMonth()];
+    const wday  = weekdays[d.getDay()];
 
-    return `${day} ${month}, ${weekday}`;
+    return `${day} ${month}, ${wday}`;
 }
 
-/**
- * Обрезает текст до указанной длины
- * @param {string} text - Исходный текст
- * @param {number} maxLength - Максимальная длина
- * @returns {string} Обрезанный текст
- */
-function truncateText(text, maxLength) {
-    if (!text || text.length <= maxLength) return text;
-    return text.substring(0, maxLength - 2) + '...';
-}
-
-// ============================================================================
-// ОСНОВНЫЕ ФУНКЦИИ РЕНДЕРИНГА
-// ============================================================================
-
-/**
- * Рендерит основное расписание
- */
+/* === ОСНОВНЫЕ ФУНКЦИИ РЕНДЕРИНГА === */
 function renderSchedule() {
     const scheduleDiv = document.getElementById('schedule');
     if (!scheduleDiv) return;
@@ -69,53 +23,28 @@ function renderSchedule() {
     scheduleDiv.innerHTML = '';
     
     // Сортируем дни по дате
-    const sortedDays = getSortedDays();
-    
-    sortedDays.forEach(day => {
-        const daySection = createDaySection(day);
-        scheduleDiv.appendChild(daySection);
-    });
-    
-    // Обновляем все табы после полной отрисовки
-    updateAllSessionTabs();
-}
-
-/**
- * Получает отсортированные дни
- * @returns {Array<string>} Массив отсортированных дней
- */
-function getSortedDays() {
-    return Object.keys(schedule).sort((a, b) => {
+    const sortedDays = Object.keys(schedule).sort((a, b) => {
         const dateA = new Date(a + 'T00:00:00');
         const dateB = new Date(b + 'T00:00:00'); 
         return dateA.getTime() - dateB.getTime();
     });
-}
-
-/**
- * Создает секцию дня
- * @param {string} day - День
- * @returns {HTMLElement} Элемент секции дня
- */
-function createDaySection(day) {
-    // Сортируем сессии внутри дня по времени
-    const sortedSessions = schedule[day].sort((a, b) => a.time.localeCompare(b.time));
     
-    const dayDiv = document.createElement('div');
-    dayDiv.className = 'day-section';
+    sortedDays.forEach(day => {
+        // Сортируем сессии внутри дня по времени
+        const sortedSessions = schedule[day].sort((a, b) => a.time.localeCompare(b.time));
+        
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'day-section';
+        
+        dayDiv.innerHTML = `
+            <div class="day-header">${formatDate(day)}</div>
+            ${sortedSessions.map(session => renderSession(day, session)).join('')}
+        `;
+        
+        scheduleDiv.appendChild(dayDiv);
+    });
     
-    dayDiv.innerHTML = `
-        <div class="day-header">${formatDate(day)}</div>
-        ${sortedSessions.map(session => renderSession(day, session)).join('')}
-    `;
-    
-    return dayDiv;
-}
-
-/**
- * Обновляет все табы сессий
- */
-function updateAllSessionTabs() {
+    // Обновляем все табы после полной отрисовки
     setTimeout(() => {
         Object.keys(schedule).forEach(day => {
             schedule[day].forEach(session => {
@@ -126,25 +55,30 @@ function updateAllSessionTabs() {
     }, 0);
 }
 
-// ============================================================================
-// РЕНДЕРИНГ РОЛЕЙ
-// ============================================================================
 
-/**
- * Рендерит роли для сессии
- * @param {string} sessionKey - Ключ сессии
- * @param {string} filter - Фильтр ролей
- * @returns {string} HTML ролей
- */
+
 function renderSessionRoles(sessionKey, filter) {
-    const rolesToShow = getRolesToShow(filter);
-    const sortedRoles = sortRolesByAssignment(rolesToShow, sessionKey);
+    let rolesToShow = allRoles;
+    
+    if (filter !== 'all') {
+        rolesToShow = roleGroups[filter]?.roles || [];
+    }
+    
+    // Сортируем роли
+    const sortedRoles = rolesToShow.sort((a, b) => {
+        const sessionAssignments = assignments[sessionKey];
+        const aIsUser = sessionAssignments[a] === currentUser;
+        const bIsUser = sessionAssignments[b] === currentUser;
+        if (aIsUser && !bIsUser) return -1;
+        if (!aIsUser && bIsUser) return 1;
+        return a.localeCompare(b);
+    });
     
     const rolesHtml = `
-        <div class="roles-grid">
-            ${sortedRoles.map(role => renderRoleSlot(sessionKey, role)).join('')}
-        </div>
-    `;
+    <div class="roles-grid">
+        ${sortedRoles.map(role => renderRoleSlot(sessionKey, role)).join('')}
+    </div>
+`;
     
     const container = document.getElementById(`roles-${sessionKey}`);
     if (container) {
@@ -154,173 +88,73 @@ function renderSessionRoles(sessionKey, filter) {
     return rolesHtml;
 }
 
-/**
- * Получает роли для отображения
- * @param {string} filter - Фильтр ролей
- * @returns {Array<string>} Массив ролей
- */
-function getRolesToShow(filter) {
-    if (filter === 'all') {
-        return allRoles;
-    }
-    return roleGroups[filter]?.roles || [];
-}
-
-/**
- * Сортирует роли по назначениям
- * @param {Array<string>} roles - Роли для сортировки
- * @param {string} sessionKey - Ключ сессии
- * @returns {Array<string>} Отсортированные роли
- */
-function sortRolesByAssignment(roles, sessionKey) {
-    return roles.sort((a, b) => {
-        const sessionAssignments = assignments[sessionKey];
-        const aIsUser = sessionAssignments[a] === currentUser;
-        const bIsUser = sessionAssignments[b] === currentUser;
-        
-        if (aIsUser && !bIsUser) return -1;
-        if (!aIsUser && bIsUser) return 1;
-        return a.localeCompare(b);
-    });
-}
-
-/**
- * Рендерит слот роли
- * @param {string} sessionKey - Ключ сессии
- * @param {string} role - Название роли
- * @returns {string} HTML слота роли
- */
 function renderRoleSlot(sessionKey, role) {
-    const slotData = getRoleSlotData(sessionKey, role);
-    const className = getRoleSlotClassName(slotData);
-    const userDisplay = getRoleSlotUserDisplay(slotData);
-    const roleDisplayName = getRoleDisplayName(role, slotData);
-    
-    return `
-        <div class="${className}" 
-             onclick="handleRoleSlotClick('${sessionKey}', '${role}')"
-             title="${roleDisplayName}${slotData.assignedUser ? ' - ' + slotData.assignedUser : ''}">
-            <div class="role-name">${roleDisplayName}</div>
-            <div class="role-user">${userDisplay}</div>
-            ${slotData.isCurrentUser ? '<div class="role-checkmark">✓</div>' : ''}
-        </div>
-    `;
-}
-
-/**
- * Получает данные слота роли
- * @param {string} sessionKey - Ключ сессии
- * @param {string} role - Название роли
- * @returns {Object} Данные слота
- */
-function getRoleSlotData(sessionKey, role) {
-    const assignedUser = assignments[sessionKey]?.[role];
-    const assignmentData = getAssignmentData(sessionKey, role);
+    const assignedUser = assignments[sessionKey][role];
+    const assignmentData = getAssignmentData ? getAssignmentData(sessionKey, role) : null;
     const comment = assignmentData?.comment || '';
     const isBlocked = isSlotBlocked(sessionKey, role);
     const isCurrentUser = currentMode === 'user' && assignedUser === (window.currentUser || currentUser);
     
-    return {
-        assignedUser,
-        comment,
-        isBlocked,
-        isCurrentUser
-    };
-}
-
-/**
- * Получает CSS класс для слота роли
- * @param {Object} slotData - Данные слота
- * @returns {string} CSS класс
- */
-function getRoleSlotClassName(slotData) {
     let className = 'role-slot';
+    let userDisplay = 'Свободно';
     
-    if (slotData.assignedUser) {
+    if (assignedUser) {
         className += ' occupied';
-        if (slotData.isCurrentUser) {
+        // Обрезаем длинные имена
+        userDisplay = assignedUser.length > 15 ? 
+            assignedUser.substring(0, 13) + '...' : 
+            assignedUser;
+        
+        if (isCurrentUser) {
             className += ' current-user';
         }
-    } else if (slotData.isBlocked) {
+    } else if (isBlocked) {
         className += ' blocked';
+        userDisplay = 'Занято';
     }
     
-    return className;
-}
-
-/**
- * Получает отображаемое имя пользователя для слота
- * @param {Object} slotData - Данные слота
- * @returns {string} Отображаемое имя
- */
-function getRoleSlotUserDisplay(slotData) {
-    if (slotData.assignedUser) {
-        return truncateText(slotData.assignedUser, DISPLAY_CONFIG.MAX_USER_NAME_LENGTH);
-    } else if (slotData.isBlocked) {
-        return 'Занято';
-    }
-    return 'Свободно';
-}
-
-/**
- * Получает отображаемое название роли
- * @param {string} role - Название роли
- * @param {Object} slotData - Данные слота
- * @returns {string} Отображаемое название
- */
-function getRoleDisplayName(role, slotData) {
+    // Создаем отображаемое название роли с комментарием
     let roleDisplayName = role;
-    
-    if (slotData.comment && slotData.isCurrentUser) {
-        roleDisplayName = `${role} (${slotData.comment})`;
+    if (comment && assignedUser === (window.currentUser || currentUser)) {
+        roleDisplayName = `${role} (${comment})`;
     }
     
-    return truncateText(roleDisplayName, DISPLAY_CONFIG.MAX_ROLE_NAME_LENGTH);
+    // Обрезаем длинные названия ролей
+    const shortRoleName = roleDisplayName.length > 25 ? 
+        roleDisplayName.substring(0, 23) + '...' : 
+        roleDisplayName;
+    
+    return `
+        <div class="${className}" 
+             onclick="handleRoleSlotClick('${sessionKey}', '${role}')"
+             title="${roleDisplayName}${assignedUser ? ' - ' + assignedUser : ''}">
+            <div class="role-name">${shortRoleName}</div>
+            <div class="role-user">${userDisplay}</div>
+            ${isCurrentUser ? '<div class="role-checkmark">✓</div>' : ''}
+        </div>
+    `;
 }
 
-// ============================================================================
-// РАБОТА С КОММЕНТАРИЯМИ
-// ============================================================================
-
-/**
- * Получает данные назначения
- * @param {string} sessionKey - Ключ сессии
- * @param {string} role - Название роли
- * @returns {Object|null} Данные назначения
- */
+// Добавь эти новые функции:
 function getAssignmentData(sessionKey, role) {
+    // Тут нужно будет сохранять полные данные assignments с комментариями
     return window.assignmentComments?.[sessionKey]?.[role] || null;
 }
 
-/**
- * Редактирует комментарий
- * @param {Event} event - Событие клика
- * @param {string} sessionKey - Ключ сессии
- * @param {string} role - Название роли
- */
 function editComment(event, sessionKey, role) {
     event.stopPropagation();
-    
     const currentComment = getAssignmentData(sessionKey, role)?.comment || '';
     const newComment = prompt('Комментарий к шифту (макс 50 символов):', currentComment);
     
     if (newComment !== null) {
-        const trimmedComment = newComment.substring(0, DISPLAY_CONFIG.MAX_COMMENT_LENGTH);
+        const trimmedComment = newComment.substring(0, 50);
         updateAssignmentComment(sessionKey, role, trimmedComment);
     }
 }
 
-/**
- * Обновляет комментарий назначения
- * @param {string} sessionKey - Ключ сессии
- * @param {string} role - Название роли
- * @param {string} comment - Комментарий
- * @async
- * @returns {Promise<void>}
- */
 async function updateAssignmentComment(sessionKey, role, comment) {
+    // Здесь обновляем комментарий в Airtable и локально
     const [day, time] = sessionKey.split('_');
-    
     try {
         // Находим существующее назначение и обновляем его
         const assignments = await window.airtableService.getAssignments();
@@ -347,462 +181,386 @@ async function updateAssignmentComment(sessionKey, role, comment) {
     }
 }
 
-// ============================================================================
-// ОБНОВЛЕНИЕ ТАБОВ
-// ============================================================================
-
-/**
- * Получает количество пустых ролей
- * @param {string} sessionKey - Ключ сессии
- * @param {Array<string>} groupRoles - Роли группы
- * @returns {number} Количество пустых ролей
- */
+/* === ФУНКЦИИ ОБНОВЛЕНИЯ ТАБОВ === */
 function getEmptyRolesCount(sessionKey, groupRoles) {
     const sessionAssignments = assignments[sessionKey];
     return groupRoles.filter(role => !sessionAssignments[role]).length;
 }
 
-/**
- * Обновляет табы сессии
- * @param {string} sessionKey - Ключ сессии
- */
 function updateSessionTabs(sessionKey) {
     const sessionElement = document.querySelector(`[data-session="${sessionKey}"]`);
     if (!sessionElement) return;
     
-    updateAllTab(sessionElement, sessionKey);
-    updateCategoryTabs(sessionElement, sessionKey);
-}
-
-/**
- * Обновляет таб "Все"
- * @param {HTMLElement} sessionElement - Элемент сессии
- * @param {string} sessionKey - Ключ сессии
- */
-function updateAllTab(sessionElement, sessionKey) {
     const allTab = sessionElement.querySelector('[data-filter="all"]');
-    if (!allTab) return;
-    
-    const totalEmpty = getEmptyRolesCount(sessionKey, allRoles);
-    if (totalEmpty > 0) {
-        allTab.innerHTML = `Все <span class="empty-count">${totalEmpty}</span>`;
-    } else {
-        allTab.innerHTML = 'Все';
-    }
-}
-
-/**
- * Обновляет табы категорий
- * @param {HTMLElement} sessionElement - Элемент сессии
- * @param {string} sessionKey - Ключ сессии
- */
-function updateCategoryTabs(sessionElement, sessionKey) {
-    Object.entries(roleGroups).forEach(([category, group]) => {
-        const categoryTab = sessionElement.querySelector(`[data-filter="${category}"]`);
-        if (!categoryTab) return;
-        
-        const emptyCount = getEmptyRolesCount(sessionKey, group.roles);
-        if (emptyCount > 0) {
-            categoryTab.innerHTML = `${group.name} <span class="empty-count">${emptyCount}</span>`;
+    if (allTab) {
+        const totalEmpty = getEmptyRolesCount(sessionKey, allRoles);
+        if (totalEmpty > 0) {
+            allTab.innerHTML = `Все <span class="empty-count">${totalEmpty}</span>`;
         } else {
-            categoryTab.innerHTML = group.name;
+            allTab.innerHTML = 'Все';
+        }
+    }
+    
+    Object.entries(roleGroups).forEach(([key, group]) => {
+        const groupTab = sessionElement.querySelector(`[data-filter="${key}"]`);
+        if (groupTab) {
+            const groupEmpty = getEmptyRolesCount(sessionKey, group.roles);
+            if (groupEmpty > 0) {
+                groupTab.innerHTML = `${group.name} <span class="empty-count">${groupEmpty}</span>`;
+            } else {
+                groupTab.innerHTML = group.name;
+            }
         }
     });
 }
 
-// ============================================================================
-// РЕНДЕРИНГ СПИСКОВ
-// ============================================================================
-
-/**
- * Рендерит список участников
- * @param {Object} currentAssignment - Текущее назначение
- * @returns {string} HTML списка участников
- */
+/* === ФУНКЦИИ РЕНДЕРИНГА ПОПАПОВ === */
 function renderParticipantsList(currentAssignment) {
-    const sortedParticipants = participants.sort((a, b) => a.name.localeCompare(b.name));
+    let html = '';
     
-    return sortedParticipants.map(participant => {
-        const isSelected = currentAssignment === participant.name;
-        const isBusy = isUserBusyInSession(window.currentPopupSession, participant.name);
+    // Кнопка очистки слота
+    html += `
+        <div class="participant-item special" onclick="selectParticipant(null)" style="margin-bottom: 12px;">
+            <div class="participant-name">🗑️ Очистить слот</div>
+            <div class="participant-telegram">Убрать назначение</div>
+        </div>
+    `;
+    
+    // Кнопка для внешнего участника
+    html += `
+        <div class="participant-item special" onclick="selectParticipant('Участник другого кемпа')" style="margin-bottom: 16px;">
+            <div class="participant-name">👤 Участник другого кемпа</div>
+            <div class="participant-telegram">Внешний участник</div>
+        </div>
+    `;
+    
+    // Список участников
+    participants.forEach(participant => {
+        const isSelected = participant.name === currentAssignment;
+        const selectedClass = isSelected ? ' selected' : '';
         
-        let className = 'participant-item';
-        if (isSelected) className += ' selected';
-        if (isBusy) className += ' busy';
-        
-        return `
-            <div class="${className}" onclick="selectParticipant('${participant.name}')">
-                <div class="participant-name">${participant.name}</div>
-                ${participant.telegram ? `<div class="participant-telegram">${participant.telegram}</div>` : ''}
-                ${isBusy ? '<div class="participant-busy">Занят в это время</div>' : ''}
+        html += `
+            <div class="participant-item${selectedClass}" onclick="selectParticipant('${participant.name.replace(/'/g, "\\'")}')">
+                <div class="participant-name">
+                    ${participant.name}
+                    ${isSelected ? ' ✓' : ''}
+                </div>
+                <div class="participant-telegram">${participant.telegram}</div>
             </div>
         `;
-    }).join('');
-}
-
-/**
- * Рендерит статистику пользователей
- * @param {Array<Object>} userStats - Статистика пользователей
- * @returns {string} HTML статистики
- */
-function renderUserStats(userStats) {
-    const sortedStats = userStats.sort((a, b) => {
-        if (a.complete !== b.complete) return b.complete - a.complete;
-        return b.shifts - a.shifts;
     });
     
-    return sortedStats.map(user => {
-        const statusIcon = user.complete ? '✅' : '⏳';
-        const statusClass = user.complete ? 'complete' : 'incomplete';
+    return html;
+}
+
+function renderUserStats(userStats) {
+    let html = '';
+    userStats.forEach(user => {
+        const categoriesHtml = Object.entries(user.categories)
+            .filter(([category, count]) => count > 0)
+            .map(([category, count]) => `<div class="stats-category">${category}: ${count}</div>`)
+            .join('');
         
-        return `
-            <div class="user-stat ${statusClass}">
-                <div class="user-stat-header">
-                    <div class="user-name">${user.name}</div>
-                    <div class="user-status">
-                        ${statusIcon} ${user.shifts}/8 шифтов
+        const telegramLink = user.telegram ? 
+            `<a href="https://t.me/${user.telegram.replace('@', '')}" style="color: var(--accent-primary); text-decoration: none;">
+                ${user.telegram}
+            </a>` : '';
+        
+        html += `
+            <div class="stats-user ${user.complete ? 'complete' : 'incomplete'}">
+                <div class="stats-user-header">
+                    <div>
+                        <div class="stats-name">${user.name}</div>
+                        ${telegramLink ? `<div style="font-size: 0.85em; margin-top: 4px;">${telegramLink}</div>` : ''}
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <div class="stats-total ${user.complete ? 'complete' : 'incomplete'}">
+                            ${user.shifts}/8 шифтов
+                        </div>
+                        <button class="user-schedule-btn" onclick="openUserScheduleFromStats('${user.name.replace(/'/g, "\\'")}'); event.stopPropagation();" title="Показать расписание ${user.name}">
+                            📅
+                        </button>
                     </div>
                 </div>
-                <div class="user-categories">
-                    ${renderUserCategories(user.categories)}
+                <div class="stats-categories">
+                    ${categoriesHtml || '<div class="stats-category">Шифты не назначены</div>'}
                 </div>
-                ${user.telegram ? `<div class="user-telegram">${user.telegram}</div>` : ''}
             </div>
         `;
-    }).join('');
-}
-
-/**
- * Рендерит категории пользователя
- * @param {Object} categories - Категории пользователя
- * @returns {string} HTML категорий
- */
-function renderUserCategories(categories) {
-    return Object.entries(categories)
-        .filter(([category, count]) => count > 0)
-        .map(([category, count]) => {
-            const categoryName = CATEGORY_NAMES[category] || category;
-            return `<span class="category-tag">${categoryName}: ${count}</span>`;
-        })
-        .join('');
-}
-
-// ============================================================================
-// РЕНДЕРИНГ РАСПИСАНИЯ ПОЛЬЗОВАТЕЛЯ
-// ============================================================================
-
-/**
- * Рендерит расписание пользователя
- * @param {string} currentUser - Текущий пользователь
- * @param {Object} userShiftsByDay - Шифты пользователя по дням
- * @param {Object} participant - Данные участника
- * @param {number} shiftsCount - Количество шифтов
- * @param {Object} categoryStats - Статистика по категориям
- * @returns {string} HTML расписания пользователя
- */
-function renderUserSchedule(currentUser, userShiftsByDay, participant, shiftsCount, categoryStats) {
-    const statusIcon = shiftsCount >= 8 ? '✅' : '⏳';
-    const statusClass = shiftsCount >= 8 ? 'complete' : 'incomplete';
-    
-    return `
-        <div class="user-schedule-header ${statusClass}">
-            <div class="user-info">
-                <h2>${currentUser}</h2>
-                <div class="user-status">
-                    ${statusIcon} ${shiftsCount}/8 шифтов выполнено
-                </div>
-                ${participant.telegram ? `<div class="user-telegram">${participant.telegram}</div>` : ''}
-            </div>
-            <div class="user-categories">
-                ${renderUserCategories(categoryStats)}
-            </div>
-        </div>
-        <div class="user-shifts">
-            ${renderUserShiftsByDay(userShiftsByDay)}
-        </div>
-    `;
-}
-
-/**
- * Рендерит шифты пользователя по дням
- * @param {Object} userShiftsByDay - Шифты по дням
- * @returns {string} HTML шифтов
- */
-function renderUserShiftsByDay(userShiftsByDay) {
-    const sortedDays = Object.keys(userShiftsByDay).sort((a, b) => {
-        const dateA = new Date(a + 'T00:00:00');
-        const dateB = new Date(b + 'T00:00:00');
-        return dateA.getTime() - dateB.getTime();
     });
     
-    return sortedDays.map(day => {
-        const shifts = userShiftsByDay[day].sort((a, b) => a.time.localeCompare(b.time));
-        
-        return `
-            <div class="day-shifts">
-                <div class="day-header">${formatDate(day)}</div>
-                ${shifts.map(shift => renderUserShift(shift)).join('')}
-            </div>
-        `;
-    }).join('');
+    return html;
 }
 
-/**
- * Рендерит один шифт пользователя
- * @param {Object} shift - Данные шифта
- * @returns {string} HTML шифта
- */
-function renderUserShift(shift) {
-    return `
-        <div class="user-shift">
-            <div class="shift-time">${shift.time} - ${shift.endTime}</div>
-            <div class="shift-info">
-                ${shift.sessionNum ? `Баня #${shift.sessionNum}` : 'Кухня'} • ${shift.type}
-            </div>
-            <div class="shift-role">${shift.role}</div>
-        </div>
-    `;
-}
-
-// ============================================================================
-// РЕНДЕРИНГ ИНФОРМАЦИИ О РОЛЯХ
-// ============================================================================
-
-/**
- * Рендерит список ролей
- * @returns {string} HTML списка ролей
- */
-function renderRolesList() {
-    return Object.entries(roleGroups).map(([category, group]) => `
-        <div class="role-category">
-            <h3>${group.name}</h3>
-            <div class="roles-grid">
-                ${group.roles.map(role => renderRoleInfo(role)).join('')}
-            </div>
-        </div>
-    `).join('');
-}
-
-/**
- * Рендерит информацию о роли
- * @param {string} role - Название роли
- * @returns {string} HTML информации о роли
- */
-function renderRoleInfo(role) {
-    const roleInfo = rolesInfo[role];
-    if (!roleInfo) return '';
+function renderUserSchedule(currentUser, userShiftsByDay, participant, shiftsCount, categoryStats) {
+    let html = '';
     
-    return `
-        <div class="role-info" onclick="showRoleDetail('${role}')">
-            <div class="role-icon">${roleInfo.icon}</div>
-            <div class="role-name">${role}</div>
-            <div class="role-description">${roleInfo.description}</div>
+    html += `
+        <div class="user-profile">
+            <div class="user-name">${currentUser}</div>
+            <a href="https://t.me/${participant.telegram.replace('@', '')}" class="user-telegram" target="_blank">${participant.telegram}</a>
+            <div class="user-stats">
+                <div class="stat-item">
+                    <div class="stat-number">${shiftsCount}</div>
+                    <div class="stat-label">Всего шифтов</div>
+                </div>
+                ${Object.entries(categoryStats)
+                    .filter(([category, count]) => count > 0)
+                    .map(([category, count]) => `
+                        <div class="stat-item">
+                            <div class="stat-number">${count}</div>
+                            <div class="stat-label">${category}</div>
+                        </div>
+                    `).join('')}
+            </div>
         </div>
     `;
+    
+    const sortedDays = Object.keys(userShiftsByDay).sort((a, b) => {
+        const dateA = parseInt(a.split('-')[2]);
+        const dateB = parseInt(b.split('-')[2]);
+        return dateA - dateB;
+    });
+    
+    if (sortedDays.length === 0) {
+        html += '<div style="text-align: center; color: var(--text-secondary); padding: 40px;">У вас пока нет назначенных шифтов</div>';
+    } else {
+        sortedDays.forEach(day => {
+            html += `<h2 style="margin: 24px 0 16px 0; color: var(--accent-primary); font-size: 1.4em;">${formatDate(day)}</h2>`;
+            
+            userShiftsByDay[day].sort((a, b) => a.time.localeCompare(b.time));
+            
+            userShiftsByDay[day].forEach(shift => {
+                html += `
+                    <div class="schedule-item-compact">
+                        <div class="schedule-compact-info">
+                            <div class="schedule-compact-time">${shift.time.substring(0, 5)}</div>
+                            <div class="schedule-compact-details">
+                                <div class="schedule-compact-role">${shift.role}</div>
+                                <div class="schedule-compact-type">${shift.type}</div>
+                            </div>
+                        </div>
+                        <div class="schedule-compact-arrow" onclick="showRoleDetail('${shift.role}', 'schedule')">
+                            →
+                        </div>
+                    </div>
+                `;
+            });
+        });
+    }
+    
+    return html;
 }
 
-// ============================================================================
-// УТИЛИТЫ
-// ============================================================================
+function renderRolesList() {
+    let html = '<div style="margin-bottom: 20px; color: var(--text-secondary);">Выберите роль для подробного описания:</div>';
+    
+    Object.entries(roleGroups).forEach(([groupKey, group]) => {
+        html += `<h3 style="margin: 24px 0 12px 0; color: var(--accent-primary);">${group.name}</h3>`;
+        
+        group.roles.forEach(role => {
+            const roleInfo = rolesInfo[role];
+            html += `
+                <div class="roles-list-item" onclick="showRoleDetail('${role}', 'roles')">
+                    <div>
+                        <div style="font-weight: 500; margin-bottom: 4px;">${roleInfo.icon} ${role}</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9em;">${roleInfo.description.substring(0, 60)}...</div>
+                    </div>
+                    <div style="color: var(--accent-primary);">›</div>
+                </div>
+            `;
+        });
+    });
+    
+    return html;
+}
 
-/**
- * Проверяет, заблокирован ли слот
- * @param {string} sessionKey - Ключ сессии
- * @param {string} role - Название роли
- * @returns {boolean} True если слот заблокирован
- */
+/* === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ === */
 function isSlotBlocked(sessionKey, role) {
-    // Здесь можно добавить логику блокировки слотов
+    if (currentMode !== 'user' || !currentUser) return false;
+    
+    const sessionTime = sessionKey.split('_')[1];
+    
+    for (const [checkSessionKey, sessionRoles] of Object.entries(assignments)) {
+        const checkTime = checkSessionKey.split('_')[1];
+        if (checkTime === sessionTime) {
+            for (const [checkRole, assignedUser] of Object.entries(sessionRoles)) {
+                if (assignedUser === currentUser && checkRole !== role) {
+                    return true;
+                }
+            }
+        }
+    }
+    
     return false;
 }
 
-// ============================================================================
-// РЕНДЕРИНГ СЕССИЙ
-// ============================================================================
-
-/**
- * Рендерит сессию
- * @param {string} day - День
- * @param {Object} session - Данные сессии
- * @returns {string} HTML сессии
- */
 function renderSession(day, session) {
     const sessionKey = `${day}_${session.time}`;
-    const sessionRoles = getSessionRoles(session);
-    const progressData = calculateSessionProgress(sessionKey, sessionRoles);
+    const sessionAssignments = assignments[sessionKey];
     
-    return `
-        <div class="session" data-session="${sessionKey}">
-            <div class="session-header" onclick="toggleSession('${sessionKey}')">
-                <div class="session-time">
-                    <div class="time-main">${session.time}</div>
-                    <div class="time-end">- ${session.endTime}</div>
-                </div>
-                <div class="session-info">
-                    <div class="session-number">${session.sessionNum ? `Баня #${session.sessionNum}` : 'Кухня'}</div>
-                    <div class="session-type">${session.type}</div>
-                </div>
-                <div class="session-progress">
-                    ${renderProgressRing(progressData.percentage, progressData.emptyRoles)}
-                </div>
-            </div>
-            <div class="session-content">
-                <div class="session-tabs-wrapper" id="tabs-wrapper-${sessionKey}">
-                    <div class="session-tabs">
-                        ${renderSessionTabs(sessionKey)}
+    let sessionRoles = [];
+    if (session.availableRoles && session.availableRoles.trim()) {
+        sessionRoles = session.availableRoles.split(',').map(r => r.trim()).filter(r => r);
+    } else {
+        // Если нет ролей в базе - возвращаем пустой массив
+        sessionRoles = [];
+    }
+    
+    // Если нет ролей - показываем сессию без возможности взаимодействия
+    if (sessionRoles.length === 0) {
+        return `
+            <div class="session" data-session="${sessionKey}">
+                <div class="session-compact">
+                    <div class="session-info">
+                        <div class="session-basic-info">
+                            <div class="session-time">${session.time} - ${session.endTime}</div>
+                            <div class="session-details">${session.type}</div>
+                        </div>
+                        <div style="color: var(--text-secondary); font-size: 0.9em;">Нет доступных ролей</div>
                     </div>
                 </div>
-                <div class="session-roles" id="roles-${sessionKey}">
+            </div>
+        `;
+    }
+    
+    const filledRoles = sessionRoles.filter(role => sessionAssignments[role] !== null && sessionAssignments[role] !== undefined).length;
+    const totalRoles = sessionRoles.length;
+    const percentage = totalRoles > 0 ? Math.round((filledRoles / totalRoles) * 100) : 0;
+    const emptyRoles = totalRoles - filledRoles; // Количество пустых ролей
+    
+    const userRoles = currentMode === 'user' && currentUser ? 
+        getUserRolesInSession(sessionKey, currentUser) : [];
+    const hasUserAssignment = userRoles && userRoles.length > 0;
+    
+    let progressClass = 'empty';
+    if (percentage === 100) {
+        progressClass = 'complete';
+    } else if (percentage > 0) {
+        progressClass = 'partial';
+    }
+    
+    const sessionHtml = `
+        <div class="session ${hasUserAssignment ? 'user-assigned' : ''}" data-session="${sessionKey}">
+            <div class="session-compact" onclick="toggleSession('${sessionKey}')">
+                <div class="session-info">
+                    <div class="session-basic-info">
+                        <div class="session-time">${session.time} - ${session.endTime}</div>
+                        <div class="session-details">
+                            <a href="#" class="bath-link" onclick="event.stopPropagation(); showBathInfo()">${session.type}</a>
+                        </div>
+                    </div>
+                    ${hasUserAssignment ? `<div class="session-user-indicator">Мой шифт: ${userRoles.join(', ')}</div>` : ''}
+                   <div class="session-stats">
+                            ${session.slotLink ? `
+                                <a href="${session.slotLink}" target="_blank" class="slot-link-btn" title="Перейти по ссылке">
+                                    🔗
+                                </a>
+                            ` : ''}
+
+                            ${percentage < 100 && currentMode === 'admin' && session.status !== 'кухня' ? 
+                                `<button class="auto-fill-btn-circle" onclick="event.stopPropagation(); autoFillSession('${sessionKey}')" title="Автозаполнение">⚡</button>` : 
+                                ''}
+                            
+                             <div class="progress-display">
+                                    <div class="progress-circle ${progressClass}"
+                                         onclick="event.stopPropagation(); showProgressTooltip(this, ${emptyRoles})"
+                                         ${percentage>0&&percentage<100?`style="--progress-percent:${percentage}"`:''}>
+                                        <span class="progress-text">${emptyRoles}</span>   <!-- NEW -->
+                                    </div>
+                                </div>
+                            
+                     </div>
+                </div>
+            </div>
+            ${session.status !== 'кухня' ? `
+            <div class="session-expanded">
+                <div class="session-tabs-wrapper" id="tabs-wrapper-${sessionKey}">
+                    <div class="session-tabs" onscroll="checkTabsScroll('${sessionKey}')">
+                        <button class="session-tab active" data-filter="all" onclick="setSessionFilter('${sessionKey}', 'all')">Все</button>
+                        ${Object.entries(roleGroups).map(([key, group]) => 
+                            `<button class="session-tab" data-filter="${key}" onclick="setSessionFilter('${sessionKey}', '${key}')">${group.name}</button>`
+                        ).join('')}
+                    </div>
+                </div>
+                <div class="roles-container" id="roles-${sessionKey}">
                     ${renderSessionRoles(sessionKey, 'all')}
                 </div>
             </div>
+            ` : `
+            <div class="session-expanded">
+                <div class="roles-grid-compact">
+                    ${sessionRoles.map(role => renderRoleSlot(sessionKey, role)).join('')}
+                </div>
+            </div>
+            `}
         </div>
     `;
-}
-
-/**
- * Получает роли для сессии
- * @param {Object} session - Данные сессии
- * @returns {Array<string>} Массив ролей
- */
-function getSessionRoles(session) {
-    if (session.availableRoles && session.availableRoles.trim()) {
-        return session.availableRoles.split(',').map(r => r.trim()).filter(r => r);
-    }
-    return allRoles;
-}
-
-/**
- * Вычисляет прогресс сессии
- * @param {string} sessionKey - Ключ сессии
- * @param {Array<string>} sessionRoles - Роли сессии
- * @returns {Object} Данные прогресса
- */
-function calculateSessionProgress(sessionKey, sessionRoles) {
-    const sessionAssignments = assignments[sessionKey] || {};
-    const filledRoles = sessionRoles.filter(role => sessionAssignments[role]);
-    const percentage = sessionRoles.length > 0 ? (filledRoles.length / sessionRoles.length) * 100 : 0;
-    const emptyRoles = sessionRoles.length - filledRoles.length;
     
-    return { percentage, emptyRoles };
+    return sessionHtml;
 }
 
-/**
- * Рендерит табы сессии
- * @param {string} sessionKey - Ключ сессии
- * @returns {string} HTML табов
- */
-function renderSessionTabs(sessionKey) {
-    const tabs = [
-        { filter: 'all', name: 'Все' },
-        ...Object.entries(roleGroups).map(([category, group]) => ({
-            filter: category,
-            name: group.name
-        }))
-    ];
-    
-    return tabs.map(tab => `
-        <div class="session-tab ${tab.filter === 'all' ? 'active' : ''}" 
-             data-filter="${tab.filter}"
-             onclick="setSessionFilter('${sessionKey}', '${tab.filter}')">
-            ${tab.name}
-        </div>
-    `).join('');
-}
-
-/**
- * Рендерит кольцо прогресса
- * @param {number} percentage - Процент заполнения
- * @param {number} emptyRoles - Количество пустых ролей
- * @returns {string} HTML кольца прогресса
- */
-function renderProgressRing(percentage, emptyRoles) {
-    const radius = (DISPLAY_CONFIG.PROGRESS_RING_SIZE - DISPLAY_CONFIG.PROGRESS_STROKE_WIDTH) / 2;
-    const circumference = 2 * Math.PI * radius;
-    const strokeDasharray = circumference;
-    const strokeDashoffset = circumference - (percentage / 100) * circumference;
-    
-    return `
-        <div class="progress-ring" 
-             onclick="showProgressTooltip(this, ${emptyRoles})"
-             title="Осталось ${emptyRoles} свободных слотов">
-            <svg width="${DISPLAY_CONFIG.PROGRESS_RING_SIZE}" height="${DISPLAY_CONFIG.PROGRESS_RING_SIZE}">
-                <circle class="progress-ring-bg"
-                        cx="${DISPLAY_CONFIG.PROGRESS_RING_SIZE / 2}"
-                        cy="${DISPLAY_CONFIG.PROGRESS_RING_SIZE / 2}"
-                        r="${radius}"
-                        stroke-width="${DISPLAY_CONFIG.PROGRESS_STROKE_WIDTH}"/>
-                <circle class="progress-ring-fill"
-                        cx="${DISPLAY_CONFIG.PROGRESS_RING_SIZE / 2}"
-                        cy="${DISPLAY_CONFIG.PROGRESS_RING_SIZE / 2}"
-                        r="${radius}"
-                        stroke-width="${DISPLAY_CONFIG.PROGRESS_STROKE_WIDTH}"
-                        stroke-dasharray="${strokeDasharray}"
-                        stroke-dashoffset="${strokeDashoffset}"/>
-            </svg>
-            <div class="progress-text">${Math.round(percentage)}%</div>
-        </div>
-    `;
-}
-
-// ============================================================================
-// ОБНОВЛЕНИЕ ПРОГРЕССА
-// ============================================================================
-
-/**
- * Обновляет кольцо прогресса
- * @param {HTMLElement} element - Элемент кольца
- * @param {number} percentage - Процент заполнения
- * @param {number} emptyRoles - Количество пустых ролей
- */
+// Дополнительная функция для обновления прогресса в реальном времени
 function updateProgressRing(element, percentage, emptyRoles) {
-    const svg = element.querySelector('svg');
-    const circle = svg.querySelector('.progress-ring-fill');
-    const text = element.querySelector('.progress-text');
+    const progressCircle = element.querySelector('.progress-circle');
+    const progressLabel = element.querySelector('.progress-label');
     
-    const radius = (DISPLAY_CONFIG.PROGRESS_RING_SIZE - DISPLAY_CONFIG.PROGRESS_STROKE_WIDTH) / 2;
-    const circumference = 2 * Math.PI * radius;
-    const strokeDashoffset = circumference - (percentage / 100) * circumference;
+    if (!progressCircle) return;
     
-    circle.style.strokeDashoffset = strokeDashoffset;
-    text.textContent = `${Math.round(percentage)}%`;
+    // Убираем старые классы
+    progressCircle.classList.remove('empty', 'partial', 'complete');
     
-    element.title = `Осталось ${emptyRoles} свободных слотов`;
+    if (percentage === 100) {
+        progressCircle.classList.add('complete');
+        progressCircle.textContent = '0';
+        if (progressLabel) progressLabel.textContent = 'Все заполнено';
+    } else if (percentage > 0) {
+        progressCircle.classList.add('partial');
+        progressCircle.style.setProperty('--progress-percent', percentage);
+        progressCircle.textContent = emptyRoles || '0';
+        if (progressLabel) progressLabel.textContent = `осталось ${emptyRoles || 0}`;
+    } else {
+        progressCircle.classList.add('empty');
+        progressCircle.style.removeProperty('--progress-percent');
+        progressCircle.textContent = emptyRoles || '0';
+        if (progressLabel) progressLabel.textContent = `осталось ${emptyRoles || 0}`;
+    }
 }
 
-/**
- * Обновляет прогресс сессии
- * @param {string} sessionKey - Ключ сессии
- */
+// Обновленная функция для плавного обновления прогресса без полной перерисовки
 function updateSessionProgress(sessionKey) {
     const sessionElement = document.querySelector(`[data-session="${sessionKey}"]`);
     if (!sessionElement) return;
     
-    const progressRing = sessionElement.querySelector('.progress-ring');
-    if (!progressRing) return;
-    
+    const sessionAssignments = assignments[sessionKey];
     const [day, time] = sessionKey.split('_');
     const session = schedule[day]?.find(s => s.time === time);
+    
     if (!session) return;
     
-    const sessionRoles = getSessionRoles(session);
-    const progressData = calculateSessionProgress(sessionKey, sessionRoles);
+    let sessionRoles = allRoles;
+    if (session.roles) {
+        sessionRoles = session.roles;
+    }
     
-    updateProgressRing(progressRing, progressData.percentage, progressData.emptyRoles);
+    const filledRoles = sessionRoles.filter(role => sessionAssignments[role] !== null && sessionAssignments[role] !== undefined).length;
+    const totalRoles = sessionRoles.length;
+    const percentage = totalRoles > 0 ? Math.round((filledRoles / totalRoles) * 100) : 0;
+    
+    // Обновляем прогресс с анимацией
+    const emptyRoles = totalRoles - filledRoles;
+    updateProgressRing(sessionElement, percentage, emptyRoles);
+    
+    // Обновляем индикатор пользовательского назначения
+    const userRoles = currentMode === 'user' && currentUser ? 
+        getUserRolesInSession(sessionKey, currentUser) : [];
+    const hasUserAssignment = userRoles.length > 0;
+    
+    if (hasUserAssignment) {
+        sessionElement.classList.add('user-assigned');
+    } else {
+        sessionElement.classList.remove('user-assigned');
+    }
 }
 
-// ============================================================================
-// ЭКСПОРТ ФУНКЦИЙ
-// ============================================================================
-
-// Делаем функции доступными глобально
-window.renderSchedule = renderSchedule;
-window.renderSessionRoles = renderSessionRoles;
-window.renderParticipantsList = renderParticipantsList;
-window.renderUserStats = renderUserStats;
-window.renderUserSchedule = renderUserSchedule;
-window.renderRolesList = renderRolesList;
-window.updateSessionTabs = updateSessionTabs;
-window.updateSessionProgress = updateSessionProgress;
-window.editComment = editComment;
-window.updateAssignmentComment = updateAssignmentComment;
+console.log('🎨 UI Renderer загружен');
