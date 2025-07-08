@@ -172,14 +172,16 @@ body {
 }
 
 .compact-role-slot {
-    background: var(--bg-primary);
-    padding: 8px;
-    border-radius: 6px;
-    border: 1px solid var(--border-color);
-    min-height: 45px;
+    border: none;
+    background: none;
+    box-shadow: none;
+    padding: 2px 4px;
+    margin: 0;
+    min-height: unset;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    align-items: flex-start;
+    justify-content: flex-start;
 }
 
 .compact-role-slot.current-user {
@@ -188,19 +190,17 @@ body {
 }
 
 .compact-role-name {
-    font-size: 0.8rem;
+    font-size: 0.95em;
     font-weight: 500;
-    color: var(--text-primary);
-    margin-bottom: 2px;
-    line-height: 1.2;
+    margin-bottom: 0;
+    line-height: 1.1;
 }
 
 .compact-role-user {
-    font-size: 0.75rem;
+    font-size: 0.85em;
     color: var(--text-secondary);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    margin-bottom: 0;
+    line-height: 1.1;
 }
 
 .compact-role-slot.current-user .compact-role-user {
@@ -1007,20 +1007,32 @@ body {
 }
 .compact-session-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: var(--spacing-lg);
-    padding-bottom: var(--spacing);
-    border-bottom: 1px solid var(--border-color);
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 4px;
+    padding-bottom: 0;
+    border-bottom: none;
 }
 .compact-session-time {
-    font-size: 1.4rem;
+    font-size: 1.25rem;
     font-weight: 700;
+    margin-right: 10px;
     color: var(--accent-primary);
+    display: inline-block;
 }
 .compact-session-type {
     font-size: 1.1rem;
-    color: var(--text-secondary);
+    font-weight: 600;
+    color: var(--text-primary);
+    display: inline-block;
+    margin-right: 10px;
+}
+.progress-circle {
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 1.1rem !important;
+    margin-left: auto;
 }
 .compact-role-item {
     background: var(--bg-primary);

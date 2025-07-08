@@ -595,8 +595,10 @@ function renderCompactSessionForFullSchedule(day, session) {
     const hasUserAssignment = userRoles.length > 0;
 
     let progressClass = 'empty';
+    let progressContent = `<span class="progress-text">${emptyRoles}</span>`;
     if (percentage === 100) {
         progressClass = 'complete';
+        progressContent = '<span class="progress-text">✔️</span>';
     } else if (percentage > 0) {
         progressClass = 'partial';
     }
@@ -604,10 +606,10 @@ function renderCompactSessionForFullSchedule(day, session) {
     let html = `
         <div class="compact-session-card">
             <div class="compact-session-header">
-                <div class="compact-session-time">${session.time} - ${session.endTime}</div>
-                <div class="compact-session-type">${session.type}</div>
-                <div class="progress-circle ${progressClass}" style="width: 32px; height: 32px; font-size: 0.7rem;">
-                    <span class="progress-text">${emptyRoles}</span>
+                <span class="compact-session-time">${session.time} - ${session.endTime}</span>
+                <span class="compact-session-type">${session.type}</span>
+                <div class="progress-circle ${progressClass}" style="width: 38px; height: 38px; font-size: 1.1rem;">
+                    ${progressContent}
                 </div>
             </div>
     `;
