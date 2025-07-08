@@ -75,6 +75,8 @@ async function init() {
         // Обновляем интерфейс
         updateInterface();
         
+        updateFooterVersion();
+        
         // Скрываем заставку
         hideLoadingScreen();
         
@@ -785,6 +787,16 @@ function initializeTelegramWebApp() {
         console.log('🤖 Инициализируем Telegram WebApp...');
         tg.ready();
         tg.expand();
+    }
+}
+
+/**
+ * Обновляет версию в футере
+ */
+function updateFooterVersion() {
+    const versionSpan = document.getElementById('appVersion');
+    if (versionSpan) {
+        versionSpan.textContent = window.appVersion;
     }
 }
 
