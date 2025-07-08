@@ -17,9 +17,6 @@ let currentPopupSession = null;
 /** @type {string|null} Текущая роль в попапе */
 let currentPopupRole = null;
 
-/** @type {Object|null} Ожидающее назначение */
-let pendingAssignment = null;
-
 // ============================================================================
 // КОНСТАНТЫ И КОНФИГУРАЦИЯ
 // ============================================================================
@@ -385,7 +382,7 @@ function closeAllPopups() {
     previousPopup = null;
     currentPopupSession = null;
     currentPopupRole = null;
-    pendingAssignment = null;
+    // pendingAssignment = null; // Удалено для устранения конфликта
 }
 
 /**
