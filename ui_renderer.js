@@ -359,6 +359,7 @@ async function updateAssignmentComment(sessionKey, role, comment) {
  */
 function getEmptyRolesCount(sessionKey, groupRoles) {
     const sessionAssignments = assignments[sessionKey];
+    if (!sessionAssignments) return groupRoles.length;
     return groupRoles.filter(role => !sessionAssignments[role]).length;
 }
 
