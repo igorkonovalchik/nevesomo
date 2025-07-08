@@ -579,28 +579,28 @@ function renderFullScheduleWithTabs() {
 function renderCompactSessionForFullSchedule(day, session) {
     const sessionKey = `${day}_${session.time}`;
     const sessionAssignments = assignments[sessionKey];
-    
+
     let sessionRoles = allRoles;
     if (session.roles) {
         sessionRoles = session.roles;
     }
-    
+
     const filledRoles = sessionRoles.filter(role => sessionAssignments[role] !== null && sessionAssignments[role] !== undefined).length;
     const totalRoles = sessionRoles.length;
     const percentage = totalRoles > 0 ? Math.round((filledRoles / totalRoles) * 100) : 0;
     const emptyRoles = totalRoles - filledRoles;
-    
+
     const userRoles = currentMode === 'user' && currentUser ? 
         getUserRolesInSession(sessionKey, currentUser) : [];
     const hasUserAssignment = userRoles.length > 0;
-    
+
     let progressClass = 'empty';
     if (percentage === 100) {
         progressClass = 'complete';
     } else if (percentage > 0) {
         progressClass = 'partial';
     }
-    
+
     let html = `
         <div class="compact-session-card">
             <div class="compact-session-header">
@@ -610,31 +610,31 @@ function renderCompactSessionForFullSchedule(day, session) {
                     <span class="progress-text">${emptyRoles}</span>
                 </div>
             </div>
-            <div class="compact-roles-grid">
     `;
-    
-    // Сортируем роли: роли текущего пользователя наверх
-    const sortedRoles = sessionRoles.sort((a, b) => {
-        const aIsUser = sessionAssignments[a] === currentUser;
-        const bIsUser = sessionAssignments[b] === currentUser;
-        if (aIsUser && !bIsUser) return -1;
-        if (!aIsUser && bIsUser) return 1;
-        return 0;
-    });
-    
-    sortedRoles.forEach(role => {
-        const assignedUser = sessionAssignments[role];
-        const isCurrentUser = assignedUser === currentUser;
-        
-        html += `
-            <div class="compact-role-slot ${isCurrentUser ? 'current-user' : ''}">
-                <div class="compact-role-name">${role}</div>
-                <div class="compact-role-user">${assignedUser || 'Свободно'}</div>
+
+    // Группируем роли по категориям
+    Object.entries(roleGroups).forEach(([groupKey, group]) => {
+        // Только те роли, которые есть в этом слоте
+        const groupRoles = group.roles.filter(role => sessionRoles.includes(role));
+        if (groupRoles.length === 0) return;
+        html += `<div class="roles-category-block">
+            <div class="roles-category-title" style="margin: 10px 0 4px 0; color: var(--accent-primary); font-weight: 600; font-size: 1em;">${group.name}</div>
+            <div class="compact-roles-grid">
+                ${groupRoles.map(role => {
+                    const assignedUser = sessionAssignments[role];
+                    const isCurrentUser = assignedUser === currentUser;
+                    return `
+                        <div class="compact-role-slot${isCurrentUser ? ' current-user' : ''}">
+                            <div class="compact-role-name">${role}</div>
+                            <div class="compact-role-user">${assignedUser || 'Свободно'}</div>
+                        </div>
+                    `;
+                }).join('')}
             </div>
-        `;
+        </div>`;
     });
-    
-    html += '</div></div>';
+
+    html += '</div>';
     return html;
 }
 
