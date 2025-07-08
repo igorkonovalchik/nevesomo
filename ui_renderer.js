@@ -174,7 +174,7 @@ function getRolesToShow(filter) {
  */
 function sortRolesByAssignment(roles, sessionKey) {
     return roles.sort((a, b) => {
-        const sessionAssignments = assignments[sessionKey];
+        const sessionAssignments = assignments[sessionKey] || {};
         const aIsUser = sessionAssignments[a] === currentUser;
         const bIsUser = sessionAssignments[b] === currentUser;
         
