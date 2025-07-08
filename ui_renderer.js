@@ -58,34 +58,39 @@ function renderSchedule() {
 
 
 function renderSessionRoles(sessionKey, filter) {
-    let rolesToShow = allRoles;
-    
-    if (filter !== 'all') {
-        rolesToShow = roleGroups[filter]?.roles || [];
+    // Если фильтр 'all', выводим все категории по группам
+    if (filter === 'all') {
+        let html = '';
+        Object.entries(roleGroups).forEach(([groupKey, group]) => {
+            // Оставляем только те роли, которые есть в этом слоте
+            const groupRoles = group.roles.filter(role => assignments[sessionKey].hasOwnProperty(role));
+            if (groupRoles.length === 0) return;
+            html += `<div class="roles-category-block">
+                <div class="roles-category-title" style="margin: 10px 0 4px 0; color: var(--accent-primary); font-weight: 600; font-size: 1em;">${group.name}</div>
+                <div class="roles-grid">
+                    ${groupRoles.map(role => renderRoleSlot(sessionKey, role)).join('')}
+                </div>
+            </div>`;
+        });
+        return html;
+    } else {
+        // Фильтр по конкретной категории
+        let rolesToShow = roleGroups[filter]?.roles || [];
+        // Оставляем только те роли, которые есть в этом слоте
+        rolesToShow = rolesToShow.filter(role => assignments[sessionKey].hasOwnProperty(role));
+        // Сортируем роли: роли текущего пользователя наверх
+        const sortedRoles = rolesToShow.sort((a, b) => {
+            const sessionAssignments = assignments[sessionKey];
+            const aIsUser = sessionAssignments[a] === currentUser;
+            const bIsUser = sessionAssignments[b] === currentUser;
+            if (aIsUser && !bIsUser) return -1;
+            if (!aIsUser && bIsUser) return 1;
+            return a.localeCompare(b);
+        });
+        return `<div class="roles-grid">
+            ${sortedRoles.map(role => renderRoleSlot(sessionKey, role)).join('')}
+        </div>`;
     }
-    
-    // Сортируем роли
-    const sortedRoles = rolesToShow.sort((a, b) => {
-        const sessionAssignments = assignments[sessionKey];
-        const aIsUser = sessionAssignments[a] === currentUser;
-        const bIsUser = sessionAssignments[b] === currentUser;
-        if (aIsUser && !bIsUser) return -1;
-        if (!aIsUser && bIsUser) return 1;
-        return a.localeCompare(b);
-    });
-    
-    const rolesHtml = `
-    <div class="roles-grid">
-        ${sortedRoles.map(role => renderRoleSlot(sessionKey, role)).join('')}
-    </div>
-`;
-    
-    const container = document.getElementById(`roles-${sessionKey}`);
-    if (container) {
-        container.innerHTML = rolesHtml;
-    }
-    
-    return rolesHtml;
 }
 
 function renderRoleSlot(sessionKey, role) {
