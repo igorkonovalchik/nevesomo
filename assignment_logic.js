@@ -1,6 +1,6 @@
 // assignment-logic.js - Логика назначений (без ES6 модулей)
 
-let pendingAssignment = null; // Для хранения данных о назначении в ожидании комментария
+// let pendingAssignment = null; // Удалено, используем только window.pendingAssignment
 
 // Делаем переменные глобальными для синхронизации между модулями
 window.pendingAssignment = null;
@@ -19,7 +19,7 @@ if (typeof window.currentPopupRole === 'undefined') {
 
 // Функция синхронизации глобальных переменных
 function syncGlobalState() {
-    window.pendingAssignment = pendingAssignment;
+    window.pendingAssignment = window.pendingAssignment;
     window.currentPopupSession = currentPopupSession;
     window.currentPopupRole = currentPopupRole;
 }
@@ -139,7 +139,7 @@ async function toggleUserAssignment(sessionKey, role) {
         );
     } else if (currentAssignment === null) {
         // Назначение - сохраняем данные и показываем попап комментария
-        pendingAssignment = { sessionKey, role, day, time };
+        window.pendingAssignment = { sessionKey, role, day, time };
         openCommentPopup();
     } else {
         showNotification('Этот слот уже занят. Обратитесь к администратору.');

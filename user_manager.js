@@ -2,7 +2,7 @@
 
 /* === СОСТОЯНИЕ ПОЛЬЗОВАТЕЛЯ === */
 let currentMode = 'user'; // По умолчанию пользовательский режим
-let currentUser = '';
+// let currentUser = ''; // Удалено, используем только window.currentUser
 
 /* === УПРАВЛЕНИЕ РЕЖИМАМИ === */
 function setMode(mode) {
@@ -43,13 +43,13 @@ function setCurrentUser(userName) {
     console.log('🔧 setCurrentUser вызван с:', userName);
     
     // Избегаем рекурсии - проверяем, нужно ли обновление
-    if (currentUser === userName) {
+    if (window.currentUser === userName) {
         console.log('👤 Пользователь уже установлен:', userName);
         return; // Ничего не делаем, если значение не изменилось
     }
     
-    currentUser = userName;
-    console.log('✅ Установлен currentUser:', currentUser);
+    window.currentUser = userName;
+    console.log('✅ Установлен currentUser:', window.currentUser);
     
     // Обновляем селектор
     const userSelect = document.getElementById('currentUser');
@@ -82,9 +82,9 @@ function updateView() {
         const userSelectValue = document.getElementById('currentUser')?.value || '';
         
         // Избегаем рекурсии - обновляем currentUser напрямую, без вызова setCurrentUser
-        if (userSelectValue !== currentUser) {
-            currentUser = userSelectValue;
-            window.currentUser = currentUser;
+        if (userSelectValue !== window.currentUser) {
+            window.currentUser = userSelectValue;
+            window.currentUser = userSelectValue;
         }
     }
     
@@ -159,7 +159,7 @@ function updateProgress() {
     const progressFill = document.getElementById('progressFill');
     const deadlineWarning = document.getElementById('deadlineWarning');
     
-    if (currentMode !== 'user' || !currentUser || !progressBar || !progressText || !progressFill) {
+    if (currentMode !== 'user' || !window.currentUser || !progressBar || !progressText || !progressFill) {
         if (progressBar) progressBar.style.display = 'none';
         if (progressText) progressText.style.display = 'none';
         return;
@@ -168,7 +168,7 @@ function updateProgress() {
     let userShifts = 0;
     Object.values(assignments).forEach(session => {
         Object.values(session).forEach(user => {
-            if (user === currentUser) {
+            if (user === window.currentUser) {
                 userShifts++;
             }
         });
@@ -238,7 +238,7 @@ function initUserHandlers() {
 
 /* === ГЕТТЕРЫ === */
 function getCurrentUser() {
-    return currentUser;
+    return window.currentUser;
 }
 
 function getCurrentMode() {
@@ -246,14 +246,14 @@ function getCurrentMode() {
 }
 
 function isCurrentUserAdmin() {
-    if (!currentUser) return false;
-    const participant = participants.find(p => p.name === currentUser);
+    if (!window.currentUser) return false;
+    const participant = participants.find(p => p.name === window.currentUser);
     return participant?.isAdmin === true;
 }
 
 function getCurrentUserData() {
-    if (!currentUser) return null;
-    return participants.find(p => p.name === currentUser) || null;
+    if (!window.currentUser) return null;
+    return participants.find(p => p.name === window.currentUser) || null;
 }
 
 /* === ИНФОРМАЦИОННЫЕ ФУНКЦИИ === */
