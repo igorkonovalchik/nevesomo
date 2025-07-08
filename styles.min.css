@@ -1286,3 +1286,42 @@ body {
 .mt-2 { margin-top: var(--spacing-lg); }
 .mb-1 { margin-bottom: var(--spacing); }
 .mb-2 { margin-bottom: var(--spacing-lg); }
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  body {
+    font-size: 1.25em;
+  }
+  .header-left, .header-center {
+    font-size: 1.5em;
+  }
+  .container {
+    padding: 32px;
+  }
+  .my-schedule-btn {
+    font-size: 1.2em;
+    padding: 18px 36px;
+  }
+  .user-selector select {
+    font-size: 1.2em;
+    padding: 20px;
+  }
+  .deadline-warning, .day-header, .popup-body, .menu-content {
+    font-size: 1.15em;
+    padding: 24px;
+  }
+  .role-slot, .compact-role-slot {
+    font-size: 1.1em;
+    padding: 18px;
+  }
+  .session-tab, .schedule-date-tab {
+    font-size: 1.1em;
+    padding: 12px 20px;
+  }
+  .participant-item, .stats-user {
+    font-size: 1.1em;
+    padding: 20px;
+  }
+  .big-greeting {
+    font-size: 2.2em;
+  }
+}
