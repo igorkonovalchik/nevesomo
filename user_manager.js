@@ -449,6 +449,10 @@ function renderWelcomeSlide(idx) {
   nextBtn.textContent = idx === welcomeSlides.length - 1 ? 'Начать' : 'Далее';
 }
 function markUserNotNew() {
+  if (window.isDemoMode) {
+    console.log('[DEBUG] markUserNotNew: demoMode, PATCH не требуется');
+    return;
+  }
   const user = getCurrentUserData();
   if (!user || !user.id) return;
   console.log('[DEBUG] markUserNotNew: id =', user.id, 'name =', user.name, 'is_New =', user.is_New);
@@ -483,7 +487,7 @@ window.addEventListener('dataLoaded', () => {
   const user = getCurrentUserData && getCurrentUserData();
   console.log('[DEBUG] dataLoaded: getCurrentUserData =', user);
   if (user) console.log('[DEBUG] user.is_New =', user.is_New);
-  if (user && user.is_New) {
+  if ((window.isDemoMode === true) || (user && user.is_New)) {
     setTimeout(showWelcomeSlider, 400); // после загрузки
   }
 });
