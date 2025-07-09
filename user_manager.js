@@ -428,6 +428,16 @@ function showWelcomeSlider() {
     console.log('[DEBUG] showWelcomeSlider: overlay not found');
     return;
   }
+  // Если Telegram WebApp, подставить имя
+  const titleEl = document.getElementById('welcomeSliderTitle');
+  if (window.telegramUtils?.telegramUser && titleEl) {
+    const tgUser = window.telegramUtils.telegramUser;
+    let name = tgUser.first_name || '';
+    if (tgUser.last_name) name += ' ' + tgUser.last_name;
+    titleEl.textContent = `Привет, ${name.trim()}!`;
+  } else if (titleEl) {
+    titleEl.textContent = 'Добро пожаловать!';
+  }
   overlay.classList.add('show');
   renderWelcomeSlide(0);
 }
