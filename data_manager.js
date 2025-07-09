@@ -50,7 +50,18 @@ function showErrorState(errorMessage) {
 // ИСПРАВЛЕНО: Обновленная функция загрузки данных с лучшей обработкой ролей
 async function loadAirtableData() {
     if (isDataLoading) return;
-    
+
+    // --- ОФЛАЙН-РЕЖИМ ---
+    if (window.isOfflineMode) {
+        if (window.loadOfflineData) {
+            await window.loadOfflineData();
+            isDataLoaded = true;
+            window.dispatchEvent(new CustomEvent('dataLoaded'));
+            return;
+        }
+    }
+    // --- /ОФЛАЙН-РЕЖИМ ---
+
     isDataLoading = true;
    // showLoadingState();
     

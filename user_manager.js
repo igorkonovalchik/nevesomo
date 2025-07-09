@@ -107,12 +107,13 @@ function updateMenu() {
     
     let html = '';
 
-    // Свитчер офлайн-режима (добавляется для всех режимов)
+    // Свитчер офлайн-режима (iPhone-style)
     html += `
         <div class="menu-item" style="display: flex; align-items: center; gap: 12px;">
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="checkbox" id="offlineModeSwitch" onchange="toggleOfflineMode(this.checked)" style="accent-color: var(--accent-primary); width: 18px; height: 18px;" />
-                <span>Офлайн режим</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="offlineModeSwitch" onchange="toggleOfflineMode(this.checked)" />
+                <span class="slider"></span>
+                <span style="margin-left: 12px;">Офлайн режим</span>
             </label>
         </div>
     `;

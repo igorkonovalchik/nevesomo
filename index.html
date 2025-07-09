@@ -42,6 +42,63 @@ setTimeout(() => {
     }
 }, 5000);
 </script>
+<style>
+/* iPhone-style toggle-switch */
+.toggle-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+.toggle-switch input[type="checkbox"] {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.toggle-switch .slider {
+  position: relative;
+  width: 44px;
+  height: 26px;
+  background: var(--bg-secondary, #e4e4e4);
+  border-radius: 26px;
+  transition: background 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  display: inline-block;
+}
+.toggle-switch .slider:before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 20px;
+  height: 20px;
+  background: var(--bg-primary, #fff);
+  border-radius: 50%;
+  transition: transform 0.2s, background 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.10);
+}
+.toggle-switch input:checked + .slider {
+  background: var(--accent-primary, #4cd964);
+}
+.toggle-switch input:checked + .slider:before {
+  transform: translateX(18px);
+  background: var(--accent-primary, #4cd964);
+}
+/* Тёмная тема */
+body.dark .toggle-switch .slider {
+  background: var(--bg-secondary, #333);
+}
+body.dark .toggle-switch .slider:before {
+  background: var(--bg-primary, #222);
+}
+body.dark .toggle-switch input:checked + .slider {
+  background: var(--accent-primary, #4cd964);
+}
+body.dark .toggle-switch input:checked + .slider:before {
+  background: var(--accent-primary, #4cd964);
+}
+</style>
 </head>
 <body>
     <!-- Заставка загрузки -->

@@ -147,6 +147,11 @@ async function toggleUserAssignment(sessionKey, role) {
 }
 
 async function completeAssignment(comment = '') {
+    if (window.isOfflineMode) {
+        showNotification('В офлайн-режиме запись на шифт недоступна!');
+        window.pendingAssignment = null;
+        return;
+    }
     console.log('🚀 completeAssignment вызван:', {
         comment,
         pendingAssignment: window.pendingAssignment,
@@ -205,6 +210,10 @@ async function completeAssignment(comment = '') {
 // window.completeAssignment = completeAssignment;
 
 async function removeUserAssignment(sessionKey, role) {
+    if (window.isOfflineMode) {
+        showNotification('В офлайн-режиме удаление шифтов недоступно!');
+        return;
+    }
     const [day, time] = sessionKey.split('_');
     const expandedSession = document.querySelector('.session.expanded')?.getAttribute('data-session');
     
