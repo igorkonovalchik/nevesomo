@@ -429,7 +429,7 @@ function closeParticipantPopup() {
 }
 
 /* === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ === */
-function showLoader(text = 'Загрузка...') {
+function showLoader(text = 'Загрузка...', percent = null) {
     let loader = document.getElementById('loadingOverlay');
     if (!loader) {
         loader = document.createElement('div');
@@ -439,11 +439,19 @@ function showLoader(text = 'Загрузка...') {
             <div style="text-align: center;">
                 <div class="loading-spinner"></div>
                 <div class="loading-text">${text}</div>
+                <div class="loading-progress" style="margin-top: 12px; font-size: 1.1em; color: #fff; display: none;"></div>
             </div>
         `;
         document.body.appendChild(loader);
     }
     loader.querySelector('.loading-text').textContent = text;
+    const progressDiv = loader.querySelector('.loading-progress');
+    if (percent !== null && !isNaN(percent)) {
+        progressDiv.style.display = '';
+        progressDiv.textContent = `Загрузка: ${percent}%`;
+    } else {
+        progressDiv.style.display = 'none';
+    }
     loader.classList.add('show');
 }
 

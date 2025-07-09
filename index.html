@@ -43,6 +43,9 @@ setTimeout(() => {
 }, 5000);
 </script>
 <style>
+:root {
+  --accent-blue: #2196f3;
+}
 /* iPhone-style toggle-switch */
 .toggle-switch {
   position: relative;
@@ -83,7 +86,10 @@ setTimeout(() => {
 }
 .toggle-switch input:checked + .slider:before {
   transform: translateX(18px);
-  background: var(--accent-primary, #4cd964);
+  background: var(--accent-blue, #2196f3);
+}
+.toggle-switch input:not(:checked) + .slider:before {
+  background: var(--bg-primary, #fff);
 }
 /* Тёмная тема */
 body.dark .toggle-switch .slider {
@@ -96,7 +102,10 @@ body.dark .toggle-switch input:checked + .slider {
   background: var(--accent-primary, #4cd964);
 }
 body.dark .toggle-switch input:checked + .slider:before {
-  background: var(--accent-primary, #4cd964);
+  background: var(--accent-blue, #2196f3);
+}
+body.dark .toggle-switch input:not(:checked) + .slider:before {
+  background: var(--bg-primary, #222);
 }
 </style>
 </head>

@@ -290,47 +290,33 @@ function showBathInfo() {
 window.enableOfflineMode = async function() {
     if (window.isOfflineMode) return;
     try {
-        // Показываем прогресс-бар
-        const progressBar = document.getElementById('progressBar');
-        const progressText = document.getElementById('progressText');
-        const progressFill = document.getElementById('progressFill');
-        if (progressBar) progressBar.style.display = '';
-        if (progressText) progressText.style.display = '';
-        if (progressFill) progressFill.style.width = '0%';
-        if (progressText) progressText.textContent = 'Скачиваем данные для офлайн-режима...';
-
-        // Скачиваем все данные
         let percent = 0;
-        if (progressFill) progressFill.style.width = '10%';
+        if (window.showLoader) window.showLoader('Скачиваем данные для офлайн-режима...', percent);
+        // Скачиваем все данные
+        percent = 10;
+        if (window.showLoader) window.showLoader('Скачиваем данные для офлайн-режима...', percent);
         const allData = await window.airtableService.getAllData();
         percent = 80;
-        if (progressFill) progressFill.style.width = percent + '%';
-
+        if (window.showLoader) window.showLoader('Сохраняем данные...', percent);
         // Сохраняем в localStorage
         localStorage.setItem('offlineData', JSON.stringify(allData));
         percent = 100;
-        if (progressFill) progressFill.style.width = percent + '%';
-        if (progressText) progressText.textContent = 'Данные успешно сохранены!';
-
+        if (window.showLoader) window.showLoader('Данные успешно сохранены!', percent);
         // Устанавливаем флаг
         window.isOfflineMode = true;
         showNotification('Офлайн режим включен!');
-
         // Перезагружаем данные из localStorage
         if (window.loadOfflineData) {
             await window.loadOfflineData();
         }
-
-        // Скрываем прогресс через 1.5 сек
         setTimeout(() => {
-            if (progressBar) progressBar.style.display = 'none';
-            if (progressText) progressText.style.display = 'none';
-        }, 1500);
+            if (window.hideLoader) window.hideLoader();
+        }, 1200);
     } catch (e) {
         showNotification('Ошибка при скачивании данных для офлайн-режима');
         window.isOfflineMode = false;
+        if (window.hideLoader) window.hideLoader();
     }
-    // Обновить меню (чекбокс)
     if (typeof updateMenu === 'function') updateMenu();
 };
 
