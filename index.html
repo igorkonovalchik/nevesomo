@@ -201,7 +201,29 @@ body.dark .welcome-slider-btn.skip {
 .welcome-slider-dot.active {
   background: var(--accent-primary, #4cd964);
 }
+/* Debug Overlay */
+#debugOverlay {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  min-height: 40px;
+  max-height: 40vh;
+  background: rgba(0,0,0,0.7);
+  color: #fff;
+  font-family: monospace;
+  font-size: 1em;
+  z-index: 20000;
+  pointer-events: none;
+  padding: 10px 18px 10px 10px;
+  overflow-y: auto;
+  box-sizing: border-box;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  opacity: 0.95;
+  display: none;
+}
+#debugOverlay.show { display: block; }
 </style>
+<div id="debugOverlay"></div>
 </head>
 <body>
     <!-- Заставка загрузки -->

@@ -482,4 +482,36 @@ window.addEventListener('dataLoaded', () => {
   }
 });
 
+// === DEBUG OVERLAY ===
+window.debugOverlayEnabled = false;
+window.toggleDebugOverlay = function(on) {
+  window.debugOverlayEnabled = !!on;
+  const overlay = document.getElementById('debugOverlay');
+  if (overlay) overlay.classList.toggle('show', !!on);
+};
+(function() {
+  const overlay = document.getElementById('debugOverlay');
+  if (!overlay) return;
+  const maxLines = 20;
+  const origLog = console.log;
+  const origInfo = console.info;
+  const origWarn = console.warn;
+  const origError = console.error;
+  function addDebugLine(type, ...args) {
+    if (!window.debugOverlayEnabled) return;
+    const msg = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
+    const time = new Date().toLocaleTimeString();
+    const line = `[${type.toUpperCase()} ${time}] ${msg}`;
+    let lines = overlay.innerText.split('\n').filter(Boolean);
+    lines.push(line);
+    if (lines.length > maxLines) lines = lines.slice(-maxLines);
+    overlay.innerText = lines.join('\n');
+    overlay.scrollTop = overlay.scrollHeight;
+  }
+  console.log = function(...args) { addDebugLine('log', ...args); origLog.apply(console, args); };
+  console.info = function(...args) { addDebugLine('info', ...args); origInfo.apply(console, args); };
+  console.warn = function(...args) { addDebugLine('warn', ...args); origWarn.apply(console, args); };
+  console.error = function(...args) { addDebugLine('error', ...args); origError.apply(console, args); };
+})();
+
 console.log('👤 User Manager загружен');
