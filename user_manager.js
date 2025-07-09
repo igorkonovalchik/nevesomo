@@ -391,4 +391,95 @@ window.loadOfflineData = async function() {
     }
 };
 
+// === WELCOME SLIDER ===
+const welcomeSlides = [
+  {
+    emoji: '👋',
+    title: 'Добро пожаловать!',
+    desc: 'Это приложение для записи на шифты и просмотра расписания.'
+  },
+  {
+    emoji: '📅',
+    title: 'Смотри расписание',
+    desc: 'Узнавай, когда и какие шифты доступны, и планируй своё участие.'
+  },
+  {
+    emoji: '📝',
+    title: 'Записывайся на шифты',
+    desc: 'Выбирай свободные роли и занимай их в пару кликов.'
+  },
+  {
+    emoji: '👤',
+    title: 'Следи за своими сменами',
+    desc: 'В разделе “Моё расписание” всегда видно, где ты записан.'
+  },
+  {
+    emoji: '❓',
+    title: 'Описание ролей',
+    desc: 'Смотри подробности и инструкции по каждой роли.'
+  }
+];
+let welcomeSliderIndex = 0;
+function showWelcomeSlider() {
+  const overlay = document.getElementById('welcomeSliderOverlay');
+  if (!overlay) return;
+  overlay.classList.add('show');
+  renderWelcomeSlide(0);
+}
+function hideWelcomeSlider() {
+  const overlay = document.getElementById('welcomeSliderOverlay');
+  if (overlay) overlay.classList.remove('show');
+}
+function renderWelcomeSlide(idx) {
+  welcomeSliderIndex = idx;
+  const slide = welcomeSlides[idx];
+  document.getElementById('welcomeSliderEmoji').textContent = slide.emoji;
+  document.getElementById('welcomeSliderTitle').textContent = slide.title;
+  document.getElementById('welcomeSliderDesc').textContent = slide.desc;
+  // Dots
+  const dots = document.getElementById('welcomeSliderDots');
+  dots.innerHTML = '';
+  for (let i = 0; i < welcomeSlides.length; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'welcome-slider-dot' + (i === idx ? ' active' : '');
+    dots.appendChild(dot);
+  }
+  // Next/Start button
+  const nextBtn = document.getElementById('welcomeSliderNext');
+  nextBtn.textContent = idx === welcomeSlides.length - 1 ? 'Начать' : 'Далее';
+}
+function markUserNotNew() {
+  const user = getCurrentUserData();
+  if (!user || !user.id) return;
+  // PATCH в Airtable: is_New = false
+  window.airtableService && window.airtableService.update &&
+    window.airtableService.update('participants', user.id, { is_New: false });
+  // Локально тоже убираем
+  user.is_New = false;
+}
+// События для слайдера
+window.addEventListener('DOMContentLoaded', () => {
+  const skipBtn = document.getElementById('welcomeSliderSkip');
+  const nextBtn = document.getElementById('welcomeSliderNext');
+  if (skipBtn) skipBtn.onclick = () => {
+    hideWelcomeSlider();
+    markUserNotNew();
+  };
+  if (nextBtn) nextBtn.onclick = () => {
+    if (welcomeSliderIndex < welcomeSlides.length - 1) {
+      renderWelcomeSlide(welcomeSliderIndex + 1);
+    } else {
+      hideWelcomeSlider();
+      markUserNotNew();
+    }
+  };
+});
+// Показываем слайдер после загрузки данных, если is_New
+window.addEventListener('dataLoaded', () => {
+  const user = getCurrentUserData && getCurrentUserData();
+  if (user && user.is_New) {
+    setTimeout(showWelcomeSlider, 400); // после заставки
+  }
+});
+
 console.log('👤 User Manager загружен');

@@ -107,6 +107,100 @@ body.dark .toggle-switch input:checked + .slider:before {
 body.dark .toggle-switch input:not(:checked) + .slider:before {
   background: var(--bg-primary, #222);
 }
+/* Welcome Slider */
+#welcomeSliderOverlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-primary, #fff);
+  background: linear-gradient(135deg, var(--bg-primary, #fff) 60%, var(--accent-primary, #4cd964) 100%);
+  z-index: 10000;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s;
+}
+#welcomeSliderOverlay.show { display: flex; }
+.welcome-slider-content {
+  max-width: 420px;
+  width: 90vw;
+  background: rgba(255,255,255,0.95);
+  border-radius: 24px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+  padding: 36px 28px 32px 28px;
+  text-align: center;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+body.dark #welcomeSliderOverlay {
+  background: linear-gradient(135deg, var(--bg-primary, #181818) 60%, var(--accent-primary, #4cd964) 100%);
+}
+body.dark .welcome-slider-content {
+  background: rgba(34,34,34,0.98);
+  color: #fff;
+}
+.welcome-slider-emoji {
+  font-size: 2.8em;
+  margin-bottom: 18px;
+}
+.welcome-slider-title {
+  font-size: 1.5em;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.welcome-slider-desc {
+  font-size: 1.1em;
+  margin-bottom: 24px;
+  color: var(--text-secondary, #555);
+}
+body.dark .welcome-slider-desc {
+  color: #bbb;
+}
+.welcome-slider-controls {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 18px;
+  gap: 12px;
+}
+.welcome-slider-btn {
+  flex: 1;
+  padding: 12px 0;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent-primary, #4cd964);
+  color: #fff;
+  font-size: 1.1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.welcome-slider-btn.skip {
+  background: var(--bg-secondary, #eee);
+  color: var(--text-secondary, #555);
+}
+body.dark .welcome-slider-btn.skip {
+  background: #222;
+  color: #bbb;
+}
+.welcome-slider-dots {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 18px;
+}
+.welcome-slider-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--bg-secondary, #ddd);
+  transition: background 0.2s;
+}
+.welcome-slider-dot.active {
+  background: var(--accent-primary, #4cd964);
+}
 </style>
 </head>
 <body>
@@ -399,6 +493,18 @@ body.dark .toggle-switch input:not(:checked) + .slider:before {
             </div>
         </div>
     </div>
+</div>
+<div id="welcomeSliderOverlay">
+  <div class="welcome-slider-content">
+    <div class="welcome-slider-emoji" id="welcomeSliderEmoji">👋</div>
+    <div class="welcome-slider-title" id="welcomeSliderTitle">Добро пожаловать!</div>
+    <div class="welcome-slider-desc" id="welcomeSliderDesc">Это приложение для записи на шифты и просмотра расписания.</div>
+    <div class="welcome-slider-dots" id="welcomeSliderDots"></div>
+    <div class="welcome-slider-controls">
+      <button class="welcome-slider-btn skip" id="welcomeSliderSkip">Пропустить</button>
+      <button class="welcome-slider-btn" id="welcomeSliderNext">Далее</button>
+    </div>
+  </div>
 </div>
 </body>
 </html>
