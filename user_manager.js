@@ -8,7 +8,7 @@ let currentUser = '';
 function setMode(mode) {
     currentMode = mode;
     
-    const deadlineWarning = document.getElementById('deadlineWarning');
+    // deadlineWarning logic removed
     const userSelector = document.getElementById('userSelector');
     const myScheduleBtn = document.getElementById('myScheduleBtn');
     const progressBar = document.getElementById('progressBar');
@@ -17,7 +17,6 @@ function setMode(mode) {
     
     if (mode === 'admin') {
         // Админ режим
-        if (deadlineWarning) deadlineWarning.style.display = 'none';
         if (userSelector) userSelector.style.display = 'block'; // Селектор показываем только админу
         if (myScheduleBtn) myScheduleBtn.style.display = 'none';
         if (progressBar) progressBar.style.display = 'none';
@@ -25,7 +24,6 @@ function setMode(mode) {
         if (bigGreeting) bigGreeting.style.display = 'none'; // Прячем приветствие в админ режиме
     } else {
         // Пользовательский режим
-        if (deadlineWarning) deadlineWarning.style.display = 'block';
         if (userSelector) userSelector.style.display = 'none'; // Для обычных участников прячем селектор
         if (myScheduleBtn) myScheduleBtn.style.display = 'block';
         if (progressBar) progressBar.style.display = 'block';
@@ -157,7 +155,7 @@ function updateProgress() {
     const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
     const progressFill = document.getElementById('progressFill');
-    const deadlineWarning = document.getElementById('deadlineWarning');
+    // deadlineWarning logic removed
     
     if (currentMode !== 'user' || !currentUser || !progressBar || !progressText || !progressFill) {
         if (progressBar) progressBar.style.display = 'none';
@@ -181,14 +179,12 @@ function updateProgress() {
     
     if (progress >= 100) {
         progressText.textContent = '✅ Все шифты выбраны!';
-        if (deadlineWarning) deadlineWarning.style.display = 'none';
         setTimeout(() => {
             if (progressBar) progressBar.style.display = 'none';
             if (progressText) progressText.style.display = 'none';
         }, 3000);
     } else {
         progressText.textContent = `${userShifts}/${minShifts} шифтов выбрано`;
-        if (deadlineWarning) deadlineWarning.style.display = 'block';
     }
 }
 
