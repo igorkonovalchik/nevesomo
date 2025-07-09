@@ -250,7 +250,7 @@ function renderParticipantsList(currentAssignment) {
                     ${participant.name}
                     ${isSelected ? ' ✓' : ''}
                 </div>
-                <div class="participant-telegram">${participant.telegram}</div>
+                ${!window.isDemoMode && participant.telegram ? `<div class="participant-telegram">${participant.telegram}</div>` : ''}
             </div>
         `;
     });
@@ -265,8 +265,8 @@ function renderUserStats(userStats) {
             .filter(([category, count]) => count > 0)
             .map(([category, count]) => `<div class="stats-category">${category}: ${count}</div>`)
             .join('');
-        
-        const telegramLink = user.telegram ? 
+        // Скрываем Telegram в demoMode
+        const telegramLink = (!window.isDemoMode && user.telegram) ? 
             `<a href="https://t.me/${user.telegram.replace('@', '')}" style="color: var(--accent-primary); text-decoration: none;">
                 ${user.telegram}
             </a>` : '';
@@ -303,7 +303,7 @@ function renderUserSchedule(currentUser, userShiftsByDay, participant, shiftsCou
     html += `
         <div class="user-profile">
             <div class="user-name">${currentUser}</div>
-            <a href="https://t.me/${participant.telegram.replace('@', '')}" class="user-telegram" target="_blank">${participant.telegram}</a>
+            ${!window.isDemoMode && participant.telegram ? `<a href="https://t.me/${participant.telegram.replace('@', '')}" class="user-telegram" target="_blank">${participant.telegram}</a>` : ''}
             <div class="user-stats">
                 <div class="stat-item">
                     <div class="stat-number">${shiftsCount}</div>

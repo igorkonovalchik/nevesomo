@@ -396,7 +396,7 @@ const welcomeSlides = [
   {
     emoji: '👋',
     title: 'Добро пожаловать!',
-    desc: 'Это приложение для записи на шифты и просмотра расписания.'
+    desc: 'Это приложение для управления шифтами на фестивале Бернинг мэн.'
   },
   {
     emoji: '📅',
@@ -449,15 +449,15 @@ function renderWelcomeSlide(idx) {
   nextBtn.textContent = idx === welcomeSlides.length - 1 ? 'Начать' : 'Далее';
 }
 function markUserNotNew() {
+  if (window.isDemoMode) {
+    console.log('[DEBUG] markUserNotNew: demoMode, PATCH не требуется');
+    return;
+  }
   if (!window.telegramUtils?.telegramUser) {
     // В браузере: скрываем на сутки
     const until = Date.now() + 24 * 60 * 60 * 1000;
     localStorage.setItem('welcomeSliderHiddenUntil', until);
     console.log('[DEBUG] markUserNotNew: set localStorage.welcomeSliderHiddenUntil =', until);
-    return;
-  }
-  if (window.isDemoMode) {
-    console.log('[DEBUG] markUserNotNew: demoMode, PATCH не требуется');
     return;
   }
   const user = getCurrentUserData();
@@ -501,6 +501,10 @@ window.addEventListener('dataLoaded', () => {
   }
   // Браузер: всегда показывать, если не скрыт на сутки
   if (!window.telegramUtils?.telegramUser) {
+    if (window.isDemoMode) {
+      setTimeout(showWelcomeSlider, 400);
+      return;
+    }
     const until = +(localStorage.getItem('welcomeSliderHiddenUntil') || 0);
     if (Date.now() > until) {
       setTimeout(showWelcomeSlider, 400);

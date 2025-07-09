@@ -1338,3 +1338,126 @@ body {
     font-size: 2.2em;
   }
 }
+
+/* Welcome Slider */
+#welcomeSliderOverlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, var(--bg-primary, #fff) 60%, var(--accent-primary, #4cd964) 100%);
+  z-index: 10000;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.5s cubic-bezier(.4,0,.2,1), background 1.2s cubic-bezier(.4,0,.2,1);
+  opacity: 0;
+  animation: welcomeFadeIn 0.7s cubic-bezier(.4,0,.2,1) forwards;
+}
+#welcomeSliderOverlay.show {
+  display: flex;
+  opacity: 1;
+}
+.welcome-slider-content {
+  max-width: 420px;
+  width: 90vw;
+  background: rgba(255,255,255,0.97);
+  border-radius: 28px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.16);
+  padding: 44px 32px 36px 32px;
+  text-align: center;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: background 0.5s cubic-bezier(.4,0,.2,1), color 0.5s;
+  animation: welcomeSlideIn 0.7s cubic-bezier(.4,0,.2,1) forwards;
+}
+body.dark #welcomeSliderOverlay {
+  background: linear-gradient(135deg, #181818 60%, var(--accent-primary, #4cd964) 100%);
+}
+body.dark .welcome-slider-content {
+  background: rgba(34,34,34,0.98);
+  color: #fff;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.32);
+}
+.welcome-slider-emoji {
+  font-size: 3.2em;
+  margin-bottom: 22px;
+  transition: transform 0.4s cubic-bezier(.4,0,.2,1);
+  will-change: transform;
+}
+.welcome-slider-title {
+  font-size: 1.7em;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: 0.01em;
+  transition: color 0.4s;
+}
+.welcome-slider-desc {
+  font-size: 1.13em;
+  margin-bottom: 28px;
+  color: var(--text-secondary, #555);
+  transition: color 0.4s;
+}
+body.dark .welcome-slider-desc {
+  color: #bbb;
+}
+.welcome-slider-controls {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 22px;
+  gap: 14px;
+}
+.welcome-slider-btn {
+  flex: 1;
+  padding: 13px 0;
+  border: none;
+  border-radius: 10px;
+  background: var(--accent-primary, #4cd964);
+  color: #fff;
+  font-size: 1.13em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(76,217,100,0.08);
+}
+.welcome-slider-btn.skip {
+  background: var(--bg-secondary, #eee);
+  color: var(--text-secondary, #555);
+  box-shadow: none;
+}
+body.dark .welcome-slider-btn.skip {
+  background: #222;
+  color: #bbb;
+}
+.welcome-slider-btn:active {
+  background: #3ecf7a;
+  box-shadow: 0 1px 4px rgba(76,217,100,0.12);
+}
+.welcome-slider-dots {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 22px;
+}
+.welcome-slider-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--bg-secondary, #ddd);
+  transition: background 0.3s, transform 0.3s;
+  transform: scale(1);
+}
+.welcome-slider-dot.active {
+  background: var(--accent-primary, #4cd964);
+  transform: scale(1.25);
+}
+@keyframes welcomeFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes welcomeSlideIn {
+  from { transform: translateY(40px) scale(0.98); opacity: 0.7; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
