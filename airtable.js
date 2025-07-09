@@ -128,7 +128,7 @@ class AirtableService {
         try {
             const records = await airtableAPI.get(TABLES.PARTICIPANTS);
             return records.map(record => ({
-              id           : record.ID,
+              id           : record.id,
               name         : record.fields.Name        || '',
               telegram     : record.fields.Telegram    || '',
               telegramId   : record.fields.Telegram_ID || '',   
