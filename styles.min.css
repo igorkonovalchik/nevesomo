@@ -1645,3 +1645,18 @@ body.dark .welcome-slider-btn.skip {
   }
   #debugOverlay.show { display: block; }
   #debugOverlay:hover { cursor: grab; }
+
+.loading-overlay {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+}
+.loading-spinner {
+    margin-left: auto;
+    margin-right: auto;
+}
+.loading-text {
+    margin-top: 18px;
+    text-align: center;
+}

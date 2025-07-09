@@ -77,6 +77,7 @@ async function loadAirtableData() {
         // Обрабатываем участников
         participants.length = 0;
         participants.push(...data.participants.map(p => ({
+            id            : p.id, // обязательно сохраняем record.id для PATCH
             name          : p.name,
             telegram      : p.telegram,
             telegramId    : p.telegramId,
