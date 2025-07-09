@@ -136,7 +136,7 @@ class AirtableService {
               bathExperience : record.fields.Bath_Experience || false,
               createdDate  : record.fields.Created_Date || '',
               notes        : record.fields.Notes        || '',
-              isNew       : record.fields.is_New || false
+              isNew       : record.fields.is_New || true
             }));
         } catch (error) {
             console.error('Error getting participants:', error);
@@ -263,6 +263,11 @@ class AirtableService {
             console.error('Error updating assignment:', error);
             throw error;
         }
+    }
+
+    // Обновить участника
+    async updateParticipant(participantId, fields) {
+        return await airtableAPI.update(TABLES.PARTICIPANTS, participantId, fields);
     }
 
     // Получить все данные разом

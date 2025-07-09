@@ -504,10 +504,10 @@ function markUserNotNew() {
   }
   console.log('[DEBUG] markUserNotNew: id =', user.id, 'name =', user.name, 'isNew =', user.isNew);
   // PATCH в Airtable: isNew = false
-  if (window.airtableService && window.airtableService.update) {
-    window.airtableService.update('participants', user.id, { is_New: false })
-      .then(res => console.log('[DEBUG] PATCH isNew=false result:', res))
-      .catch(err => console.error('[DEBUG] PATCH isNew=false error:', err));
+  if (window.airtableService && window.airtableService.updateParticipant) {
+    window.airtableService.updateParticipant(user.id, { is_New: false })
+      .then(res => console.log('[DEBUG] PATCH is_New=false result:', res))
+      .catch(err => console.error('[DEBUG] PATCH is_New=false error:', err));
   }
   // Локально тоже убираем
   user.isNew = false;
