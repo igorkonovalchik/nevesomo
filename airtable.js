@@ -128,7 +128,7 @@ class AirtableService {
         try {
             const records = await airtableAPI.get(TABLES.PARTICIPANTS);
             return records.map(record => ({
-              id           : record.id,
+              id           : record.ID,
               name         : record.fields.Name        || '',
               telegram     : record.fields.Telegram    || '',
               telegramId   : record.fields.Telegram_ID || '',   
@@ -136,7 +136,7 @@ class AirtableService {
               bathExperience : record.fields.Bath_Experience || false,
               createdDate  : record.fields.Created_Date || '',
               notes        : record.fields.Notes        || '',
-              isNew       : record.fields.is_New || true
+              isNew       : record.fields.is_New === true
             }));
         } catch (error) {
             console.error('Error getting participants:', error);
