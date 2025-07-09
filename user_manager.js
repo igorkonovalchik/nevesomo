@@ -285,4 +285,120 @@ function showBathInfo() {
     showNotification(`Банный кемп NEVESOMO\n\nЗдесь проходят банные сессии с парением, массажем и заботой о гостях.\n\nПодробнее в описании ролей.`);
 }
 
+// === ОФЛАЙН-РЕЖИМ ===
+window.enableOfflineMode = async function() {
+    if (window.isOfflineMode) return;
+    try {
+        // Показываем прогресс-бар
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const progressFill = document.getElementById('progressFill');
+        if (progressBar) progressBar.style.display = '';
+        if (progressText) progressText.style.display = '';
+        if (progressFill) progressFill.style.width = '0%';
+        if (progressText) progressText.textContent = 'Скачиваем данные для офлайн-режима...';
+
+        // Скачиваем все данные
+        let percent = 0;
+        if (progressFill) progressFill.style.width = '10%';
+        const allData = await window.airtableService.getAllData();
+        percent = 80;
+        if (progressFill) progressFill.style.width = percent + '%';
+
+        // Сохраняем в localStorage
+        localStorage.setItem('offlineData', JSON.stringify(allData));
+        percent = 100;
+        if (progressFill) progressFill.style.width = percent + '%';
+        if (progressText) progressText.textContent = 'Данные успешно сохранены!';
+
+        // Устанавливаем флаг
+        window.isOfflineMode = true;
+        showNotification('Офлайн режим включен!');
+
+        // Перезагружаем данные из localStorage
+        if (window.loadOfflineData) {
+            await window.loadOfflineData();
+        }
+
+        // Скрываем прогресс через 1.5 сек
+        setTimeout(() => {
+            if (progressBar) progressBar.style.display = 'none';
+            if (progressText) progressText.style.display = 'none';
+        }, 1500);
+    } catch (e) {
+        showNotification('Ошибка при скачивании данных для офлайн-режима');
+        window.isOfflineMode = false;
+    }
+    // Обновить меню (чекбокс)
+    if (typeof updateMenu === 'function') updateMenu();
+};
+
+window.disableOfflineMode = function() {
+    // Удаляем offlineData
+    localStorage.removeItem('offlineData');
+    window.isOfflineMode = false;
+    showNotification('Офлайн режим выключен');
+    // Перезагружаем данные из Airtable
+    if (window.loadAirtableData) {
+        window.loadAirtableData();
+    }
+    // Обновить меню (чекбокс)
+    if (typeof updateMenu === 'function') updateMenu();
+};
+
+// === Загрузка данных из offlineData ===
+window.loadOfflineData = async function() {
+    try {
+        const offlineData = JSON.parse(localStorage.getItem('offlineData'));
+        if (!offlineData) throw new Error('Нет сохранённых офлайн-данных');
+        // Импортируем данные в глобальные переменные (как в data_manager.js)
+        if (Array.isArray(offlineData.participants)) {
+            window.participants = offlineData.participants;
+        }
+        if (Array.isArray(offlineData.roles)) {
+            window.rolesInfo = {};
+            offlineData.roles.forEach(role => {
+                window.rolesInfo[role.name] = {
+                    icon: role.icon || '🔥',
+                    description: role.description || '',
+                    instructionUrl: role.instructionUrl || '',
+                    category: role.category || 'other'
+                };
+            });
+        }
+        if (Array.isArray(offlineData.schedule)) {
+            window.schedule = {};
+            offlineData.schedule.forEach(session => {
+                const dateKey = session.date;
+                if (!window.schedule[dateKey]) window.schedule[dateKey] = [];
+                window.schedule[dateKey].push({
+                    time: session.startTime,
+                    endTime: session.endTime,
+                    sessionNum: session.sessionNumber,
+                    status: session.status,
+                    type: session.type,
+                    availableRoles: session.availableRoles,
+                    slotLink: session.slotLink || null
+                });
+            });
+        }
+        if (Array.isArray(offlineData.assignments)) {
+            window.assignments = {};
+            offlineData.assignments.forEach(assignment => {
+                const sessionKey = `${assignment.slotDate}_${assignment.slotTime}`;
+                if (!window.assignments[sessionKey]) window.assignments[sessionKey] = {};
+                window.assignments[sessionKey][assignment.roleName] = assignment.participantName;
+            });
+        }
+        if (offlineData.settings) {
+            window.appSettings = offlineData.settings;
+        }
+        // Обновить интерфейс
+        if (typeof updateView === 'function') updateView();
+        if (typeof updateMenu === 'function') updateMenu();
+    } catch (e) {
+        showNotification('Ошибка загрузки офлайн-данных');
+    }
+};
+
 console.log('👤 User Manager загружен');
