@@ -236,7 +236,7 @@ function initializeParticipantsSelector() {
 
 function initializeTelegramUser(userName) {
     const user = participants.find(p => p.name === userName);
-    if (user && user.is_New) {
+    if (user && user.isNew) {
         // bigGreeting не показываем, слайдер покажет welcome
     } else {
         // Отключаем bigGreeting и splash
@@ -494,7 +494,7 @@ function markUserNotNew() {
   }
   if (!user) {
     console.error('[DEBUG] markUserNotNew: не найден участник по Telegram username:', telegramUser?.username);
-    showNotification('Ошибка: не удалось найти пользователя в базе для снятия галочки is_New');
+    showNotification('Ошибка: не удалось найти пользователя в базе для снятия галочки isNew');
     return;
   }
   if (!user.id) {
@@ -502,15 +502,15 @@ function markUserNotNew() {
     showNotification('Ошибка: у пользователя нет id в базе, обратитесь к администратору');
     return;
   }
-  console.log('[DEBUG] markUserNotNew: id =', user.id, 'name =', user.name, 'is_New =', user.is_New);
-  // PATCH в Airtable: is_New = false
+  console.log('[DEBUG] markUserNotNew: id =', user.id, 'name =', user.name, 'isNew =', user.isNew);
+  // PATCH в Airtable: isNew = false
   if (window.airtableService && window.airtableService.update) {
-    window.airtableService.update('participants', user.id, { is_New: false })
-      .then(res => console.log('[DEBUG] PATCH is_New=false result:', res))
-      .catch(err => console.error('[DEBUG] PATCH is_New=false error:', err));
+    window.airtableService.update('participants', user.id, { isNew: false })
+      .then(res => console.log('[DEBUG] PATCH isNew=false result:', res))
+      .catch(err => console.error('[DEBUG] PATCH isNew=false error:', err));
   }
   // Локально тоже убираем
-  user.is_New = false;
+  user.isNew = false;
 }
 // События для слайдера
 window.addEventListener('DOMContentLoaded', () => {
@@ -529,16 +529,16 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   };
 });
-// Показываем слайдер после загрузки данных, если is_New (для любого пользователя)
+// Показываем слайдер после загрузки данных, если isNew (для любого пользователя)
 // Вызвать checkAndShowWelcomeSlider сразу после определения demoMode и currentUser (например, в telegram.js инициализации, а также в браузере после выбора пользователя)
 // === WELCOME SLIDER И DEBUG OVERLAY: инициализация до загрузки данных ===
 window.checkAndShowWelcomeSlider = function() {
   const user = typeof getCurrentUserData === 'function' ? getCurrentUserData() : null;
   console.log('[DEBUG] checkAndShowWelcomeSlider: user =', user);
   console.log('[DEBUG] window.isDemoMode =', window.isDemoMode, 'window.telegramUtils?.telegramUser =', window.telegramUtils?.telegramUser);
-  // Telegram WebApp: demoMode или is_New
-  if ((window.telegramUtils?.telegramUser && (window.isDemoMode === true || (user && user.is_New)))) {
-    console.log('[DEBUG] showWelcomeSlider: Telegram, demoMode or is_New');
+  // Telegram WebApp: demoMode или isNew
+  if ((window.telegramUtils?.telegramUser && (window.isDemoMode === true || (user && user.isNew)))) {
+    console.log('[DEBUG] showWelcomeSlider: Telegram, demoMode or isNew');
     setTimeout(showWelcomeSlider, 400);
     return;
   }

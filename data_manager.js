@@ -82,7 +82,7 @@ async function loadAirtableData() {
             telegram      : p.telegram,
             telegramId    : p.telegramId,
             isAdmin       : p.isAdmin,
-            is_New        : p.is_New,
+            isNew       : p.isNew,
             bathExperience: p.bathExperience
         })));
         

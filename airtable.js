@@ -131,12 +131,12 @@ class AirtableService {
               id           : record.id,
               name         : record.fields.Name        || '',
               telegram     : record.fields.Telegram    || '',
-              telegramId   : record.fields.Telegram_ID || '',   // ← новое
-              isAdmin      : record.fields.Is_Admin    || false,// ← новое
+              telegramId   : record.fields.Telegram_ID || '',   
+              isAdmin      : record.fields.Is_Admin    || false,
               bathExperience : record.fields.Bath_Experience || false,
               createdDate  : record.fields.Created_Date || '',
               notes        : record.fields.Notes        || '',
-              is_New       : record.fields.is_New === true
+              isNew       : record.fields.is_New || false
             }));
         } catch (error) {
             console.error('Error getting participants:', error);
