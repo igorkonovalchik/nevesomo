@@ -69,6 +69,7 @@ function setCurrentUser(userName) {
         updateProgress();
         console.log('📊 Прогресс обновлен');
     }
+    if (typeof window.checkAndShowWelcomeSlider === 'function') window.checkAndShowWelcomeSlider();
 }
 
 // Экспортируем setCurrentUser глобально
@@ -494,10 +495,11 @@ window.addEventListener('DOMContentLoaded', () => {
   };
 });
 // Показываем слайдер после загрузки данных, если is_New (для любого пользователя)
-window.addEventListener('dataLoaded', () => {
-  const user = getCurrentUserData && getCurrentUserData();
-  console.log('[DEBUG] dataLoaded: getCurrentUserData =', user);
-  if (user) console.log('[DEBUG] user.is_New =', user.is_New);
+// Вызвать checkAndShowWelcomeSlider сразу после определения demoMode и currentUser (например, в telegram.js инициализации, а также в браузере после выбора пользователя)
+// === WELCOME SLIDER И DEBUG OVERLAY: инициализация до загрузки данных ===
+window.checkAndShowWelcomeSlider = function() {
+  const user = typeof getCurrentUserData === 'function' ? getCurrentUserData() : null;
+  console.log('[DEBUG] checkAndShowWelcomeSlider: user =', user);
   console.log('[DEBUG] window.isDemoMode =', window.isDemoMode, 'window.telegramUtils?.telegramUser =', window.telegramUtils?.telegramUser);
   // Telegram WebApp: demoMode или is_New
   if ((window.telegramUtils?.telegramUser && (window.isDemoMode === true || (user && user.is_New)))) {
@@ -520,7 +522,7 @@ window.addEventListener('dataLoaded', () => {
       console.log('[DEBUG] welcomeSliderHiddenUntil active, slider не показываем');
     }
   }
-});
+};
 
 // === DEBUG OVERLAY ===
 window.debugOverlayEnabled = false;

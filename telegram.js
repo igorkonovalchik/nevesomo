@@ -49,6 +49,7 @@
       console.log('[DEBUG] Telegram: demoMode включён, пользователь не найден в базе');
       toggleAccessOverlay(false); // Скрываем блокировку
       if (typeof window.updateMenu === 'function') window.updateMenu();
+      if (typeof window.checkAndShowWelcomeSlider === 'function') window.checkAndShowWelcomeSlider();
       return;
     }
     window.isDemoMode = false;
@@ -101,6 +102,7 @@
     if (typeof window.updateMenu === 'function') {
       window.updateMenu();
     }
+    if (typeof window.checkAndShowWelcomeSlider === 'function') window.checkAndShowWelcomeSlider();
 }
 
   /* === Ждём, когда данные и DOM будут готовы === */
