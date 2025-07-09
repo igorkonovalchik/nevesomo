@@ -513,6 +513,6 @@ window.debugBookingSystem = function() {
     };
 };
 
-toggleDebugOverlay(false);
+toggleDebugOverlay(true);
 
 console.log('🎯 Main.js загружен и готов к инициализации');

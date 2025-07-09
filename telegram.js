@@ -44,10 +44,14 @@
     });
 
     if (!match) {
-      // Нет в базе → блокируем
-      toggleAccessOverlay(true);
+      // Нет в базе → включаем demoMode
+      window.isDemoMode = true;
+      console.log('[DEBUG] Telegram: demoMode включён, пользователь не найден в базе');
+      toggleAccessOverlay(false); // Скрываем блокировку
+      if (typeof window.updateMenu === 'function') window.updateMenu();
       return;
     }
+    window.isDemoMode = false;
 
     // Снимаем блокировку
     toggleAccessOverlay(false);

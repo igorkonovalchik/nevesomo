@@ -147,9 +147,10 @@ async function toggleUserAssignment(sessionKey, role) {
 }
 
 async function completeAssignment(comment = '') {
-    if (window.isOfflineMode) {
-        showNotification('В офлайн-режиме запись на шифт недоступна!');
+    if (window.isOfflineMode || window.isDemoMode) {
+        showNotification(window.isDemoMode ? 'В демонстрационном режиме запись недоступна!' : 'В офлайн-режиме запись на шифт недоступна!');
         window.pendingAssignment = null;
+        if (window.isDemoMode) console.log('[DEBUG] Попытка записи в demoMode');
         return;
     }
     console.log('🚀 completeAssignment вызван:', {
@@ -210,8 +211,9 @@ async function completeAssignment(comment = '') {
 // window.completeAssignment = completeAssignment;
 
 async function removeUserAssignment(sessionKey, role) {
-    if (window.isOfflineMode) {
-        showNotification('В офлайн-режиме удаление шифтов недоступно!');
+    if (window.isOfflineMode || window.isDemoMode) {
+        showNotification(window.isDemoMode ? 'В демонстрационном режиме удаление недоступно!' : 'В офлайн-режиме удаление шифтов недоступно!');
+        if (window.isDemoMode) console.log('[DEBUG] Попытка удаления в demoMode');
         return;
     }
     const [day, time] = sessionKey.split('_');
