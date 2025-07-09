@@ -449,6 +449,13 @@ function renderWelcomeSlide(idx) {
   nextBtn.textContent = idx === welcomeSlides.length - 1 ? 'Начать' : 'Далее';
 }
 function markUserNotNew() {
+  if (!window.telegramUtils?.telegramUser) {
+    // В браузере: скрываем на сутки
+    const until = Date.now() + 24 * 60 * 60 * 1000;
+    localStorage.setItem('welcomeSliderHiddenUntil', until);
+    console.log('[DEBUG] markUserNotNew: set localStorage.welcomeSliderHiddenUntil =', until);
+    return;
+  }
   if (window.isDemoMode) {
     console.log('[DEBUG] markUserNotNew: demoMode, PATCH не требуется');
     return;
@@ -487,8 +494,19 @@ window.addEventListener('dataLoaded', () => {
   const user = getCurrentUserData && getCurrentUserData();
   console.log('[DEBUG] dataLoaded: getCurrentUserData =', user);
   if (user) console.log('[DEBUG] user.is_New =', user.is_New);
-  if ((window.isDemoMode === true) || (user && user.is_New)) {
-    setTimeout(showWelcomeSlider, 400); // после загрузки
+  // Telegram WebApp: demoMode или is_New
+  if ((window.telegramUtils?.telegramUser && (window.isDemoMode === true || (user && user.is_New)))) {
+    setTimeout(showWelcomeSlider, 400);
+    return;
+  }
+  // Браузер: всегда показывать, если не скрыт на сутки
+  if (!window.telegramUtils?.telegramUser) {
+    const until = +(localStorage.getItem('welcomeSliderHiddenUntil') || 0);
+    if (Date.now() > until) {
+      setTimeout(showWelcomeSlider, 400);
+    } else {
+      console.log('[DEBUG] welcomeSliderHiddenUntil active, slider не показываем');
+    }
   }
 });
 
