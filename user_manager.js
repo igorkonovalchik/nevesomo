@@ -449,7 +449,16 @@ function renderWelcomeSlide(idx) {
   welcomeSliderIndex = idx;
   const slide = welcomeSlides[idx];
   document.getElementById('welcomeSliderEmoji').textContent = slide.emoji;
-  document.getElementById('welcomeSliderTitle').textContent = slide.title;
+  // Если первый слайд и Telegram WebApp, подставить имя
+  const titleEl = document.getElementById('welcomeSliderTitle');
+  if (idx === 0 && window.telegramUtils?.telegramUser && titleEl) {
+    const tgUser = window.telegramUtils.telegramUser;
+    let name = tgUser.first_name || '';
+    if (tgUser.last_name) name += ' ' + tgUser.last_name;
+    titleEl.textContent = `Привет, ${name.trim()}!`;
+  } else if (titleEl) {
+    titleEl.textContent = slide.title;
+  }
   document.getElementById('welcomeSliderDesc').textContent = slide.desc;
   // Dots
   const dots = document.getElementById('welcomeSliderDots');
