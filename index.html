@@ -212,7 +212,7 @@ body.dark .welcome-slider-btn.skip {
   font-family: monospace;
   font-size: 1em;
   z-index: 20000;
-  pointer-events: none;
+  pointer-events: auto;
   padding: 10px 18px 10px 10px;
   overflow-y: auto;
   box-sizing: border-box;
@@ -220,8 +220,10 @@ body.dark .welcome-slider-btn.skip {
   border-top-right-radius: 12px;
   opacity: 0.95;
   display: none;
+  overscroll-behavior: contain;
 }
 #debugOverlay.show { display: block; }
+#debugOverlay:hover { cursor: grab; }
 </style>
 <div id="debugOverlay"></div>
 </head>

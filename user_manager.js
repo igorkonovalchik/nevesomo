@@ -451,9 +451,13 @@ function renderWelcomeSlide(idx) {
 function markUserNotNew() {
   const user = getCurrentUserData();
   if (!user || !user.id) return;
+  console.log('[DEBUG] markUserNotNew: id =', user.id, 'name =', user.name, 'is_New =', user.is_New);
   // PATCH в Airtable: is_New = false
-  window.airtableService && window.airtableService.update &&
-    window.airtableService.update('participants', user.id, { is_New: false });
+  if (window.airtableService && window.airtableService.update) {
+    window.airtableService.update('participants', user.id, { is_New: false })
+      .then(res => console.log('[DEBUG] PATCH is_New=false result:', res))
+      .catch(err => console.error('[DEBUG] PATCH is_New=false error:', err));
+  }
   // Локально тоже убираем
   user.is_New = false;
 }
@@ -477,6 +481,8 @@ window.addEventListener('DOMContentLoaded', () => {
 // Показываем слайдер после загрузки данных, если is_New (для любого пользователя)
 window.addEventListener('dataLoaded', () => {
   const user = getCurrentUserData && getCurrentUserData();
+  console.log('[DEBUG] dataLoaded: getCurrentUserData =', user);
+  if (user) console.log('[DEBUG] user.is_New =', user.is_New);
   if (user && user.is_New) {
     setTimeout(showWelcomeSlider, 400); // после загрузки
   }
