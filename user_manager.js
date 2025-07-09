@@ -107,8 +107,18 @@ function updateMenu() {
     
     let html = '';
 
+    // Свитчер офлайн-режима (добавляется для всех режимов)
+    html += `
+        <div class="menu-item" style="display: flex; align-items: center; gap: 12px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" id="offlineModeSwitch" onchange="toggleOfflineMode(this.checked)" style="accent-color: var(--accent-primary); width: 18px; height: 18px;" />
+                <span>Офлайн режим</span>
+            </label>
+        </div>
+    `;
+
     if (currentMode === 'admin') {
-        html = `
+        html += `
             <div class="menu-item" onclick="openStatsPopup(); closeMenu();">
                 <span>📊 Статистика</span>
             </div>
@@ -126,7 +136,7 @@ function updateMenu() {
             </div>
         `;
     } else {
-        html = `
+        html += `
             <div class="menu-item" onclick="openMySchedule(); closeMenu();">
                 <span>📅 Мое расписание</span>
             </div>
@@ -137,7 +147,6 @@ function updateMenu() {
                 <span>❓ О шифтах</span>
             </div>
         `;
-        
         // Для веб-версии показываем переключение в админ режим
         if (!window.telegramUtils?.telegramUser) {
             html += `
@@ -149,7 +158,26 @@ function updateMenu() {
     }
 
     menuItems.innerHTML = html;
+
+    // Установить состояние свитчера по window.isOfflineMode
+    setTimeout(() => {
+        const offlineSwitch = document.getElementById('offlineModeSwitch');
+        if (offlineSwitch) {
+            offlineSwitch.checked = !!window.isOfflineMode;
+        }
+    }, 0);
 }
+
+// Глобальный обработчик переключения офлайн-режима
+window.toggleOfflineMode = function(isOn) {
+    if (isOn) {
+        // Включить офлайн-режим (реализация далее)
+        if (window.enableOfflineMode) window.enableOfflineMode();
+    } else {
+        // Выключить офлайн-режим (реализация далее)
+        if (window.disableOfflineMode) window.disableOfflineMode();
+    }
+};
 
 function updateProgress() {
     const progressBar = document.getElementById('progressBar');

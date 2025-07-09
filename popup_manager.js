@@ -585,7 +585,7 @@ function renderCompactSessionForFullSchedule(day, session) {
         sessionRoles = session.roles;
     }
 
-    const filledRoles = sessionRoles.filter(role => sessionAssignments[role] !== null && sessionAssignments[role] !== undefined).length;
+    const filledRoles = sessionRoles.filter(role => sessionAssignments[role] !== null && sessionAssignments[role] !== undefined && sessionAssignments[role] !== '').length;
     const totalRoles = sessionRoles.length;
     const percentage = totalRoles > 0 ? Math.round((filledRoles / totalRoles) * 100) : 0;
     const emptyRoles = totalRoles - filledRoles;
@@ -614,10 +614,10 @@ function renderCompactSessionForFullSchedule(day, session) {
             </div>
     `;
 
-    // Группируем роли по категориям
+    // Группируем роли по категориям, показываем только занятые
     Object.entries(roleGroups).forEach(([groupKey, group]) => {
-        // Только те роли, которые есть в этом слоте
-        const groupRoles = group.roles.filter(role => sessionRoles.includes(role));
+        // Только те роли, которые есть в этом слоте и заняты
+        const groupRoles = group.roles.filter(role => sessionRoles.includes(role) && sessionAssignments[role]);
         if (groupRoles.length === 0) return;
         html += `<div class="roles-category-block">
             <div class="roles-category-title" style="margin: 10px 0 4px 0; color: var(--accent-primary); font-weight: 600; font-size: 1em;">${group.name}</div>
@@ -628,7 +628,7 @@ function renderCompactSessionForFullSchedule(day, session) {
                     return `
                         <div class="compact-role-slot${isCurrentUser ? ' current-user' : ''}">
                             <div class="compact-role-name">${role}</div>
-                            <div class="compact-role-user">${assignedUser || 'Свободно'}</div>
+                            <div class="compact-role-user">${assignedUser}</div>
                         </div>
                     `;
                 }).join('')}
