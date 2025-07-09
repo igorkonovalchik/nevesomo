@@ -234,18 +234,18 @@ function initializeParticipantsSelector() {
 }
 
 function initializeTelegramUser(userName) {
-    const bigGreeting = document.getElementById('bigGreeting');
-    const userSelector = document.getElementById('userSelector');
-    
-    if (bigGreeting) {
-        bigGreeting.textContent = `Привет, ${userName}!`;
-        bigGreeting.style.display = 'block';
+    const user = participants.find(p => p.name === userName);
+    if (user && user.is_New) {
+        // bigGreeting не показываем, слайдер покажет welcome
+    } else {
+        // Отключаем bigGreeting и splash
+        const bigGreeting = document.getElementById('bigGreeting');
+        if (bigGreeting) bigGreeting.style.display = 'none';
     }
-    
+    const userSelector = document.getElementById('userSelector');
     if (userSelector) {
         userSelector.style.display = 'none';
     }
-    
     setCurrentUser(userName);
 }
 
@@ -474,11 +474,11 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   };
 });
-// Показываем слайдер после загрузки данных, если is_New
+// Показываем слайдер после загрузки данных, если is_New (для любого пользователя)
 window.addEventListener('dataLoaded', () => {
   const user = getCurrentUserData && getCurrentUserData();
   if (user && user.is_New) {
-    setTimeout(showWelcomeSlider, 400); // после заставки
+    setTimeout(showWelcomeSlider, 400); // после загрузки
   }
 });
 
