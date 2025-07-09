@@ -107,16 +107,18 @@ function updateMenu() {
     
     let html = '';
 
-    // Свитчер офлайн-режима (iPhone-style)
-    html += `
-        <div class="menu-item" style="display: flex; align-items: center; gap: 12px;">
-            <label class="toggle-switch">
-                <input type="checkbox" id="offlineModeSwitch" onchange="toggleOfflineMode(this.checked)" />
-                <span class="slider"></span>
-                <span style="margin-left: 12px;">Офлайн режим</span>
-            </label>
-        </div>
-    `;
+    // Свитчер офлайн-режима (iPhone-style) — только если НЕ Telegram
+    if (!window.telegramUtils?.telegramUser) {
+        html += `
+            <div class="menu-item" style="display: flex; align-items: center; gap: 12px;">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="offlineModeSwitch" onchange="toggleOfflineMode(this.checked)" />
+                    <span class="slider"></span>
+                    <span style="margin-left: 12px;">Офлайн режим</span>
+                </label>
+            </div>
+        `;
+    }
 
     if (currentMode === 'admin') {
         html += `
@@ -288,24 +290,25 @@ function showBathInfo() {
 
 // === ОФЛАЙН-РЕЖИМ ===
 window.enableOfflineMode = async function() {
+    if (window.telegramUtils?.telegramUser) {
+        showNotification('Офлайн-режим недоступен в Telegram');
+        if (typeof updateMenu === 'function') updateMenu();
+        return;
+    }
     if (window.isOfflineMode) return;
     try {
         let percent = 0;
         if (window.showLoader) window.showLoader('Скачиваем данные для офлайн-режима...', percent);
-        // Скачиваем все данные
         percent = 10;
         if (window.showLoader) window.showLoader('Скачиваем данные для офлайн-режима...', percent);
         const allData = await window.airtableService.getAllData();
         percent = 80;
         if (window.showLoader) window.showLoader('Сохраняем данные...', percent);
-        // Сохраняем в localStorage
         localStorage.setItem('offlineData', JSON.stringify(allData));
         percent = 100;
         if (window.showLoader) window.showLoader('Данные успешно сохранены!', percent);
-        // Устанавливаем флаг
         window.isOfflineMode = true;
         showNotification('Офлайн режим включен!');
-        // Перезагружаем данные из localStorage
         if (window.loadOfflineData) {
             await window.loadOfflineData();
         }
