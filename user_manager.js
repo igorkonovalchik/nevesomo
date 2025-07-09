@@ -421,8 +421,12 @@ const welcomeSlides = [
 ];
 let welcomeSliderIndex = 0;
 function showWelcomeSlider() {
+  console.log('[DEBUG] showWelcomeSlider called. isDemoMode:', window.isDemoMode, 'telegramUser:', window.telegramUtils?.telegramUser);
   const overlay = document.getElementById('welcomeSliderOverlay');
-  if (!overlay) return;
+  if (!overlay) {
+    console.log('[DEBUG] showWelcomeSlider: overlay not found');
+    return;
+  }
   overlay.classList.add('show');
   renderWelcomeSlide(0);
 }
@@ -494,19 +498,23 @@ window.addEventListener('dataLoaded', () => {
   const user = getCurrentUserData && getCurrentUserData();
   console.log('[DEBUG] dataLoaded: getCurrentUserData =', user);
   if (user) console.log('[DEBUG] user.is_New =', user.is_New);
+  console.log('[DEBUG] window.isDemoMode =', window.isDemoMode, 'window.telegramUtils?.telegramUser =', window.telegramUtils?.telegramUser);
   // Telegram WebApp: demoMode или is_New
   if ((window.telegramUtils?.telegramUser && (window.isDemoMode === true || (user && user.is_New)))) {
+    console.log('[DEBUG] showWelcomeSlider: Telegram, demoMode or is_New');
     setTimeout(showWelcomeSlider, 400);
     return;
   }
   // Браузер: всегда показывать, если не скрыт на сутки
   if (!window.telegramUtils?.telegramUser) {
     if (window.isDemoMode) {
+      console.log('[DEBUG] showWelcomeSlider: browser demoMode');
       setTimeout(showWelcomeSlider, 400);
       return;
     }
     const until = +(localStorage.getItem('welcomeSliderHiddenUntil') || 0);
     if (Date.now() > until) {
+      console.log('[DEBUG] showWelcomeSlider: browser, not hidden');
       setTimeout(showWelcomeSlider, 400);
     } else {
       console.log('[DEBUG] welcomeSliderHiddenUntil active, slider не показываем');
