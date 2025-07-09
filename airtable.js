@@ -135,7 +135,8 @@ class AirtableService {
               isAdmin      : record.fields.Is_Admin    || false,// ← новое
               bathExperience : record.fields.Bath_Experience || false,
               createdDate  : record.fields.Created_Date || '',
-              notes        : record.fields.Notes        || ''
+              notes        : record.fields.Notes        || '',
+              is_New       : record.fields.is_New === true
             }));
         } catch (error) {
             console.error('Error getting participants:', error);
