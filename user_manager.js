@@ -484,8 +484,24 @@ function markUserNotNew() {
     console.log('[DEBUG] markUserNotNew: set localStorage.welcomeSliderHiddenUntil =', until);
     return;
   }
-  const user = getCurrentUserData();
-  if (!user || !user.id) return;
+  // === Новый поиск участника по Telegram username ===
+  const telegramUser = window.telegramUtils.telegramUser;
+  let user = null;
+  if (telegramUser && telegramUser.username) {
+    user = participants.find(p =>
+      p.telegram && p.telegram.replace('@', '').toLowerCase() === telegramUser.username.toLowerCase()
+    );
+  }
+  if (!user) {
+    console.error('[DEBUG] markUserNotNew: не найден участник по Telegram username:', telegramUser?.username);
+    showNotification('Ошибка: не удалось найти пользователя в базе для снятия галочки is_New');
+    return;
+  }
+  if (!user.id) {
+    console.error('[DEBUG] markUserNotNew: у найденного участника нет id, PATCH невозможен:', user);
+    showNotification('Ошибка: у пользователя нет id в базе, обратитесь к администратору');
+    return;
+  }
   console.log('[DEBUG] markUserNotNew: id =', user.id, 'name =', user.name, 'is_New =', user.is_New);
   // PATCH в Airtable: is_New = false
   if (window.airtableService && window.airtableService.update) {
