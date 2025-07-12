@@ -111,7 +111,7 @@ function openSchedulePopup() {
     } else {
         // Для админа показываем полное расписание
         Object.keys(schedule).forEach(day => {
-            hhtml += `
+            html += `
                 <div class="schedule-date-sticky">
                     <h2 style="margin: 0; color: var(--accent-primary); font-size: 1.4em; padding: 16px 0;">${formatDate(day)}</h2>
                 </div>

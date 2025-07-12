@@ -395,6 +395,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// === ГЛОБАЛЬНЫЙ ОБРАБОТЧИК ОФЛАЙН ===
+window.addEventListener('offline', () => {
+    if (typeof hideLoader === 'function') hideLoader();
+    if (typeof showNotification === 'function') {
+        showNotification('Вы офлайн. Проверьте подключение к интернету.');
+    } else {
+        alert('Вы офлайн. Проверьте подключение к интернету.');
+    }
+});
+
 // Функция для показа тултипа
 window.showProgressTooltip = function(element, emptySlots) {
     // Удаляем существующий тултип
