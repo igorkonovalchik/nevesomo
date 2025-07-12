@@ -418,27 +418,51 @@ function renderAfisha() {
             const icons = getTypeIcons(slot.type);
             let slotHtml = '';
             const sessionKey = `${date}_${slot.time}`;
-            // ВРЕМЕННАЯ ДИАГНОСТИКА ДЛЯ СЛОТА 2025-07-14 11:00 БАНЯ
-            if (date === '2025-07-14' && slot.time.startsWith('11:00') && slot.type && slot.type.includes('Баня')) {
-                console.log('=== DIAG BANJA 2025-07-14 11:00 ===');
+            // ВРЕМЕННАЯ ДИАГНОСТИКА ДЛЯ СЛОТА 2025-07-13 18:30 БАНЯ
+            if (date === '2025-07-13' && slot.time.startsWith('18:30') && slot.type && slot.type.includes('Баня')) {
+                console.log('=== DIAG BANJA 2025-07-13 18:30 ===');
                 console.log('sessionKey:', sessionKey);
                 console.log('slot.time:', slot.time);
                 console.log('assignments[sessionKey]:', assignments[sessionKey]);
+                if (assignments[sessionKey]) {
+                    console.log('Роли в assignments[sessionKey]:', Object.keys(assignments[sessionKey]));
+                }
                 // Поиск похожих ключей
                 Object.keys(assignments).forEach(key => {
-                    if (key.startsWith('2025-07-14')) {
-                        if (key.includes('11:00')) {
-                            console.log('assignments key with 11:00:', key, assignments[key]);
+                    if (key.startsWith('2025-07-13')) {
+                        if (key.includes('18:30')) {
+                            console.log('assignments key with 18:30:', key, assignments[key]);
                         } else {
-                            console.log('assignments key with 2025-07-14:', key, assignments[key]);
+                            console.log('assignments key with 2025-07-13:', key, assignments[key]);
                         }
                     }
                 });
             }
             // Баня (если type содержит 'Баня')
             if (slot.type && slot.type.includes('Баня')) {
-                const main = assignments[sessionKey]?.['Главный банный мастер'] || 'секретный банщик';
-                const assistant = assignments[sessionKey]?.['Пармастер 2'] || 'секретный банщик';
+                // Поддержка разных вариантов названия главного банщика
+                const mainVariants = ['Главный банный мастер', 'Главный банщик', 'Главный мастер'];
+                const assistantVariants = ['Пармастер 2', 'Пармастер', 'Ассистент'];
+                // Поддержка разных форматов времени
+                const timeVariants = [slot.time];
+                if (!slot.time.endsWith(':00')) timeVariants.push(slot.time + ':00');
+                if (slot.time.length > 5 && slot.time.endsWith(':00')) timeVariants.push(slot.time.slice(0,5));
+                let main = null;
+                let assistant = null;
+                for (const t of timeVariants) {
+                    const key = `${date}_${t}`;
+                    if (assignments[key]) {
+                        for (const v of mainVariants) {
+                            if (assignments[key][v]) { main = assignments[key][v]; break; }
+                        }
+                        for (const v of assistantVariants) {
+                            if (assignments[key][v]) { assistant = assignments[key][v]; break; }
+                        }
+                    }
+                    if (main && assistant) break;
+                }
+                if (!main) main = 'секретный банщик';
+                if (!assistant) assistant = 'секретный банщик';
                 slotHtml = `<div style="margin-bottom:18px; padding:18px 16px; border-radius:18px; background:rgba(57,255,20,0.08); box-shadow:0 0 16px ${slotColor};">
                     <div class="afisha-slot-title" style="font-size:1.1em; font-weight:700; color:${slotColor}; text-shadow:0 0 8px ${slotColor}; letter-spacing:1px; display:flex; align-items:center; gap:8px;">
                         ${icons ? `<span>${icons}</span>` : ''}
