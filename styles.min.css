@@ -1718,11 +1718,15 @@ body.dark .welcome-slider-btn.skip {
     box-shadow: 0 0 32px #ffe600, 0 0 64px #ff00cc, 0 0 16px #39ff14;
 }
 #afishaPopup .popup-body .afisha-date {
+    font-size: 2.2em;
+    font-weight: 900;
+    text-align: center;
+    margin: 36px 0 24px 0;
+    letter-spacing: 2px;
     color: #ffe600;
     text-shadow: 0 0 8px #ffe600;
-    font-size: 1.2em;
-    margin: 24px 0 12px 0;
-    letter-spacing: 1px;
+    font-family: 'Montserrat', Arial, sans-serif;
+    display: block;
 }
 #afishaPopup .popup-body .afisha-slot-title {
     color: #39ff14;

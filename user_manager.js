@@ -373,6 +373,7 @@ window.loadOfflineData = async function() {
                     sessionNum: session.sessionNumber,
                     status: session.status,
                     type: session.type,
+                    slotName: session.slotName || '',
                     availableRoles: session.availableRoles,
                     slotLink: session.slotLink || null
                 });

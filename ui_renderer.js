@@ -406,7 +406,7 @@ function renderAfisha() {
                 const main = assignments[sessionKey]?.['Главный банный мастер'] || 'секретный банщик';
                 const assistant = assignments[sessionKey]?.['Пармастер 2'] || 'секретный банщик';
                 slotHtml = `<div style="margin-bottom:18px; padding:18px 16px; border-radius:18px; background:rgba(57,255,20,0.08); box-shadow:0 0 16px ${slotColor};">
-                    <div class="afisha-slot-title" style="font-size:1.1em; font-weight:700; color:${slotColor}; text-shadow:0 0 8px ${slotColor}; letter-spacing:1px;">${slot.slotName || slot.type}</div>
+                    <div class="afisha-slot-title" style="font-size:1.1em; font-weight:700; color:${slotColor}; text-shadow:0 0 8px ${slotColor}; letter-spacing:1px;">${slot.slotName}</div>
                     <span class="afisha-slot-time">${slot.time}</span>
                     <div style="margin-top:8px; color:#fff; font-size:1em;">
                         ${main} <span style="color:${slotColor}; font-weight:600;">feat</span> ${assistant}
@@ -417,7 +417,7 @@ function renderAfisha() {
                 const sessionKey = `${date}_${slot.time}`;
                 const chef = assignments[sessionKey]?.['Кухня 1'] || 'секретный повар';
                 slotHtml = `<div style="margin-bottom:18px; padding:18px 16px; border-radius:18px; background:rgba(0,234,255,0.08); box-shadow:0 0 16px ${slotColor};">
-                    <div class="afisha-slot-title" style="font-size:1.1em; font-weight:700; color:${slotColor}; text-shadow:0 0 8px ${slotColor}; letter-spacing:1px;">${slot.slotName || slot.type}</div>
+                    <div class="afisha-slot-title" style="font-size:1.1em; font-weight:700; color:${slotColor}; text-shadow:0 0 8px ${slotColor}; letter-spacing:1px;">${slot.slotName}</div>
                     <span class="afisha-slot-time">${slot.time}</span>
                     <div style="margin-top:8px; color:#fff; font-size:1em;">
                         шеф повар: <span style="color:${slotColor}; font-weight:600;">${chef}</span>
