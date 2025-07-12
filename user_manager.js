@@ -596,4 +596,12 @@ window.toggleDebugOverlay = function(on) {
   console.error = function(...args) { addDebugLine('error', ...args); origError.apply(console, args); };
 })();
 
+window.openAfishaPopup = function() {
+    document.getElementById('afishaPopup').classList.add('show');
+    if (typeof renderAfisha === 'function') renderAfisha();
+};
+window.closeAfishaPopup = function() {
+    document.getElementById('afishaPopup').classList.remove('show');
+};
+
 console.log('👤 User Manager загружен');
