@@ -434,6 +434,7 @@ function closeParticipantPopup() {
 let loaderAutoHideTimeout = null;
 
 function showLoader(text = 'Загрузка...', percent = null) {
+    console.log('[showLoader]', text, percent, new Date().toISOString(), new Error().stack);
     let loader = document.getElementById('loadingOverlay');
     if (!loader) {
         loader = document.createElement('div');
@@ -457,6 +458,7 @@ function showLoader(text = 'Загрузка...', percent = null) {
         progressDiv.style.display = 'none';
     }
     loader.classList.add('show');
+    loader.style.display = '';
 
     // Автоматическое скрытие через 7 секунд
     if (loaderAutoHideTimeout) clearTimeout(loaderAutoHideTimeout);
@@ -466,9 +468,11 @@ function showLoader(text = 'Загрузка...', percent = null) {
 }
 
 function hideLoader() {
+    console.log('[hideLoader]', new Date().toISOString(), new Error().stack);
     const loader = document.getElementById('loadingOverlay');
     if (loader) {
         loader.classList.remove('show');
+        loader.style.display = 'none'; // Принудительно скрываем
     }
 }
 
