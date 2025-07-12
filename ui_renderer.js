@@ -389,7 +389,7 @@ function renderAfisha() {
     const slotTypes = ['Кухня едим', 'Баня'];
     const neonColors = ['#39ff14', '#00eaff', '#ff00cc', '#ffe600', '#ff5c5c'];
     let colorIdx = 0;
-    let html = '<div class="afisha-bg"></div>';
+    let html = '';
     
     afishaDates.forEach(date => {
         if (!schedule[date]) return;
@@ -405,22 +405,22 @@ function renderAfisha() {
                 const sessionKey = `${date}_${slot.time}`;
                 const main = assignments[sessionKey]?.['Главный банный мастер'] || 'секретный банщик';
                 const assistant = assignments[sessionKey]?.['Пармастер 2'] || 'секретный банщик';
-                slotHtml = `<div style="margin-bottom:18px; padding:18px 16px; border-radius:18px; background:rgba(57,255,20,0.08); box-shadow:0 0 16px ${slotColor}; display:flex; align-items:center; min-height:120px;">
+                slotHtml = `<div style="margin-bottom:18px; padding:18px 16px; border-radius:18px; background:rgba(57,255,20,0.08); box-shadow:0 0 16px ${slotColor};">
+                    <div class="afisha-slot-title" style="font-size:1.1em; font-weight:700; color:${slotColor}; text-shadow:0 0 8px ${slotColor}; letter-spacing:1px;">${slot.slotName || slot.type}</div>
                     <span class="afisha-slot-time">${slot.time}</span>
-                    <div style="flex:1;">
-                        <div class="afisha-slot-title">${slot.slotName || slot.type}</div>
-                        <div class="afisha-slot-role">${main} <span>feat</span> ${assistant}</div>
+                    <div style="margin-top:8px; color:#fff; font-size:1em;">
+                        ${main} <span style="color:${slotColor}; font-weight:600;">feat</span> ${assistant}
                     </div>
                 </div>`;
             } else if (slot.type === 'Кухня едим') {
                 // Повар (Кухня 1)
                 const sessionKey = `${date}_${slot.time}`;
                 const chef = assignments[sessionKey]?.['Кухня 1'] || 'секретный повар';
-                slotHtml = `<div style="margin-bottom:18px; padding:18px 16px; border-radius:18px; background:rgba(0,234,255,0.08); box-shadow:0 0 16px ${slotColor}; display:flex; align-items:center; min-height:120px;">
+                slotHtml = `<div style="margin-bottom:18px; padding:18px 16px; border-radius:18px; background:rgba(0,234,255,0.08); box-shadow:0 0 16px ${slotColor};">
+                    <div class="afisha-slot-title" style="font-size:1.1em; font-weight:700; color:${slotColor}; text-shadow:0 0 8px ${slotColor}; letter-spacing:1px;">${slot.slotName || slot.type}</div>
                     <span class="afisha-slot-time">${slot.time}</span>
-                    <div style="flex:1;">
-                        <div class="afisha-slot-title">${slot.slotName || slot.type}</div>
-                        <div class="afisha-slot-role">шеф повар: <span>${chef}</span></div>
+                    <div style="margin-top:8px; color:#fff; font-size:1em;">
+                        шеф повар: <span style="color:${slotColor}; font-weight:600;">${chef}</span>
                     </div>
                 </div>`;
             }
@@ -428,7 +428,7 @@ function renderAfisha() {
         });
     });
     if (!html) {
-        html = '<div class="afisha-bg"></div><div class="afisha-empty">Нет слотов для афиши на выбранные дни.</div>';
+        html = '<div style="text-align:center; color:#ff5c5c; font-size:1.1em;">Нет слотов для афиши на выбранные дни.</div>';
     }
     afishaBody.innerHTML = html;
 }

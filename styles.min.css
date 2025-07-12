@@ -1663,8 +1663,8 @@ body.dark .welcome-slider-btn.skip {
 
 /* === Афиша (NEON FLYER) === */
 #afishaPopup .popup-bottom {
-    background: transparent !important;
-    box-shadow: none !important;
+    background: #181c2b !important;
+    box-shadow: 0 0 32px #39ff14, 0 0 64px #00eaff;
     border-radius: 0 !important;
     border: none !important;
     width: 100vw !important;
@@ -1673,142 +1673,88 @@ body.dark .welcome-slider-btn.skip {
     left: 0 !important;
     top: 0 !important;
     position: fixed !important;
+    animation: neonFlyerIn 0.7s cubic-bezier(.4,0,.2,1);
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    overflow: hidden;
-}
-#afishaPopup .afisha-bg {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background: linear-gradient(135deg, #2323ff 0%, #ff23ff 100%);
-}
-#afishaPopup .afisha-bg::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    background: radial-gradient(circle at 20% 30%, #ffe60055 180px, transparent 300px),
-                radial-gradient(circle at 80% 20%, #00eaff55 180px, transparent 300px),
-                radial-gradient(circle at 60% 80%, #ff00cc55 180px, transparent 300px),
-                radial-gradient(circle at 40% 60%, #39ff1455 120px, transparent 300px);
 }
 #afishaPopup .popup-header.accent {
-    background: transparent !important;
-    color: #fff !important;
-    text-shadow: 0 0 8px #fff, 0 0 16px #ffe600;
-    border-bottom: none;
-    font-family: 'Bungee', 'Montserrat', Arial, sans-serif;
-    font-size: 2em;
-    font-weight: 900;
-    letter-spacing: 2px;
-    text-align: center;
-    margin-top: 24px;
+    background: #181c2b !important;
+    color: #39ff14 !important;
+    text-shadow: 0 0 8px #39ff14, 0 0 16px #00eaff;
+    border-bottom: 2px solid #00eaff;
 }
 #afishaPopup .popup-title {
-    font-family: 'Bungee', 'Montserrat', Arial, sans-serif;
-    font-size: 2.2em;
+    font-family: 'Montserrat', 'Arial Black', sans-serif;
+    font-size: 1.7em;
     letter-spacing: 2px;
-    color: #fff;
-    text-shadow: 0 0 8px #fff, 0 0 16px #ffe600;
-    font-weight: 900;
+    color: #39ff14;
+    text-shadow: 0 0 8px #39ff14, 0 0 16px #00eaff;
 }
 #afishaPopup .popup-body {
-    background: rgba(24,28,43,0.7) !important;
+    background: #181c2b !important;
     color: #fff;
     min-height: 200px;
-    padding: 40px 12px 12px 12px;
-    font-family: 'Montserrat', Arial, sans-serif;
+    padding: 32px 12px 12px 12px;
+    font-family: 'Montserrat', 'Arial Black', sans-serif;
     font-size: 1.1em;
-    border-radius: 32px;
+    border-radius: 0;
     flex: 1 1 auto;
     overflow-y: auto;
-    margin: 32px 24px 24px 24px;
-    box-shadow: 0 0 0 6px #fff, 0 0 32px #ffe600;
-    position: relative;
-    z-index: 2;
 }
 #afishaPopup .popup-close {
-    color: #fff !important;
-    font-size: 2em;
-    text-shadow: 0 0 8px #00eaff, 0 0 16px #ffe600;
-    position: absolute;
-    right: 32px;
-    top: 32px;
-    z-index: 10;
+    color: #00eaff !important;
+    font-size: 1.7em;
+    text-shadow: 0 0 8px #00eaff;
 }
 #afishaPopup .popup-body div[style*='box-shadow'] {
-    border: none;
-    box-shadow: 0 0 24px #fff, 0 0 32px #ffe600, 0 0 8px #ff00cc;
+    border: 2px solid #39ff14;
+    box-shadow: 0 0 16px #39ff14, 0 0 32px #00eaff, 0 0 8px #ff00cc;
     background: rgba(24,28,43,0.95) !important;
-    margin-bottom: 32px !important;
+    margin-bottom: 24px !important;
     transition: box-shadow 0.3s;
-    position: relative;
-    display: flex;
-    align-items: center;
-    min-height: 120px;
 }
 #afishaPopup .popup-body div[style*='box-shadow']:hover {
-    box-shadow: 0 0 48px #ffe600, 0 0 64px #ff00cc, 0 0 16px #39ff14;
+    box-shadow: 0 0 32px #ffe600, 0 0 64px #ff00cc, 0 0 16px #39ff14;
 }
 #afishaPopup .popup-body .afisha-date {
     color: #ffe600;
     text-shadow: 0 0 8px #ffe600;
-    font-size: 1.3em;
-    margin: 32px 0 18px 0;
+    font-size: 1.2em;
+    margin: 24px 0 12px 0;
     letter-spacing: 1px;
-    font-family: 'Montserrat', Arial, sans-serif;
-    font-weight: 700;
 }
 #afishaPopup .popup-body .afisha-slot-title {
-    color: #fff;
-    text-shadow: 0 0 8px #fff, 0 0 16px #ffe600;
-    font-size: 2em;
-    font-family: 'Bungee', 'Montserrat', Arial, sans-serif;
-    font-weight: 900;
-    letter-spacing: 2px;
-    flex: 1 1 auto;
-    text-align: left;
+    color: #39ff14;
+    text-shadow: 0 0 8px #39ff14, 0 0 16px #00eaff;
+    font-size: 1.1em;
+    font-weight: 700;
+    letter-spacing: 1px;
 }
 #afishaPopup .popup-body .afisha-slot-time {
-    color: #2323ff;
-    background: #fff;
-    border-radius: 50%;
-    font-size: 2.2em;
-    font-family: 'Bungee', 'Montserrat', Arial, sans-serif;
-    font-weight: 900;
-    margin-right: 32px;
-    margin-left: 0;
-    min-width: 90px;
-    min-height: 90px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 24px #2323ff, 0 0 32px #ffe600;
-    border: 4px solid #ffe600;
-    text-shadow: 0 0 12px #2323ff, 0 0 24px #ffe600;
+    color: #ffe600;
+    font-size: 2em;
+    font-weight: 800;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    text-shadow: 0 0 12px #ffe600, 0 0 24px #ffe600;
     letter-spacing: 2px;
-    flex-shrink: 0;
+    display: block;
 }
 #afishaPopup .popup-body .afisha-slot-role {
     color: #00eaff;
-    font-size: 1.1em;
+    font-size: 1em;
     margin-top: 8px;
-    font-family: 'Montserrat', Arial, sans-serif;
-    font-weight: 500;
 }
 #afishaPopup .popup-body .afisha-slot-role span {
     color: #ffe600;
-    font-weight: 700;
+    font-weight: 600;
 }
 #afishaPopup .popup-body .afisha-empty {
     text-align: center;
     color: #ff5c5c;
-    font-size: 1.2em;
-    margin-top: 48px;
-    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 1.1em;
+    margin-top: 32px;
 }
 #afishaPopup .popup-bottom > div:last-child {
     color: #39ff14;
@@ -1816,7 +1762,6 @@ body.dark .welcome-slider-btn.skip {
     font-size: 1.1em;
     letter-spacing: 1px;
     margin-bottom: 8px;
-    font-family: 'Montserrat', Arial, sans-serif;
 }
 @keyframes neonFlyerIn {
     0% { opacity: 0; transform: translateY(100px) scale(0.95); }
