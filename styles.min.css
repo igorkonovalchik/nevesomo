@@ -1660,3 +1660,94 @@ body.dark .welcome-slider-btn.skip {
     margin-top: 18px;
     text-align: center;
 }
+
+/* === Афиша (NEON FLYER) === */
+#afishaPopup .popup-bottom {
+    background: #181c2b !important;
+    box-shadow: 0 0 32px #39ff14, 0 0 64px #00eaff;
+    border-radius: 32px 32px 0 0;
+    border: 2px solid #39ff14;
+    animation: neonFlyerIn 0.7s cubic-bezier(.4,0,.2,1);
+}
+#afishaPopup .popup-header.accent {
+    background: #181c2b !important;
+    color: #39ff14 !important;
+    text-shadow: 0 0 8px #39ff14, 0 0 16px #00eaff;
+    border-bottom: 2px solid #00eaff;
+}
+#afishaPopup .popup-title {
+    font-family: 'Montserrat', 'Arial Black', sans-serif;
+    font-size: 1.5em;
+    letter-spacing: 2px;
+    color: #39ff14;
+    text-shadow: 0 0 8px #39ff14, 0 0 16px #00eaff;
+}
+#afishaPopup .popup-body {
+    background: #181c2b !important;
+    color: #fff;
+    min-height: 200px;
+    padding: 32px 12px 12px 12px;
+    font-family: 'Montserrat', 'Arial Black', sans-serif;
+    font-size: 1.1em;
+    border-radius: 0 0 32px 32px;
+}
+#afishaPopup .popup-close {
+    color: #00eaff !important;
+    font-size: 1.7em;
+    text-shadow: 0 0 8px #00eaff;
+}
+#afishaPopup .popup-body div[style*='box-shadow'] {
+    border: 2px solid #39ff14;
+    box-shadow: 0 0 16px #39ff14, 0 0 32px #00eaff, 0 0 8px #ff00cc;
+    background: rgba(24,28,43,0.95) !important;
+    margin-bottom: 24px !important;
+    transition: box-shadow 0.3s;
+}
+#afishaPopup .popup-body div[style*='box-shadow']:hover {
+    box-shadow: 0 0 32px #ffe600, 0 0 64px #ff00cc, 0 0 16px #39ff14;
+}
+#afishaPopup .popup-body .afisha-date {
+    color: #ffe600;
+    text-shadow: 0 0 8px #ffe600;
+    font-size: 1.2em;
+    margin: 24px 0 12px 0;
+    letter-spacing: 1px;
+}
+#afishaPopup .popup-body .afisha-slot-title {
+    color: #39ff14;
+    text-shadow: 0 0 8px #39ff14, 0 0 16px #00eaff;
+    font-size: 1.1em;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+#afishaPopup .popup-body .afisha-slot-time {
+    color: #ff00cc;
+    font-size: 0.95em;
+    margin-top: 4px;
+}
+#afishaPopup .popup-body .afisha-slot-role {
+    color: #00eaff;
+    font-size: 1em;
+    margin-top: 8px;
+}
+#afishaPopup .popup-body .afisha-slot-role span {
+    color: #ffe600;
+    font-weight: 600;
+}
+#afishaPopup .popup-body .afisha-empty {
+    text-align: center;
+    color: #ff5c5c;
+    font-size: 1.1em;
+    margin-top: 32px;
+}
+#afishaPopup .popup-bottom > div:last-child {
+    color: #39ff14;
+    text-shadow: 0 0 8px #39ff14;
+    font-size: 1.1em;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+@keyframes neonFlyerIn {
+    0% { opacity: 0; transform: translateY(100px) scale(0.95); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
