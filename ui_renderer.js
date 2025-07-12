@@ -407,8 +407,8 @@ function renderAfisha() {
 
     afishaDates.forEach(date => {
         if (!schedule[date]) return;
-        // Берём все слоты с непустым slotName
-        const daySlots = schedule[date].filter(slot => slot.slotName && slot.slotName.trim());
+        // Берём все слоты с непустым slotName и не type === 'Кухня'
+        const daySlots = schedule[date].filter(slot => slot.slotName && slot.slotName.trim() && slot.type !== 'Кухня');
         if (daySlots.length === 0) return;
         html += `<div class="afisha-date">${date.replace('2025-07-', '')} июля</div>`;
         daySlots.forEach(slot => {
@@ -417,14 +417,43 @@ function renderAfisha() {
             // Иконки по Type
             const icons = getTypeIcons(slot.type);
             let slotHtml = '';
-            // Общий шаблон для всех слотов
-            slotHtml = `<div style="margin-bottom:18px; padding:18px 16px; border-radius:18px; background:rgba(57,255,20,0.08); box-shadow:0 0 16px ${slotColor};">
-                <div class="afisha-slot-title" style="font-size:1.1em; font-weight:700; color:${slotColor}; text-shadow:0 0 8px ${slotColor}; letter-spacing:1px; display:flex; align-items:center; gap:8px;">
-                    ${icons ? `<span>${icons}</span>` : ''}
-                    <span>${slot.slotName}</span>
-                </div>
-                <span class="afisha-slot-time">${slot.time}</span>
-            </div>`;
+            const sessionKey = `${date}_${slot.time}`;
+            // Баня (если type содержит 'Баня')
+            if (slot.type && slot.type.includes('Баня')) {
+                const main = assignments[sessionKey]?.['Главный банный мастер'] || 'секретный банщик';
+                const assistant = assignments[sessionKey]?.['Пармастер 2'] || 'секретный банщик';
+                slotHtml = `<div style="margin-bottom:18px; padding:18px 16px; border-radius:18px; background:rgba(57,255,20,0.08); box-shadow:0 0 16px ${slotColor};">
+                    <div class="afisha-slot-title" style="font-size:1.1em; font-weight:700; color:${slotColor}; text-shadow:0 0 8px ${slotColor}; letter-spacing:1px; display:flex; align-items:center; gap:8px;">
+                        ${icons ? `<span>${icons}</span>` : ''}
+                        <span>${slot.slotName}</span>
+                    </div>
+                    <span class="afisha-slot-time">${slot.time}</span>
+                    <div style="margin-top:8px; color:#fff; font-size:1em;">
+                        ${main} <span style="color:${slotColor}; font-weight:600;">feat</span> ${assistant}
+                    </div>
+                </div>`;
+            } else if (slot.type === 'Кухня едим') {
+                const chef = assignments[sessionKey]?.['Кухня 1'] || 'секретный повар';
+                slotHtml = `<div style="margin-bottom:18px; padding:18px 16px; border-radius:18px; background:rgba(0,234,255,0.08); box-shadow:0 0 16px ${slotColor};">
+                    <div class="afisha-slot-title" style="font-size:1.1em; font-weight:700; color:${slotColor}; text-shadow:0 0 8px ${slotColor}; letter-spacing:1px; display:flex; align-items:center; gap:8px;">
+                        ${icons ? `<span>${icons}</span>` : ''}
+                        <span>${slot.slotName}</span>
+                    </div>
+                    <span class="afisha-slot-time">${slot.time}</span>
+                    <div style="margin-top:8px; color:#fff; font-size:1em;">
+                        шеф повар: <span style="color:${slotColor}; font-weight:600;">${chef}</span>
+                    </div>
+                </div>`;
+            } else {
+                // Остальные типы — только иконки и название
+                slotHtml = `<div style="margin-bottom:18px; padding:18px 16px; border-radius:18px; background:rgba(57,255,20,0.08); box-shadow:0 0 16px ${slotColor};">
+                    <div class="afisha-slot-title" style="font-size:1.1em; font-weight:700; color:${slotColor}; text-shadow:0 0 8px ${slotColor}; letter-spacing:1px; display:flex; align-items:center; gap:8px;">
+                        ${icons ? `<span>${icons}</span>` : ''}
+                        <span>${slot.slotName}</span>
+                    </div>
+                    <span class="afisha-slot-time">${slot.time}</span>
+                </div>`;
+            }
             html += slotHtml;
         });
     });
