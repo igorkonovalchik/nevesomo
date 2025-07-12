@@ -176,6 +176,7 @@ class AirtableService {
                 sessionNumber: record.fields.Session_Number || null,
                 status: record.fields.Status || '',
                 type: record.fields.Type || '',
+                slotName: record.fields.Slot_Name || '',
                 availableRoles: record.fields.Available_Roles || '',
                 maxParticipants: record.fields.Max_Participants || 0,
                 slotLink: record.fields.slot_link || ''
