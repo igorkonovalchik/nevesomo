@@ -578,7 +578,7 @@ function renderFullScheduleWithTabs() {
 
 function renderCompactSessionForFullSchedule(day, session) {
     const sessionKey = `${day}_${session.time}`;
-    const sessionAssignments = assignments[sessionKey];
+    const sessionAssignments = assignments[sessionKey] || {};
 
     let sessionRoles = allRoles;
     if (session.roles) {
