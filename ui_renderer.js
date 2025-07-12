@@ -418,6 +418,23 @@ function renderAfisha() {
             const icons = getTypeIcons(slot.type);
             let slotHtml = '';
             const sessionKey = `${date}_${slot.time}`;
+            // ВРЕМЕННАЯ ДИАГНОСТИКА ДЛЯ СЛОТА 2025-07-14 11:00 БАНЯ
+            if (date === '2025-07-14' && slot.time.startsWith('11:00') && slot.type && slot.type.includes('Баня')) {
+                console.log('=== DIAG BANJA 2025-07-14 11:00 ===');
+                console.log('sessionKey:', sessionKey);
+                console.log('slot.time:', slot.time);
+                console.log('assignments[sessionKey]:', assignments[sessionKey]);
+                // Поиск похожих ключей
+                Object.keys(assignments).forEach(key => {
+                    if (key.startsWith('2025-07-14')) {
+                        if (key.includes('11:00')) {
+                            console.log('assignments key with 11:00:', key, assignments[key]);
+                        } else {
+                            console.log('assignments key with 2025-07-14:', key, assignments[key]);
+                        }
+                    }
+                });
+            }
             // Баня (если type содержит 'Баня')
             if (slot.type && slot.type.includes('Баня')) {
                 const main = assignments[sessionKey]?.['Главный банный мастер'] || 'секретный банщик';
