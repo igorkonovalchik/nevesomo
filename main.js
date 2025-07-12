@@ -397,7 +397,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // === ГЛОБАЛЬНЫЙ ОБРАБОТЧИК ОФЛАЙН ===
 window.addEventListener('offline', () => {
+    console.log('offline event'); // Для отладки
     if (typeof hideLoader === 'function') hideLoader();
+    if (typeof hideLoadingScreen === 'function') hideLoadingScreen();
     if (typeof showNotification === 'function') {
         showNotification('Вы офлайн. Проверьте подключение к интернету.');
     } else {

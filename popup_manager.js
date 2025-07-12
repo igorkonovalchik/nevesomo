@@ -135,7 +135,7 @@ function openSchedulePopup() {
                 }
                 
                 sessionRoles.forEach(role => {
-                    const assignedUser = assignments[sessionKey][role];
+                    const assignedUser = (assignments[sessionKey] || {})[role];
                     html += `
                         <div style="display: flex; justify-content: space-between; margin: 4px 0; padding: 4px 0;">
                             <span style="color: var(--text-secondary); font-size: 0.9em;">${role}:</span>
