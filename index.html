@@ -347,5 +347,20 @@ setTimeout(() => {
     </div>
   </div>
 </div>
+<!-- Попап афиши -->
+<div class="popup-overlay" id="afishaPopup">
+    <div class="popup-bottom" onclick="event.stopPropagation()">
+        <div class="popup-header accent" style="background: #181c2b; color: #39ff14;">
+            <div class="popup-title" style="font-size:1.3em; letter-spacing:2px;">NEVESONO банный кемп</div>
+            <button class="popup-close" onclick="closeAfishaPopup()">×</button>
+        </div>
+        <div class="popup-body" id="afishaBody" style="background: #181c2b; color: #fff; min-height: 200px;">
+            <!-- Афиша будет рендериться сюда -->
+        </div>
+        <div style="text-align:center; font-size:1.1em; color:#39ff14; margin: 18px 0 8px 0; letter-spacing:1px;">
+            ветерок 2025
+        </div>
+    </div>
+</div>
 </body>
 </html>

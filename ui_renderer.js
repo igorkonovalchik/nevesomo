@@ -380,6 +380,59 @@ function renderRolesList() {
     return html;
 }
 
+function renderAfisha() {
+    const afishaBody = document.getElementById('afishaBody');
+    if (!afishaBody) return;
+    
+    // Даты для афиши
+    const afishaDates = ['2025-07-13', '2025-07-14', '2025-07-15'];
+    const slotTypes = ['Кухня едим', 'Баня'];
+    const neonColors = ['#39ff14', '#00eaff', '#ff00cc', '#ffe600', '#ff5c5c'];
+    let colorIdx = 0;
+    let html = '';
+    
+    afishaDates.forEach(date => {
+        if (!schedule[date]) return;
+        const daySlots = schedule[date].filter(slot => slotTypes.includes(slot.type));
+        if (daySlots.length === 0) return;
+        html += `<div style="margin: 24px 0 12px 0; font-size:1.2em; color:#ffe600; letter-spacing:1px; text-shadow:0 0 8px #ffe600;">${date.replace('2025-07-', '')} июля</div>`;
+        daySlots.forEach(slot => {
+            let slotColor = neonColors[colorIdx % neonColors.length];
+            colorIdx++;
+            let slotHtml = '';
+            if (slot.type === 'Баня') {
+                // Главный банщик и ассистент
+                const sessionKey = `${date}_${slot.time}`;
+                const main = assignments[sessionKey]?.['Главный банный мастер'] || 'секретный банщик';
+                const assistant = assignments[sessionKey]?.['Пармастер 2'] || 'секретный банщик';
+                slotHtml = `<div style="margin-bottom:18px; padding:18px 16px; border-radius:18px; background:rgba(57,255,20,0.08); box-shadow:0 0 16px ${slotColor};">
+                    <div style="font-size:1.1em; font-weight:700; color:${slotColor}; text-shadow:0 0 8px ${slotColor}; letter-spacing:1px;">${slot.slotName || slot.type}</div>
+                    <div style="margin-top:8px; color:#fff; font-size:1em;">
+                        ${main} <span style="color:${slotColor}; font-weight:600;">feat</span> ${assistant}
+                    </div>
+                    <div style="margin-top:4px; font-size:0.95em; color:#00eaff;">${slot.time}</div>
+                </div>`;
+            } else if (slot.type === 'Кухня едим') {
+                // Повар (Кухня 1)
+                const sessionKey = `${date}_${slot.time}`;
+                const chef = assignments[sessionKey]?.['Кухня 1'] || 'секретный повар';
+                slotHtml = `<div style="margin-bottom:18px; padding:18px 16px; border-radius:18px; background:rgba(0,234,255,0.08); box-shadow:0 0 16px ${slotColor};">
+                    <div style="font-size:1.1em; font-weight:700; color:${slotColor}; text-shadow:0 0 8px ${slotColor}; letter-spacing:1px;">${slot.slotName || slot.type}</div>
+                    <div style="margin-top:8px; color:#fff; font-size:1em;">
+                        шеф повар: <span style="color:${slotColor}; font-weight:600;">${chef}</span>
+                    </div>
+                    <div style="margin-top:4px; font-size:0.95em; color:#ff00cc;">${slot.time}</div>
+                </div>`;
+            }
+            html += slotHtml;
+        });
+    });
+    if (!html) {
+        html = '<div style="text-align:center; color:#ff5c5c; font-size:1.1em;">Нет слотов для афиши на выбранные дни.</div>';
+    }
+    afishaBody.innerHTML = html;
+}
+
 /* === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ === */
 function isSlotBlocked(sessionKey, role) {
     if (currentMode !== 'user' || !currentUser) return false;

@@ -160,6 +160,11 @@ function updateMenu() {
             `;
         }
     }
+    html += `
+        <div class="menu-item" onclick="openAfishaPopup(); closeMenu();">
+            <span>🎉 Афиша</span>
+        </div>
+    `;
 
     menuItems.innerHTML = html;
 
