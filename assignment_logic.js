@@ -473,6 +473,9 @@ function hideLoader() {
     if (loader) {
         loader.classList.remove('show');
         loader.style.display = 'none'; // Принудительно скрываем
+        setTimeout(() => {
+            if (loader.parentNode) loader.parentNode.removeChild(loader);
+        }, 500); // Через полсекунды после скрытия
     }
 }
 
