@@ -219,6 +219,10 @@ function showErrorMessage(message) {
 }
 
 /* === ИНТЕГРАЦИЯ С TELEGRAM === */
+function getQueryParams() {
+    return Object.fromEntries(new URLSearchParams(window.location.search));
+}
+
 window.addEventListener('dataLoaded', () => {
     // Проверяем Telegram интеграцию
     const telegramUser = window.telegramUtils?.telegramUser;
@@ -253,6 +257,10 @@ window.addEventListener('dataLoaded', () => {
         } else {
             console.log('❌ Участник не найден в базе');
         }
+    }
+    const params = getQueryParams();
+    if (params.afisha === '1' && typeof openAfishaPopup === 'function') {
+        openAfishaPopup();
     }
 });
 
@@ -296,6 +304,7 @@ window.currentUser = currentUser;
 
 /* === ФУНКЦИИ УПРАВЛЕНИЯ ЗАСТАВКОЙ === */
 async function showLoadingScreen() {
+    if (window.offlineMode) return;
     const loadingScreen = document.getElementById('loadingScreen');
     const loadingLogo = document.querySelector('.loading-logo');
     const loadingContent = document.querySelector('.loading-content');
@@ -355,6 +364,7 @@ function startLoadingTextAnimation(textElement) {
 }
 
 function hideLoadingScreen() {
+    if (window.offlineMode) return;
     const loadingScreen = document.getElementById('loadingScreen');
     if (loadingScreen) {
         loadingScreen.classList.add('hidden');
