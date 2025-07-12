@@ -170,6 +170,7 @@ async function loadAirtableData() {
                 sessionNum: session.sessionNumber,
                 status: session.status,
                 type: session.type,
+                slotName: session.slotName || '',
                 availableRoles: session.availableRoles, // Сохраняем как есть из базы
                 slotLink: session.slotLink || null  
             });
